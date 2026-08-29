@@ -1,0 +1,38 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# next
+.next/
+out/
+build/
+next-env.d.ts
+
+# env — never commit filled values
+.env
+.env.local
+.env.*.local
+
+# test / build output
+coverage/
+*.tsbuildinfo
+
+# golden set — real children's reports. Never commit.
+evals/golden/**/*.pdf
+evals/golden/**/*.png
+evals/golden/**/*.jpg
+evals/golden/**/*.jpeg
+
+# os / editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# logs
+npm-debug.log*
+yarn-error.log*
+*.log
