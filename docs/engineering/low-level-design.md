@@ -3,7 +3,7 @@
 **Source:** `docs/engineering/engineering-doc.md`, `docs/PRD.md`
 **Scope:** MVP path end to end — upload → findings → review → plan → check-in
 **Schema:** `docs/specs/supabase-schema.sql`
-**Last updated:** 23 August 2026
+**Last updated:** 29 August 2026
 
 Out of scope here: local options (C12), classify (C1), extraction retry, trajectory across reports, conference prep. All MVP 1 or later.
 
@@ -43,8 +43,7 @@ export type StageError =
 export interface ExtractInput {
   reportId: string;
   pageNo: number;
-  imageUrl: string;          // signed, short TTL
-  layout: DocIntelligenceLayout;  // pre-pass output
+  pdfBuffer: Buffer;         // passed to the model directly
 }
 
 export interface ExtractedCell {
@@ -64,7 +63,11 @@ export interface ExtractOutput {
 }
 ```
 
-**Why Document Intelligence runs first:** it returns table geometry deterministically. The vision model is then asked to label cells within a known grid rather than to find the grid — which is where most extraction error comes from on a 14-page criterion report.
+**No layout pre-pass.** An earlier draft put Azure Document Intelligence in front of the model to recover table geometry deterministically. Anthropic's native PDF support makes that unnecessary — the document goes to the model whole, preserving the visual relationship between a standard's label and its T1/T2/T3 columns, which is exactly the structure a separate OCR pass tends to flatten.
+
+The trade is real and worth stating: without a deterministic layout pass, `sourceRef.table` and `sourceRef.row` come from the model rather than from geometry, so they are a claim rather than a measurement. The citation gate checks that an observation id resolves, not that its coordinates are accurate. If extraction fidelity later falls short of 98%, reinstating a layout pre-pass is the first thing to try.
+
+For a non-Anthropic vision provider, pages must be rasterised to images first — `src/server/pdf/encode.ts` marks that boundary.
 
 **`rawValue: null` is meaningful.** It encodes a dash or blank and must survive into `observations.is_ambiguous`. Losing it here silently manufactures regressions downstream.
 
@@ -267,7 +270,7 @@ export function buildTrajectory(rows: ObservationRow[]): Trajectory {
 | Job | Retries | Backoff | Concurrency | Timeout |
 |---|---|---|---|---|
 | `report.split` | 2 | 5s | 4 | 30s |
-| `page.extract` | 3 | 10s exp | 6 | 120s |
+| `page.extract` | 3 | 10s exp | 6 | 180s |
 | `report.normalise` | 2 | 10s | 2 | 90s |
 | `report.analyse` | 2 | 15s | 2 | 120s |
 | `claim.corroborate` | 3 | 5s | 8 | 45s |
@@ -283,46 +286,39 @@ export function buildTrajectory(rows: ObservationRow[]): Trajectory {
 
 ---
 
-## 4. Foundry client
+## 4. LLM client
+
+Provider-agnostic, routed per tier. `src/server/llm/client.ts` resolves a tier to a provider and model at call time; the stages never name either.
 
 ```ts
-// src/server/foundry/client.ts
+// src/server/llm/types.ts
+export type ModelTier = 'vision' | 'reasoning' | 'small';
+export type Provider  = 'anthropic' | 'openai' | 'grok' | 'kimi';
 
-const PROMPTS = {
-  extract:     process.env.FOUNDRY_PROMPT_EXTRACT!,     // 'extract-report-page:7'
-  normalise:   process.env.FOUNDRY_PROMPT_NORMALISE!,
-  analyse:     process.env.FOUNDRY_PROMPT_ANALYSE!,
-  corroborate: process.env.FOUNDRY_PROMPT_CORROBORATE!,
-  plan:        process.env.FOUNDRY_PROMPT_PLAN!,
-  checkin:     process.env.FOUNDRY_PROMPT_CHECKIN!,
-} as const;
-
-export async function invoke<TIn, TOut>(
-  stage: keyof typeof PROMPTS,
-  input: TIn,
-  schema: ZodSchema<TOut>
-): Promise<StageResult<TOut>> {
-  const promptVersion = PROMPTS[stage];
-  const deployment = deploymentFor(stage);
-  const started = Date.now();
-
-  const raw = await foundry.chat({
-    deployment,
-    promptAsset: promptVersion,
-    variables: input,
-    responseFormat: { type: 'json_schema', schema: toJsonSchema(schema) },
-  });
-
-  const parsed = schema.safeParse(raw);
-  const meta = { promptVersion, modelDeployment: deployment, latencyMs: Date.now() - started };
-
-  return parsed.success
-    ? { ok: true, value: parsed.data, meta }
-    : { ok: false, error: { code: 'SCHEMA_INVALID', detail: parsed.error.message }, meta };
-}
+// src/server/llm/client.ts
+export async function callModel<T>(
+  tier: ModelTier,
+  msg: LlmMessage,
+  schema: ZodSchema<T>,
+  promptVersion: string,
+): Promise<StageResult<T>>
 ```
 
-Prompt versions are pinned, never `latest`. Changing one is a pull request, which is what triggers the evaluation run in CI.
+| Tier | Stages | Default |
+|---|---|---|
+| `vision` | Extract | `LLM_VISION_PROVIDER` |
+| `reasoning` | Normalise, Analyse, Plan synthesis | `LLM_REASONING_PROVIDER` |
+| `small` | Corroborate, Check-in | `LLM_SMALL_PROVIDER` |
+
+Anthropic goes through its own SDK to use native PDF support. OpenAI, Grok and Kimi share one OpenAI-compatible adapter, differing only in base URL and model id.
+
+`callModel` is the single place where a provider error becomes a `StageError`, where the JSON is parsed, and where the Zod schema is enforced. A stage never sees an unvalidated response.
+
+**Prompts live in this repository**, as TypeScript modules under `src/server/prompts/`. Versions are pinned in `src/server/prompts/version.ts` and read from `PROMPT_VERSION_*`. `versionTag('analyse')` yields `analyse:1`, which is written to `findings.prompt_version` alongside the resolved model in `model_deployment`.
+
+An earlier draft put prompts in Azure AI Foundry, which created a problem: a prompt change was not a commit, so "regression on every prompt change, in CI" had nothing to hook onto, and versions had to be pinned in config purely to force a pull request. Keeping prompts in the repository dissolves that — a prompt change *is* a diff, and CI sees it like any other.
+
+The shared non-diagnostic constraints live in `src/server/prompts/constraints.ts` and are composed into every generating prompt, so those rules are edited in one place.
 
 ---
 
@@ -418,7 +414,7 @@ CI runs the full set on any PR touching a pinned prompt version, a gate, or the 
 
 1. Schema, RLS, auth, consent gate — nothing may run without a live consent row.
 2. Ontology and `skill_aliases` seeded from one real report. **Hardest task; do it first.**
-3. Upload, storage, `report.split`, Document Intelligence pre-pass.
+3. Upload, private storage, consent enforced before the file is accepted.
 4. Extract → Normalise, with the golden set's five hand-transcribed reports as the accuracy target.
 5. **Gates before Analyse.** Building the citation gate first means the first finding ever produced is already checked.
 6. Analyse → Corroborate.
