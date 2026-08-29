@@ -119,22 +119,25 @@ describe("consent gate (live)", () => {
 
   it("rejects a consent granted by someone outside the family", async () => {
     const other = `outsider-${randomUUID().slice(0, 8)}@nurtureos.test`;
-    const { data: o } = await db.auth.admin.createUser({
+    const { data: o, error: oErr } = await db.auth.admin.createUser({
       email: other, password: randomUUID(), email_confirm: true,
     });
+    if (oErr || !o?.user) throw oErr ?? new Error("outsider user was not created");
+    const outsiderId = o.user.id;
+
     const { data: otherFam } = await db.rpc("create_family_account", {
-      p_user_id: o!.user.id, p_full_name: "Outsider",
+      p_user_id: outsiderId, p_full_name: "Outsider",
     });
 
     const { error } = await db.rpc("grant_child_consent", {
-      p_child_id: childId, p_granted_by: o!.user.id,
+      p_child_id: childId, p_granted_by: outsiderId,
       p_method: "test", p_purposes: ["report_analysis"],
     });
     expect(error).not.toBeNull();
 
     await db.from("family_constraints").delete().eq("family_id", otherFam as string);
-    await db.from("profiles").delete().eq("id", o!.user.id);
+    await db.from("profiles").delete().eq("id", outsiderId);
     await db.from("families").delete().eq("id", otherFam as string);
-    await db.auth.admin.deleteUser(o!.user.id);
+    await db.auth.admin.deleteUser(outsiderId);
   });
 });
