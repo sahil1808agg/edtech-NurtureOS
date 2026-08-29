@@ -480,6 +480,20 @@ begin
   end loop;
 end $$;
 
+-- profiles and families. current_family_id() and is_ops() are SECURITY
+-- DEFINER, so they bypass RLS when reading profiles and cannot recurse.
+alter table profiles enable row level security;
+alter table families enable row level security;
+
+create policy profiles_read on profiles for select
+  using (family_id = current_family_id() or is_ops());
+
+create policy profiles_update_self on profiles for update
+  using (id = auth.uid()) with check (id = auth.uid());
+
+create policy families_read on families for select
+  using (id = current_family_id() or is_ops());
+
 -- Ops-only tables
 alter table review_queue enable row level security;
 create policy ops_only on review_queue for all using (is_ops()) with check (is_ops());
