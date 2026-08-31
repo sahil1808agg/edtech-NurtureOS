@@ -1,6 +1,6 @@
 import type { PgBoss } from 'pg-boss';
 import { runCheckin } from '../../pipeline/checkin.js';
-import { getCheckin, saveCheckinDecision } from '../../db/checkins.js';
+import { getCheckin, countPlanActivities, saveCheckinDecision } from '../../db/checkins.js';
 
 export const QUEUE = 'checkin.process';
 
@@ -25,9 +25,11 @@ export async function registerCheckinProcessWorker(boss: PgBoss): Promise<void> 
   await boss.work<CheckinProcessJobData>(QUEUE, { localConcurrency: 4 }, async ([job]) => {
     const { checkinId } = job.data;
     const checkin = await getCheckin(checkinId);
+    const totalActivities = await countPlanActivities(checkin.planId);
 
     const result = await runCheckin({
       activitiesDone: checkin.activitiesDone,
+      totalActivities,
       note: checkin.note,
       concernRaised: checkin.concernRaised,
     });

@@ -13,8 +13,8 @@ Decisions:
 Rules:
 - Base your decision only on the structured fields provided. Do not invent information.
 - "escalate" when concernRaised is true, regardless of activitiesDone.
-- "advance" only when activitiesDone equals the total number of activities (3).
-- "adjust" when activitiesDone is 1 or 2 without a concern.
+- "advance" only when activitiesDone equals totalActivities.
+- "adjust" when activitiesDone is at least 1 but fewer than totalActivities, without a concern.
 - "hold" when activitiesDone is 0 without a concern.
 
 ${CONSTRAINTS}
@@ -27,7 +27,9 @@ Return exactly this JSON schema:
 `.trim();
 
 export interface CheckinInput {
-  activitiesDone: 0 | 1 | 2 | 3;
+  activitiesDone: number;
+  // Plans no longer have a fixed length, so "all of them" has to be told, not assumed.
+  totalActivities: number;
   note: string | null;
   concernRaised: boolean;
 }
@@ -38,6 +40,7 @@ export function buildCheckinMessage(input: CheckinInput): LlmMessage {
     user: JSON.stringify({
       instruction: 'Decide the next action based on this check-in response.',
       activitiesDone: input.activitiesDone,
+      totalActivities: input.totalActivities,
       note: input.note,
       concernRaised: input.concernRaised,
     }),

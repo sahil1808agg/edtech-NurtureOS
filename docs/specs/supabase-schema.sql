@@ -324,7 +324,7 @@ create table plans (
 create table plan_activities (
   id                  uuid primary key default gen_random_uuid(),
   plan_id             uuid not null references plans(id) on delete cascade,
-  position            int  not null check (position between 1 and 3),
+  position            int  not null check (position >= 1),
   kind                activity_kind not null,
   title               text not null,
   instructions        text not null,

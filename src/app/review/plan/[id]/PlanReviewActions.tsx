@@ -56,7 +56,7 @@ export function PlanReviewActions({
       </div>
       <p className="mt-3 text-xs text-[var(--muted)]">
         {asParent
-          ? 'Starting a plan means these are the three things to try over the next couple of weeks.'
+          ? 'Starting a plan means these are the things to try over the next couple of weeks.'
           : 'Approving marks the plan ready for the parent. It is not sent until email delivery exists.'}
       </p>
     </div>

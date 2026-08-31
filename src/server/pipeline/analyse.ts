@@ -16,7 +16,11 @@ const AnalyseOutputSchema = z.object({
       citedObservationIds: z.array(z.string()),
       reasoning: z.string(),
     })
-  ).max(5),
+  ),
+  // No upper bound: the claim count follows the domain areas the observations
+  // support, the same way the plan's activity count follows the findings.
+  // A ceiling here would not trim — safeParse rejects the whole response, so an
+  // over-long answer would cost every claim in it rather than the last one.
   insufficientEvidence: z.boolean(),
 });
 

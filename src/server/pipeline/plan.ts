@@ -12,7 +12,7 @@ export interface PlanActivity {
 }
 
 export interface PlanOutput {
-  activities: PlanActivity[];  // exactly 3, enforced by Zod .length(3)
+  activities: PlanActivity[];  // one per domain area the findings cover — no fixed count
 }
 
 const ActivitySchema = z.object({
@@ -23,8 +23,11 @@ const ActivitySchema = z.object({
   resourceId: z.string().nullable(),
 });
 
+// No upper bound for now. The plan is meant to reach every domain area the
+// findings touch, so the count follows the findings rather than a fixed number.
+// .min(1) only rejects an empty plan, which is never a useful answer.
 const PlanOutputSchema = z.object({
-  activities: z.array(ActivitySchema).length(3),
+  activities: z.array(ActivitySchema).min(1),
 });
 
 export type PlanInput = PromptInput;

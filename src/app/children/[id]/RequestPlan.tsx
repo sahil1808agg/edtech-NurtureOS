@@ -55,8 +55,8 @@ export function RequestPlan({
         {hasExistingPlan
           ? 'Your first plan was made when the findings were published, before you had marked any of them. '
           : ''}
-        We will build three activities from the {usableFindings} finding
-        {usableFindings === 1 ? '' : 's'} you have not ruled out.
+        We will build activities covering every area the {usableFindings} finding
+        {usableFindings === 1 ? '' : 's'} you have not ruled out point to.
         {rejectedFindings > 0 && (
           <> The {rejectedFindings} you said {rejectedFindings === 1 ? 'does' : 'do'} not match will be left out.</>
         )}

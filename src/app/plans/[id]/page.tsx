@@ -87,13 +87,18 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
     : { data: [] };
   const resourceById = new Map((resources ?? []).map((r) => [r.id, r]));
 
+  // Plans are no longer a fixed three: the count follows the domain areas the
+  // findings cover, so the copy has to count rather than assert.
+  const activityCount = (activities ?? []).length;
+  const things = activityCount === 1 ? 'One thing' : `${activityCount} things`;
+
   return (
     <main>
       <h1 className="text-xl font-semibold tracking-tight">
         {name}’s plan{plan.cycle_no > 1 ? ` — cycle ${plan.cycle_no}` : ''}
       </h1>
       <p className="mt-2 text-sm text-[var(--muted)]">
-        Three things to try over the next two weeks. Each one targets something the report actually
+        {things} to try over the next two weeks. Each one targets something the report actually
         showed — you can see which.
       </p>
 
@@ -103,7 +108,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
             <span className="mr-2 rounded bg-[var(--accent)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white">
               needs your approval
             </span>
-            Three things to try. Each says which finding it targets — approve them to start, or
+            {things} to try. Each says which finding it targets — approve them to start, or
             tell us they are not right.
           </p>
         </div>

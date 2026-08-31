@@ -3,7 +3,8 @@ import type { CheckinDecision } from '../pipeline/checkin.js';
 
 export interface CheckinRow {
   id: string;
-  activitiesDone: 0 | 1 | 2 | 3;
+  planId: string;
+  activitiesDone: number;
   note: string | null;
   concernRaised: boolean;
 }
@@ -11,7 +12,7 @@ export interface CheckinRow {
 export async function getCheckin(checkinId: string): Promise<CheckinRow> {
   const { data, error } = await serviceClient()
     .from('checkins')
-    .select('id, activities_done, response_note, concern_raised')
+    .select('id, plan_id, activities_done, response_note, concern_raised')
     .eq('id', checkinId)
     .single();
 
@@ -20,10 +21,27 @@ export async function getCheckin(checkinId: string): Promise<CheckinRow> {
 
   return {
     id: data.id,
-    activitiesDone: data.activities_done as 0 | 1 | 2 | 3,
+    planId: data.plan_id,
+    activitiesDone: data.activities_done as number,
     note: data.response_note,
     concernRaised: data.concern_raised,
   };
+}
+
+/**
+ * How many activities the parent was actually asked to do. Declined activities
+ * are excluded: counting them would put "advance" out of reach for a plan the
+ * parent had already trimmed.
+ */
+export async function countPlanActivities(planId: string): Promise<number> {
+  const { count, error } = await serviceClient()
+    .from('plan_activities')
+    .select('*', { count: 'exact', head: true })
+    .eq('plan_id', planId)
+    .eq('declined', false);
+
+  if (error) throw new Error(`counting activities for plan ${planId}: ${error.message}`);
+  return count ?? 0;
 }
 
 export async function saveCheckinDecision(checkinId: string, decision: CheckinDecision): Promise<void> {
