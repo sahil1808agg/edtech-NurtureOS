@@ -1,0 +1,83 @@
+{
+  "note": "Verified pilot batch — not a comprehensive library. Every URL was fetched directly and confirmed real before inclusion; anything I could not fetch was dropped rather than trusted from a search snippet. skill_codes reference the still-unreviewed skill-ontology-proposal.json codes; update these if you rename/merge those during review. Nothing here is inserted into the resources table — an apply script comes after you approve.",
+
+  "schema_note": "resources.kind is enum('book','video','worksheet','game'). An interactive learning APP (Khan Academy Kids) maps cleanly to none of these — filed as 'game' below, but consider adding 'app' to the enum. Also note resources.skill_codes is text[] of skill CODES, whereas plan_activities.resource_id is a uuid FK — Plan's prompt selects by resourceId, so codes are only used for candidate filtering.",
+
+  "dropped_during_verification": [
+    {
+      "candidate": "Numberblocks (official YouTube channel) — place value / two-digit numbers",
+      "reason": "WebFetch could not render YouTube's dynamic page, so I could not confirm the channel identity or content. Very likely genuine and well-regarded (BBC/NCETM-linked), but unverified by me. Worth adding manually after your own check."
+    },
+    {
+      "candidate": "BBC Bitesize KS1 Maths",
+      "reason": "bbc.co.uk is not fetchable from this environment. Almost certainly real and free, but I did not verify it myself, so it is not included."
+    }
+  ],
+
+  "resources": [
+    {
+      "title": "Oxford Owl — Free eBook Library (Oxford University Press)",
+      "kind": "book",
+      "url": "https://home.oxfordowl.co.uk/reading/free-ebooks/",
+      "age_min": 36,
+      "age_max": 132,
+      "language": "en",
+      "skill_codes": [
+        "LANG.READING.ENGAGEMENT_AND_INQUIRY",
+        "LANG.WRITING.PHONETIC_SPELLING",
+        "LANG.READING.COMPREHENSION_OPINION"
+      ],
+      "verified": true,
+      "verification_note": "Fetched directly. Genuine Oxford University Press resource; 130+ eBooks free to read, ages 3–11, browsable by age band and by Oxford Level 1–20 / phonics book band. FREE BUT REQUIRES REGISTRATION — a parent must create an account, which is friction worth surfacing in the activity instructions. Best on desktop/tablet, not optimised for phones."
+    },
+    {
+      "title": "Khan Academy Kids — free early-learning app (ages 2–8)",
+      "kind": "game",
+      "url": "https://www.khanacademy.org/kids/math",
+      "age_min": 24,
+      "age_max": 96,
+      "language": "en",
+      "skill_codes": [
+        "MATH.NUMBER.PLACE_VALUE",
+        "MATH.NUMBER.ADDITION_COMPUTATION",
+        "MATH.NUMBER.COMPARING_AND_ORDERING",
+        "MATH.GEOMETRY.SHAPES_2D_3D"
+      ],
+      "verified": true,
+      "verification_note": "Fetched directly. Page states plainly: 'Always free. No ads.' Built with Stanford Graduate School of Education. Covers counting and number sense, addition/subtraction, place value and base-ten, geometry and spatial reasoning. The only fully-free, no-registration-wall, no-upsell resource in this batch — strongest candidate of the four."
+    },
+    {
+      "title": "K5 Learning — Grade 1 Capitalization Worksheets",
+      "kind": "worksheet",
+      "url": "https://www.k5learning.com/free-grammar-worksheets/first-grade-1/capitalization",
+      "age_min": 60,
+      "age_max": 84,
+      "language": "en",
+      "skill_codes": ["LANG.WRITING.PUNCTUATION_AND_CAPITALIZATION"],
+      "verified": true,
+      "verification_note": "Fetched directly — free worksheets on capital letters for names, sentence starts, and dates/days/months. Punctuation-specific worksheets live on a separate K5 page, not this one. Site upsells a $5.29 workbook."
+    },
+    {
+      "title": "K5 Learning — Grade 1 Pictograph Worksheets",
+      "kind": "worksheet",
+      "url": "https://www.k5learning.com/free-math-worksheets/first-grade-1/data-graphing/pictographs",
+      "age_min": 60,
+      "age_max": 84,
+      "language": "en",
+      "skill_codes": ["MATH.DATA.COLLECT_AND_REPRESENT"],
+      "verified": true,
+      "verification_note": "Fetched directly — 2 worksheets free (reading/interpreting pictographs), 3 behind a $24/yr membership. Bar-graph worksheets are on a separate K5 page, not verified here. Framed by K5 as 'a stepping stone to bar graphs', which fits the PYP Phase 1→2 progression (pictographs before bar graphs)."
+    },
+    {
+      "title": "K5 Learning — Grade 1 CVC/CVCe Word Worksheets",
+      "kind": "worksheet",
+      "url": "https://www.k5learning.com/reading-comprehension-worksheets/first-grade-1/phonics/cvc-words",
+      "age_min": 60,
+      "age_max": 84,
+      "language": "en",
+      "skill_codes": ["LANG.WRITING.PHONETIC_SPELLING"],
+      "verified": true,
+      "verification_note": "Fetched directly — worksheets #1/#2 (short-vowel CVC) and #5/#6 (long-vowel CVCe) free; #3/#4/#7/#8 require membership. Site upsells a $3.99 Phonics B workbook."
+    }
+  ]
+}

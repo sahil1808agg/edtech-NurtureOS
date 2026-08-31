@@ -1,0 +1,480 @@
+{
+  "proposals": [
+    {
+      "code": "LANG.ORAL.PURPOSE_AND_MEANING",
+      "name": "Understanding the Purpose of Spoken Language",
+      "domain": "LANG",
+      "rawLabels": [
+        "Recognizes that words and sentences help people express ideas"
+      ]
+    },
+    {
+      "code": "LANG.ORAL.EXPRESSIVE_COMMUNICATION",
+      "name": "Expressing Needs and Ideas Non-Verbally and Verbally",
+      "domain": "LANG",
+      "rawLabels": [
+        "Uses gestures, actions, facial expressions, or words to communicate ideas and needs"
+      ]
+    },
+    {
+      "code": "LANG.ORAL.GROUP_INTERACTION",
+      "name": "Speaking in Group Settings",
+      "domain": "LANG",
+      "rawLabels": [
+        "Begins to speak appropriately in small and large group interactions"
+      ]
+    },
+    {
+      "code": "LANG.ORAL.STORYTELLING",
+      "name": "Oral Storytelling",
+      "domain": "LANG",
+      "rawLabels": [
+        "Tells their own stories using words, gestures, and objects"
+      ]
+    },
+    {
+      "code": "LANG.ORAL.PLAY_AND_CONVERSATION",
+      "name": "Communicating in Classroom Activities and Play",
+      "domain": "LANG",
+      "rawLabels": [
+        "Uses oral language to communicate during classroom activities, conversations, and imaginative play"
+      ]
+    },
+    {
+      "code": "LANG.VISUAL.COMPREHENSION",
+      "name": "Interpreting Visual Information and Media",
+      "domain": "LANG",
+      "rawLabels": [
+        "Attends to visual information showing understanding through discussion, role play and illustrations",
+        "Understands that pictures can show feelings and help them understand the story",
+        "Explores how pictures and images are made to send messages or feelings",
+        "Explores how people learn about the world through what they see, hear, and feel"
+      ]
+    },
+    {
+      "code": "LANG.VISUAL.EXPRESSION",
+      "name": "Using Visual Elements to Share Ideas",
+      "domain": "LANG",
+      "rawLabels": [
+        "Uses colors, shapes, and symbols in drawings and models to share ideas"
+      ]
+    },
+    {
+      "code": "LANG.READING.ENGAGEMENT_AND_INQUIRY",
+      "name": "Inquiring and Questioning Text and Illustrations",
+      "domain": "LANG",
+      "rawLabels": [
+        "Shows curiosity and asks questions about pictures or text"
+      ]
+    },
+    {
+      "code": "LANG.READING.COMPREHENSION_OPINION",
+      "name": "Expressing Opinions About Texts",
+      "domain": "LANG",
+      "rawLabels": [
+        "Expresses opinions about the meaning of a story"
+      ]
+    },
+    {
+      "code": "LANG.READING.POLITE_EXPRESSIONS",
+      "name": "Reading and Using Courtesy Words",
+      "domain": "LANG",
+      "rawLabels": [
+        "Reads and uses 10 magic words: please, thank you, sorry, pardon me, excuse me, etc"
+      ]
+    },
+    {
+      "code": "LANG.WRITING.PURPOSE_AND_EXPERIENCE",
+      "name": "Writing and Drawing from Personal Experience",
+      "domain": "LANG",
+      "rawLabels": [
+        "Understands that writing helps to share ideas, experiences, and feelings",
+        "Uses their own experiences to inspire writing or drawing"
+      ]
+    },
+    {
+      "code": "LANG.WRITING.SENTENCE_CONSTRUCTION",
+      "name": "Writing Simple Sentences with Sight Words",
+      "domain": "LANG",
+      "rawLabels": [
+        "Writes simple sentences to express ideas",
+        "Writes sentences using sight words on their own",
+        "Shows simple sentence structure in their writing"
+      ]
+    },
+    {
+      "code": "LANG.WRITING.PHONETIC_SPELLING",
+      "name": "Encoding Phonic Word Patterns (CVC, CCVC, CVCC)",
+      "domain": "LANG",
+      "rawLabels": [
+        "Writes phonetically true words, like CVC, CCVC using taught sight words",
+        "Writes phonetically true words CCVC (trap), and CVCC (mask), using taught sight words"
+      ]
+    },
+    {
+      "code": "LANG.WRITING.PUNCTUATION_AND_CAPITALIZATION",
+      "name": "Using Capital Letters and Punctuation",
+      "domain": "LANG",
+      "rawLabels": [
+        "Use capital letters, full stops in their writing",
+        "Uses capital letters, full stops, and question marks in their writing"
+      ]
+    },
+    {
+      "code": "LANG.GRAMMAR.NOUNS",
+      "name": "Identifying Nouns",
+      "domain": "LANG",
+      "rawLabels": [
+        "Identifies nouns as naming words for people, places, animals, and things"
+      ]
+    },
+    {
+      "code": "LANG.GRAMMAR.VERBS",
+      "name": "Identifying Verbs",
+      "domain": "LANG",
+      "rawLabels": [
+        "Recognizes verbs as action words that show what someone is doing"
+      ]
+    },
+    {
+      "code": "LANG.GRAMMAR.ARTICLES",
+      "name": "Using Indefinite Articles (A/An)",
+      "domain": "LANG",
+      "rawLabels": [
+        "Uses the words a and an correctly in simple sentences"
+      ]
+    },
+    {
+      "code": "LANG.GRAMMAR.DEMONSTRATIVES",
+      "name": "Using Demonstrative Pronouns",
+      "domain": "LANG",
+      "rawLabels": [
+        "Uses this and that to talk about things that are near or far",
+        "Uses these and those to talk about more than one thing that is near or far"
+      ]
+    },
+    {
+      "code": "LANG.GRAMMAR.PRONOUNS",
+      "name": "Using Personal Pronouns",
+      "domain": "LANG",
+      "rawLabels": [
+        "Uses he, she, and it to talk about people and things"
+      ]
+    },
+    {
+      "code": "MATH.NUMBER.COMPARING_AND_ORDERING",
+      "name": "Comparing and Ordering Quantities and Numbers",
+      "domain": "MATH",
+      "rawLabels": [
+        "Uses comparative language such as more and less to describe and compare quantities",
+        "Compares and orders sets of objects and numbers up to 50 using appropriate terms such as more, less, and same",
+        "Compare and order sets of objects/numbers using appropriate terminology (same, more/less, most/least) up to 99"
+      ]
+    },
+    {
+      "code": "MATH.NUMBER.SORTING_AND_SETS",
+      "name": "Sorting Objects into Sets",
+      "domain": "MATH",
+      "rawLabels": [
+        "Sorts objects into sets based on color, shape, and size"
+      ]
+    },
+    {
+      "code": "MATH.NUMBER.ORDINAL_NUMBERS",
+      "name": "Understanding and Using Ordinal Numbers",
+      "domain": "MATH",
+      "rawLabels": [
+        "Uses ordinal numbers to describe the position of objects in a sequence from 1st to 10th and last (oral understanding)",
+        "Identify, read, and write ordinal numbers from 1st to 10th"
+      ]
+    },
+    {
+      "code": "MATH.NUMBER.SKIP_COUNTING",
+      "name": "Skip Counting",
+      "domain": "MATH",
+      "rawLabels": [
+        "Perform skip counting in 2's up to 20, and in 5's upto 50 and 10's up to 90"
+      ]
+    },
+    {
+      "code": "MATH.NUMBER.PLACE_VALUE",
+      "name": "Base-Ten Place Value up to 100",
+      "domain": "MATH",
+      "rawLabels": [
+        "Read, write, and model numbers using the base-10 system up to 80",
+        "Read, write, and model numbers using the base-10 system up to 99",
+        "Recognize the concept of 100 through visual models"
+      ]
+    },
+    {
+      "code": "MATH.NUMBER.ADDITION_CONCEPTS_AND_FACTS",
+      "name": "Addition Concepts and Number Bonds",
+      "domain": "MATH",
+      "rawLabels": [
+        "Relates addition to combining two groups of objects",
+        "Begin to identify pairs of numbers that add up to 10 (number bonds)"
+      ]
+    },
+    {
+      "code": "MATH.NUMBER.ADDITION_COMPUTATION",
+      "name": "Addition Computation and Strategies",
+      "domain": "MATH",
+      "rawLabels": [
+        "Model addition of whole numbers up to 99 without borrowing or carrying over",
+        "Perform vertical (for double digit numbers) and horizontal (for single and double digit numbers both) addition",
+        "Use strategies such as number lines, counters, number charts to solve addition problems"
+      ]
+    },
+    {
+      "code": "MATH.NUMBER.SUBTRACTION_COMPUTATION",
+      "name": "Subtraction Computation and Strategies",
+      "domain": "MATH",
+      "rawLabels": [
+        "Model subtraction of whole numbers up to 99 without borrowing or carrying over",
+        "Perform vertical (for double digit numbers) and horizontal (for single and double digit numbers both) subtraction",
+        "Use strategies such as number lines, counters, number charts to solve subtraction problem"
+      ]
+    },
+    {
+      "code": "MATH.NUMBER.WORD_PROBLEMS",
+      "name": "Interpreting and Solving Word Problems",
+      "domain": "MATH",
+      "rawLabels": [
+        "Interpret terms like more than, all, both, total, left, take away, minus, less than, and remain in problem situations",
+        "Solve simple story sums based on real-life situations"
+      ]
+    },
+    {
+      "code": "MATH.NUMBER.EQUAL_GROUPS",
+      "name": "Grouping and Sharing in Equal Sets",
+      "domain": "MATH",
+      "rawLabels": [
+        "Count repeated groups of the same size for groups of 2s and 5s only",
+        "Share objects into equal groups and count how many are in each, focusing on groups of 2s and 5s"
+      ]
+    },
+    {
+      "code": "MATH.NUMBER.FRACTIONS_INTRO",
+      "name": "Identifying Wholes and Halves",
+      "domain": "MATH",
+      "rawLabels": [
+        "Count wholes and halves using groups of objects, such as pizza slices"
+      ]
+    },
+    {
+      "code": "MATH.GEOMETRY.SHAPES_2D_3D",
+      "name": "Identifying and Classifying 2D and 3D Shapes",
+      "domain": "MATH",
+      "rawLabels": [
+        "Identifies 2D shapes by name, such as circle, square, triangle, rectangle",
+        "Identify and sort 2D shapes and simple 3D shapes such as cube, cone, cuboid, cylinder, sphere",
+        "Classify 2D and 3D shapes based on their properties",
+        "Recognize similarities and differences in shapes using terminology such as straight line, curved line, and corner"
+      ]
+    },
+    {
+      "code": "MATH.GEOMETRY.CONSTRUCTION_AND_SYMMETRY",
+      "name": "Composing Shapes and Symmetrical Designs",
+      "domain": "MATH",
+      "rawLabels": [
+        "Make and describe models, shape patterns, and pictures using everyday materials and construction kits",
+        "Create symmetrical designs through art"
+      ]
+    },
+    {
+      "code": "MATH.GEOMETRY.SPATIAL_AWARENESS",
+      "name": "Positional and Directional Language",
+      "domain": "MATH",
+      "rawLabels": [
+        "Use everyday language to describe position, direction, and movement (e.g., next to, beside, in front of, behind, over, under, inside, outside, above, below, left, and right)"
+      ]
+    },
+    {
+      "code": "MATH.MEASUREMENT.LENGTH_AND_QUANTITY",
+      "name": "Direct and Non-Standard Measurement",
+      "domain": "MATH",
+      "rawLabels": [
+        "Tell which object has more or less.",
+        "Measure objects using non-standard tools like handspan, footspan, or blocks.",
+        "Compare the lengths of two or more objects.",
+        "Use simple tools (hands, clocks, calendars) to find out measurements."
+      ]
+    },
+    {
+      "code": "MATH.MEASUREMENT.TIME_AND_CALENDAR",
+      "name": "Time and Calendar Concepts",
+      "domain": "MATH",
+      "rawLabels": [
+        "Read time to the hour on an analogue clock (o'clock).",
+        "Name the days of the week and months of the year.",
+        "Use a calendar to find the date and talk about special days."
+      ]
+    },
+    {
+      "code": "MATH.MEASUREMENT.MONEY",
+      "name": "Coins, Currency, and Value",
+      "domain": "MATH",
+      "rawLabels": [
+        "Identify and recognize basic coins and notes (1, 2, 5, 10, 20) used in their country.",
+        "Understand that money is used to buy things."
+      ]
+    },
+    {
+      "code": "MATH.PATTERNS.REPEATING_AND_GROWING",
+      "name": "Identifying, Describing, and Extending Patterns",
+      "domain": "MATH",
+      "rawLabels": [
+        "Identify repeated and growing patterns (arranged in increasing order)",
+        "Describe and extend patterns involving colour, shape, size, things around them, and numbers",
+        "Describe patterns found in simple everyday routines",
+        "Describe patterns found in nature",
+        "Recognize and describe number patterns using skip counting (e.g., by 2s, 5s, and 10s)"
+      ]
+    },
+    {
+      "code": "MATH.PATTERNS.INVERSE_OPERATIONS",
+      "name": "Inverse Relationship of Addition and Subtraction",
+      "domain": "MATH",
+      "rawLabels": [
+        "Begin to understand the inverse relationship between simple addition and subtraction using concrete and pictorial support"
+      ]
+    },
+    {
+      "code": "MATH.DATA.COLLECT_AND_REPRESENT",
+      "name": "Collecting, Sorting, and Graphing Data",
+      "domain": "MATH",
+      "rawLabels": [
+        "Sort objects into groups in different ways and explains how they are sorted.",
+        "Count and collects data by looking around and asking questions.",
+        "Show data using pictures and simple bar graphs.",
+        "Answer questions by looking at simple graphs."
+      ]
+    },
+    {
+      "code": "MATH.DATA.PROBABILITY",
+      "name": "Language of Chance and Probability",
+      "domain": "MATH",
+      "rawLabels": [
+        "Talk about chances of something happening, like maybe or not possible.",
+        "Notices and talks about changes in daily events using words like maybe, less likely, or certain."
+      ]
+    },
+    {
+      "code": "HINDI.ORAL.COMMUNICATION",
+      "name": "Expressing Ideas and Needs in Hindi",
+      "domain": "HINDI",
+      "rawLabels": [
+        "Use gestures, actions, body language and/or words to communicate needs and to express ideas"
+      ]
+    },
+    {
+      "code": "HINDI.ORAL.LISTENING_AND_RHYMES",
+      "name": "Listening to Stories, Poems, and Songs in Hindi",
+      "domain": "HINDI",
+      "rawLabels": [
+        "Join in with poems, rhymes and songs",
+        "Listens attentively to short stories, rhymes, and songs in Hindi."
+      ]
+    },
+    {
+      "code": "HINDI.VISUAL.VIEWING_AND_RESPONDING",
+      "name": "Visual Comprehension and Response in Hindi",
+      "domain": "HINDI",
+      "rawLabels": [
+        "Attend to visual information showing understanding through play, gestures, facial expression",
+        "Observe visual cues that indicate context; show understanding by matching pictures with context.",
+        "Use body language to communicate and to convey understanding, for example, pointing, gesturing, facial expressions.",
+        "Listen to terminology associated with visual texts and understand terms such as colour, shape, size."
+      ]
+    },
+    {
+      "code": "HINDI.WRITING.PRINT_CONCEPTS_AND_FORMATION",
+      "name": "Letter Formation, Directionality, and Spacing in Hindi",
+      "domain": "HINDI",
+      "rawLabels": [
+        "Experiment with writing using different writing implements and media.",
+        "Forming letters and words on paper.",
+        "Understands that it's important to space between two letters and words.",
+        "Understand how to write, like where letters start, space between them, and how to write from left to right."
+      ]
+    },
+    {
+      "code": "ARTS.VISUAL.CREATING",
+      "name": "Visual Arts Exploration and Material Selection",
+      "domain": "ARTS",
+      "rawLabels": [
+        "Engage with and enjoy a variety of visual arts experiences",
+        "Select tools, materials and processes for specific purposes",
+        "Take responsibility for the care of tools and materials",
+        "Participate in individual and collaborative creative experiences",
+        "Create artwork in response to a range of stimuli"
+      ]
+    },
+    {
+      "code": "ARTS.VISUAL.RESPONDING",
+      "name": "Responding to and Analyzing Artworks",
+      "domain": "ARTS",
+      "rawLabels": [
+        "Enjoy experiencing artworks",
+        "Describe what they notice about an artwork",
+        "Identify the materials and processes used in the creation of an artwork",
+        "Communicate their initial responses to an artwork in visual, oral or physical modes",
+        "Make personal connections to artworks"
+      ]
+    },
+    {
+      "code": "ARTS.MUSIC.EXPLORATION",
+      "name": "Exploring Vocal and Instrumental Sounds",
+      "domain": "ARTS",
+      "rawLabels": [
+        "Explore a range of vocal sounds, rhythms, instruments and timbres to communicate ideas and feelings",
+        "Explore body and untuned percussion instrument sounds"
+      ]
+    },
+    {
+      "code": "ARTS.DANCE.MOVEMENT_CREATION",
+      "name": "Movement, Tempo, and Physical Coordination",
+      "domain": "ARTS",
+      "rawLabels": [
+        "Create movement to various tempos",
+        "Develop physical balance and coordination",
+        "Respond to word, rhythm and/or music through movements."
+      ]
+    },
+    {
+      "code": "ARTS.DANCE.PERFORMANCE_AND_ETIQUETTE",
+      "name": "Dance Etiquette and Performer-Audience Dynamics",
+      "domain": "ARTS",
+      "rawLabels": [
+        "Consider and maintain appropriate behaviors in dance, as an audience member or as a performer, by listening, watching and showing appreciation",
+        "Realize that there is a dynamic connection between the audience and performer",
+        "Display audience etiquette and appropriate responses such as watching, listening and responding to favourite parts of the performance."
+      ]
+    },
+    {
+      "code": "ARTS.DANCE.RESPONDING",
+      "name": "Responding to Music and Dance Performances",
+      "domain": "ARTS",
+      "rawLabels": [
+        "Show curiosity about live and recorded dance performances",
+        "Move their bodies to express the mood of the music",
+        "Express their responses to music in multiple ways (drawings, games, songs, dance, oral discussion).",
+        "Describe how music makes them feel",
+        "Identify the rhythmic patterns."
+      ]
+    },
+    {
+      "code": "ATTENDANCE.RECORD",
+      "name": "Attendance Status and Tracking",
+      "domain": "ATTENDANCE",
+      "rawLabels": [
+        "Overall presence",
+        "Present",
+        "Excused",
+        "Unexcused",
+        "Tardy",
+        "Uncategorized"
+      ]
+    }
+  ]
+}

@@ -37,13 +37,15 @@ export type StageError =
   | { code: 'TIMEOUT' };
 ```
 
-### Extract — one page
+### Extract — whole report
+
+The full report card — which may span multiple pages — is sent to the model in a single call. There is no per-page split or fan-out: the model reads every page in one pass and reports which page each item came from.
 
 ```ts
 export interface ExtractInput {
   reportId: string;
-  pageNo: number;
-  pdfBuffer: Buffer;         // passed to the model directly
+  pdfBuffer?: Buffer;        // whole document, passed to the model directly
+  images?: string[];         // rasterised page images, for providers with no native PDF support
 }
 
 export interface ExtractedCell {
@@ -51,7 +53,7 @@ export interface ExtractedCell {
   section: string | null;    // 'Number'
   subject: string;           // 'Mathematics'
   values: Array<{ termIndex: number; rawValue: string | null }>;
-  sourceRef: { page: number; table: number; row: number; cell: number };
+  sourceRef: { page: number; table: number; row: number; cell: number }; // page is model-reported, 1-indexed
   confidence: number;
 }
 
@@ -63,11 +65,11 @@ export interface ExtractOutput {
 }
 ```
 
-**No layout pre-pass.** An earlier draft put Azure Document Intelligence in front of the model to recover table geometry deterministically. Anthropic's native PDF support makes that unnecessary — the document goes to the model whole, preserving the visual relationship between a standard's label and its T1/T2/T3 columns, which is exactly the structure a separate OCR pass tends to flatten.
+**No layout pre-pass.** An earlier draft put Azure Document Intelligence in front of the model to recover table geometry deterministically. Native PDF support (Anthropic and Gemini both accept a raw PDF document directly) makes that unnecessary — the whole document goes to the model in one call, preserving the visual relationship between a standard's label and its T1/T2/T3 columns, which is exactly the structure a separate OCR pass tends to flatten.
 
-The trade is real and worth stating: without a deterministic layout pass, `sourceRef.table` and `sourceRef.row` come from the model rather than from geometry, so they are a claim rather than a measurement. The citation gate checks that an observation id resolves, not that its coordinates are accurate. If extraction fidelity later falls short of 98%, reinstating a layout pre-pass is the first thing to try.
+The trade is real and worth stating: without a deterministic layout pass, `sourceRef.table` and `sourceRef.row` — and now `sourceRef.page` too — come from the model rather than from geometry, so they are a claim rather than a measurement. The citation gate checks that an observation id resolves, not that its coordinates are accurate. If extraction fidelity later falls short of 98%, reinstating a layout pre-pass is the first thing to try.
 
-For a non-Anthropic vision provider, pages must be rasterised to images first — `src/server/pdf/encode.ts` marks that boundary.
+Extract defaults to Gemini (`gemini-3.5-flash-lite`), which takes the PDF natively like Anthropic. For a provider with no native PDF support (OpenAI, Grok, Kimi), every page must instead be rasterised to an image first and sent as the `images[]` array in one call — `src/server/pdf/encode.ts` marks that boundary, and it is not yet implemented.
 
 **`rawValue: null` is meaningful.** It encodes a dash or blank and must survive into `observations.is_ambiguous`. Losing it here silently manufactures regressions downstream.
 
@@ -269,8 +271,7 @@ export function buildTrajectory(rows: ObservationRow[]): Trajectory {
 
 | Job | Retries | Backoff | Concurrency | Timeout |
 |---|---|---|---|---|
-| `report.split` | 2 | 5s | 4 | 30s |
-| `page.extract` | 3 | 10s exp | 6 | 180s |
+| `report.extract` | 3 | 10s exp | 2 | 300s |
 | `report.normalise` | 2 | 10s | 2 | 90s |
 | `report.analyse` | 2 | 15s | 2 | 120s |
 | `claim.corroborate` | 3 | 5s | 8 | 45s |
@@ -278,7 +279,7 @@ export function buildTrajectory(rows: ObservationRow[]): Trajectory {
 | `plan.generate` | 2 | 15s | 2 | 120s |
 | `checkin.send` | 5 | 60s exp | 4 | 30s |
 
-**Fan-in.** `page.extract` completions decrement a counter on `reports`; the last one enqueues `report.normalise`. Same pattern for `claim.corroborate` → `report.gate`.
+**Fan-in.** `report.extract` is a single call per report, so it enqueues `report.normalise` directly — no counter needed. `claim.corroborate` still fans out per candidate claim; completions decrement a counter on the report, and the last one enqueues `report.gate`.
 
 **Retry rules.** `SCHEMA_INVALID` retries once with the validation error appended to the prompt input, then fails. `PROVIDER_ERROR` retries only when `retryable`. `LOW_CONFIDENCE` and `SEN_DETECTED` never retry — they route to review and to the decline path respectively.
 
@@ -288,29 +289,36 @@ export function buildTrajectory(rows: ObservationRow[]): Trajectory {
 
 ## 4. LLM client
 
-Provider-agnostic, routed per tier. `src/server/llm/client.ts` resolves a tier to a provider and model at call time; the stages never name either.
+Provider-agnostic, routed per stage. `src/server/llm/client.ts` resolves each of the six prompt stages to its own provider and model at call time; a stage never names either directly.
 
 ```ts
 // src/server/llm/types.ts
 export type ModelTier = 'vision' | 'reasoning' | 'small';
-export type Provider  = 'anthropic' | 'openai' | 'grok' | 'kimi';
+export type Provider  = 'anthropic' | 'gemini' | 'openai' | 'grok' | 'kimi';
+
+// src/server/prompts/version.ts
+export type PromptKey = 'extract' | 'normalise' | 'analyse' | 'corroborate' | 'plan' | 'checkin';
 
 // src/server/llm/client.ts
 export async function callModel<T>(
-  tier: ModelTier,
+  stage: PromptKey,
   msg: LlmMessage,
   schema: ZodSchema<T>,
-  promptVersion: string,
 ): Promise<StageResult<T>>
 ```
 
-| Tier | Stages | Default |
-|---|---|---|
-| `vision` | Extract | `LLM_VISION_PROVIDER` |
-| `reasoning` | Normalise, Analyse, Plan synthesis | `LLM_REASONING_PROVIDER` |
-| `small` | Corroborate, Check-in | `LLM_SMALL_PROVIDER` |
+Each stage still has a default capability tier (used only as a fallback), but resolves independently: `LLM_<STAGE>_PROVIDER` / `LLM_MODEL_<STAGE>` (e.g. `LLM_EXTRACT_PROVIDER`, `LLM_MODEL_ANALYSE`) override the tier-wide `LLM_<TIER>_PROVIDER` / `LLM_MODEL_<TIER>`, which override the hardcoded per-provider default. This means any two stages can run on different providers or different models entirely — setting one tier-wide var no longer forces every stage that shares that tier onto the same model.
 
-Anthropic goes through its own SDK to use native PDF support. OpenAI, Grok and Kimi share one OpenAI-compatible adapter, differing only in base URL and model id.
+| Stage | Default tier | Tier-wide default | Per-stage override |
+|---|---|---|---|
+| `extract` | `vision` | `LLM_VISION_PROVIDER` | `LLM_EXTRACT_PROVIDER` / `LLM_MODEL_EXTRACT` |
+| `normalise` | `reasoning` | `LLM_REASONING_PROVIDER` | `LLM_NORMALISE_PROVIDER` / `LLM_MODEL_NORMALISE` |
+| `analyse` | `reasoning` | `LLM_REASONING_PROVIDER` | `LLM_ANALYSE_PROVIDER` / `LLM_MODEL_ANALYSE` |
+| `plan` | `reasoning` | `LLM_REASONING_PROVIDER` | `LLM_PLAN_PROVIDER` / `LLM_MODEL_PLAN` |
+| `corroborate` | `small` | `LLM_SMALL_PROVIDER` | `LLM_CORROBORATE_PROVIDER` / `LLM_MODEL_CORROBORATE` |
+| `checkin` | `small` | `LLM_SMALL_PROVIDER` | `LLM_CHECKIN_PROVIDER` / `LLM_MODEL_CHECKIN` |
+
+Anthropic and Gemini each go through their own SDK to use native PDF support (`src/server/llm/providers/anthropic.ts`, `gemini.ts`). OpenAI, Grok and Kimi share one OpenAI-compatible adapter, differing only in base URL and model id.
 
 `callModel` is the single place where a provider error becomes a `StageError`, where the JSON is parsed, and where the Zod schema is enforced. A stage never sees an unvalidated response.
 

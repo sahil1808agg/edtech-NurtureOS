@@ -14,7 +14,7 @@ Stated up front so they can be overruled cheaply.
 |---|---|---|
 | Frontend + backend | Next.js 14 App Router, TypeScript, built in Claude Code | Directed |
 | Prompts | **In this repository**, TypeScript under `src/server/prompts/`, versions pinned in `version.ts` | A prompt change is a commit, so CI sees it like any other diff |
-| Models | **Provider-agnostic, routed per tier** — Anthropic, OpenAI, Grok or Kimi, selected by `LLM_*_PROVIDER` | No lock-in; each tier can move independently on evidence |
+| Models | **Provider-agnostic, routed per stage** — Anthropic, Gemini, OpenAI, Grok or Kimi, selected by `LLM_*_PROVIDER` | No lock-in; each stage can move independently on evidence |
 | Document handling | Native PDF support, no OCR pre-pass | Keeps a standard's label visually joined to its T1/T2/T3 columns |
 | Database, auth, storage | Supabase (Postgres + Auth + Storage + RLS) | Project guide default; RLS maps directly onto per-family isolation |
 | Long-running work | Postgres-backed job queue (`pg-boss`) with a container worker | Pipeline exceeds serverless timeouts |
@@ -51,7 +51,7 @@ flowchart TB
     subgraph llm[Model layer]
         LC[LLM client<br/>tier routing]
         PR[Prompts in repo<br/>versioned by git]
-        PV[Providers<br/>anthropic / openai / grok / kimi]
+        PV[Providers<br/>anthropic / gemini / openai / grok / kimi]
     end
     PW --> API
     RC --> API
@@ -75,7 +75,7 @@ One module per component under `src/server/prompts/`, versioned by git:
 
 | Module | Component | Tier | Output |
 |---|---|---|---|
-| `extract.ts` | C2 | vision | Typed page record |
+| `extract.ts` | C2 | vision | Typed report record (all pages) |
 | `normalise.ts` | C3 | reasoning | Skill-code mappings |
 | `analyse.ts` | C5 | reasoning | Candidate claims + cited observation ids |
 | `corroborate.ts` | C6 | small | Verdict enum + supporting quote |
@@ -86,18 +86,21 @@ Shared non-diagnostic constraints (PRD Week 4) live in `constraints.ts` and are 
 
 ### Tier routing
 
-Stages ask for a capability, never a vendor. `src/server/llm/client.ts` resolves tier → provider → model at call time.
+Stages ask for a capability, never a vendor by default — but each of the six stages can also be pinned to its own provider and model independently, so no two stages are forced onto the same model just because they share a tier. `src/server/llm/client.ts` resolves stage → provider → model at call time, checking a per-stage override before falling back to the tier default.
 
 ```
-LLM_VISION_PROVIDER=anthropic       # Extract
-LLM_REASONING_PROVIDER=anthropic    # Normalise, Analyse, Plan
-LLM_SMALL_PROVIDER=openai           # Corroborate, Check-in
+LLM_VISION_PROVIDER=gemini          # tier default for Extract
+LLM_REASONING_PROVIDER=gemini       # tier default for Normalise, Analyse, Plan
+LLM_SMALL_PROVIDER=openai           # tier default for Corroborate, Check-in
 
-LLM_MODEL_VISION=                   # optional override; defaults per provider
+LLM_MODEL_VISION=                   # optional tier-wide model override
+
+LLM_ANALYSE_PROVIDER=openai         # per-stage override — Analyse on a different vendor than Normalise/Plan
+LLM_MODEL_ANALYSE=gpt-4o            # per-stage model override
 PROMPT_VERSION_EXTRACT=1            # pinned, recorded on every artifact
 ```
 
-Anthropic uses its own SDK for native PDF support. OpenAI, Grok and Kimi share one OpenAI-compatible adapter differing only in base URL and model id. Adding a provider means adding an adapter, not touching a stage.
+Anthropic and Gemini each use their own SDK for native PDF support. OpenAI, Grok and Kimi share one OpenAI-compatible adapter differing only in base URL and model id. Adding a provider means adding an adapter, not touching a stage.
 
 Every row in `findings` and `plans` stores the `prompt_version` and the resolved `model_deployment`. A regression is attributable to a specific change — and because prompts are in git, that change is a diff.
 
@@ -116,16 +119,15 @@ Every stage is a queue job. Jobs are idempotent and keyed on `(report_id, stage)
 | # | Job | Fan-out | Model? |
 |---|---|---|---|
 | 1 | `report.classify` | — | Yes (MVP 1; MVP assumes one template) |
-| 2 | `report.split` | — | No |
-| 3 | `page.extract` | **Per page, parallel** | Yes — vision tier, native PDF |
-| 4 | `report.normalise` | — | Yes |
-| 5 | `report.analyse` | — | Yes |
-| 6 | `claim.corroborate` | **Per candidate, parallel** | Yes |
-| 7 | `report.gate` | — | **No — deterministic** |
-| 8 | `review.enqueue` | — | No |
-| 9 | `findings.publish` | Human-triggered | No |
-| 10 | `plan.generate` → gate → review → send | — | Yes |
-| 11 | `checkin.schedule` / `checkin.process` | Fortnightly cron | Yes (small) |
+| 2 | `report.extract` | — | Yes — vision tier, native PDF, whole document in one call |
+| 3 | `report.normalise` | — | Yes |
+| 4 | `report.analyse` | — | Yes |
+| 5 | `claim.corroborate` | **Per candidate, parallel** | Yes |
+| 6 | `report.gate` | — | **No — deterministic** |
+| 7 | `review.enqueue` | — | No |
+| 8 | `findings.publish` | Human-triggered | No |
+| 9 | `plan.generate` → gate → review → send | — | Yes |
+| 10 | `checkin.schedule` / `checkin.process` | Fortnightly cron | Yes (small) |
 
 **Report state machine:** `uploaded → classified → extracted → normalised → analysed → gated → in_review → published` with `held` and `failed` as terminal branches.
 
@@ -151,8 +153,8 @@ Core tables. Every table with family-scoped data carries `family_id` and an RLS 
 **Reports and extraction**
 - `schools` · `report_templates` (school_id, board, programme, paradigm A|B|C, status: known|new|unparseable)
 - `reports` (child_id, template_id, term_label, academic_year, source_type, storage_path, status, classification_confidence)
-- `report_pages` (report_id, page_no, storage_path) — the unit of parallel extraction
-- `extractions` (report_id, page_no, raw_json, model_deployment, prompt_version, confidence)
+- `report_pages` (report_id, page_no, storage_path) — **pending migration:** originally the unit of parallel extraction; extraction now runs once per report over the whole document, so this table is only used to store rasterised page images for a provider with no native PDF support (OpenAI, Grok, Kimi — not Anthropic or Gemini)
+- `extractions` (report_id, page_no, raw_json, model_deployment, prompt_version, confidence) — **pending migration:** now written once per report, not once per page; `page_no` should become nullable or be dropped when the schema is next revisited
 
 **The normalised record**
 - `skills` (code, name, domain, sub_domain) — the ontology

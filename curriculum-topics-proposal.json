@@ -1,0 +1,205 @@
+{
+  "source": {
+    "title": "IB Primary Years Programme Mathematics Scope and Sequence",
+    "publisher": "Haese Mathematics (alignment document summarising the IB PYP Mathematics learning continuums)",
+    "url": "https://www.haesemathematics.com/media/W1siZiIsIjIwMjUvMDUvMjcvOWE1dnMzdG16bF9JQl9QWVBfc2NvcGVfYW5kX3NlcXVlbmNlXzIwMjUucGRmIl1d/IB%20PYP%20scope%20and%20sequence%202025.pdf",
+    "last_updated": "26 May 2025",
+    "retrieved": "2026-08-31",
+    "note": "Learning outcomes below are transcribed from the 'Learning Outcome' column, which reproduces the IB PYP continuum text. The remaining columns of that document are Haese's own textbook page references (their commercial product) and were deliberately NOT transcribed."
+  },
+
+  "BLOCKER — read before using": {
+    "problem": "The curriculum_topics table requires `month int not null check (month between 1 and 12)`. This source — like every published IB PYP scope-and-sequence — organises content by DEVELOPMENTAL PHASE (1-4), not by calendar month. Phases span years, not months, and deliberately so: PYP is inquiry-led and each school sequences its own units.",
+    "consequence": "There is no honest way to derive `month` from this source. Any month value inserted from this data would be invented, and Plan's topicContext would then tell a parent their child is studying something this month on no evidence.",
+    "options": [
+      "A — Migrate curriculum_topics to make `month` nullable and add a `phase int` column, so phase-based framework data can be stored as-is. Plan then grounds activities in 'what this child's phase covers' rather than 'what the class is doing in August'.",
+      "B — Keep the month column and populate it ONLY from a specific school's own published curriculum calendar / unit-of-inquiry planner, which does map units to terms or months. Requires you to supply that document per school.",
+      "C — Both: phase data as the general fallback (A), school calendars layered on top where available (B)."
+    ],
+    "recommendation": "C. Option A alone is achievable right now with the data below; B is what actually delivers the PRD's 'know what the class is currently studying', and needs a real school document."
+  },
+
+  "topics": [
+    {
+      "board": "IB", "programme": "PYP", "strand": "Data handling", "phase": 1,
+      "conceptual_understandings": [
+        "We collect information to make sense of the world around us.",
+        "Organising objects and events helps us to solve problems.",
+        "Events in daily life involve chance."
+      ],
+      "constructing_meaning": [
+        "understand that sets can be organised by different attributes",
+        "understand that information about themselves and their surroundings can be obtained in different ways",
+        "discuss chance in daily events (impossible, maybe, certain)"
+      ],
+      "transferring_meaning_into_symbols": [
+        "represent information through pictographs and tally marks",
+        "sort and label real objects by attributes"
+      ],
+      "applying_with_understanding": [
+        "create pictographs and tally marks",
+        "create living graphs using real objects and people",
+        "describe real objects and events by attributes"
+      ]
+    },
+    {
+      "board": "IB", "programme": "PYP", "strand": "Data handling", "phase": 2,
+      "conceptual_understandings": [
+        "Information can be expressed as organised and structured data.",
+        "Objects and events can be organised in different ways.",
+        "Some events in daily life are more likely to happen than others."
+      ],
+      "constructing_meaning": [
+        "understand that sets can be organised by one or more attributes",
+        "understand that information about themselves and their surroundings can be collected and recorded in different ways",
+        "understand the concept of chance in daily events (impossible, less likely, maybe, most likely, certain)"
+      ],
+      "transferring_meaning_into_symbols": [
+        "collect and represent data in different types of graphs, for example, tally marks, bar graphs",
+        "represent the relationship between objects in sets using tree, Venn and Carroll diagrams",
+        "express the chance of an event happening using words or phrases (impossible, less likely, maybe, most likely, certain)"
+      ],
+      "applying_with_understanding": [
+        "collect, display and interpret data for the purpose of answering questions",
+        "create a pictograph and sample bar graph of real objects and interpret data by comparing quantities (for example, more, fewer, less than, greater than)",
+        "use tree, Venn and Carroll diagrams to explore relationships between data",
+        "identify and describe chance in daily events (impossible, less likely, maybe, most likely, certain)"
+      ]
+    },
+    {
+      "board": "IB", "programme": "PYP", "strand": "Measurement", "phase": 1,
+      "conceptual_understandings": [
+        "Measurement involves comparing objects and events.",
+        "Objects have attributes that can be measured using non-standard units.",
+        "Events can be ordered and sequenced."
+      ],
+      "constructing_meaning": [
+        "understand that attributes of real objects can be compared and described, for example, longer, shorter, heavier, empty, full, hotter, colder",
+        "understand that events in daily routines can be described and sequenced, for example, before, after, bedtime, storytime, today, tomorrow"
+      ]
+    },
+    {
+      "board": "IB", "programme": "PYP", "strand": "Measurement", "phase": 2,
+      "conceptual_understandings": [
+        "Standard units allow us to have a common language to identify, compare, order and sequence objects and events.",
+        "We use tools to measure the attributes of objects and events.",
+        "Estimation allows us to measure with different levels of accuracy."
+      ],
+      "constructing_meaning": [
+        "understand the use of standard units to measure, for example, length, mass, money, time, temperature",
+        "understand that tools can be used to measure",
+        "understand that calendars can be used to determine the date, and to identify and sequence days of the week and months of the year",
+        "understand that time is measured using universal units of measure, for example, years, months, days, hours, minutes and seconds"
+      ]
+    },
+    {
+      "board": "IB", "programme": "PYP", "strand": "Shape and space", "phase": 1,
+      "transferring_meaning_into_symbols": [
+        "sort, describe and compare 3D shapes",
+        "describe position and direction, for example, inside, outside, above, below, next to, behind, in front of, up, down"
+      ],
+      "applying_with_understanding": [
+        "explore and describe the paths, regions and boundaries of their immediate environment (inside, outside, above, below) and their position (next to, behind, in front of, up, down)"
+      ]
+    },
+    {
+      "board": "IB", "programme": "PYP", "strand": "Shape and space", "phase": 2,
+      "constructing_meaning": [
+        "understand that there are relationships among and between 2D and 3D shapes",
+        "understand that 2D and 3D shapes can be created by putting together and/or taking apart other shapes",
+        "understand that examples of symmetry and transformations can be found in their immediate environment",
+        "understand that geometric shapes are useful for representing real-world situations",
+        "understand that directions can be used to describe pathways, regions, positions and boundaries of their immediate environment"
+      ],
+      "transferring_meaning_into_symbols": [
+        "sort, describe and label 2D and 3D shapes",
+        "analyse and describe the relationships between 2D and 3D shapes",
+        "create and describe symmetrical and tessellating patterns",
+        "identify lines of reflective symmetry",
+        "represent ideas about the real world using geometric vocabulary and symbols, for example, through oral description, drawing, modelling, labelling",
+        "interpret and create simple directions, describing paths, regions, positions and boundaries of their immediate environment"
+      ],
+      "applying_with_understanding": [
+        "analyse and use what they know about 3D shapes to describe and work with 2D shapes",
+        "recognise and explain simple symmetrical designs in the environment",
+        "apply knowledge of symmetry to problem-solving situations",
+        "interpret and use simple directions, describing paths, regions, positions and boundaries of their immediate environment"
+      ]
+    },
+    {
+      "board": "IB", "programme": "PYP", "strand": "Pattern and function", "phase": 1,
+      "conceptual_understandings": [
+        "Patterns and sequences occur in everyday situations.",
+        "Patterns repeat and grow."
+      ],
+      "constructing_meaning": [
+        "understand that patterns can be found in everyday situations, for example, sounds, actions, objects, nature"
+      ],
+      "transferring_meaning_into_symbols": [
+        "describe patterns in various ways, for example, using words, drawings, symbols, materials, actions, numbers"
+      ],
+      "applying_with_understanding": ["extend and create patterns"]
+    },
+    {
+      "board": "IB", "programme": "PYP", "strand": "Pattern and function", "phase": 2,
+      "conceptual_understandings": [
+        "Whole numbers exhibit patterns and relationships that can be observed and described.",
+        "Patterns can be represented using numbers and other symbols."
+      ],
+      "constructing_meaning": [
+        "understand that patterns can be found in numbers, for example, odd and even numbers, skip counting",
+        "understand the inverse relationship between addition and subtraction",
+        "understand the associative and commutative properties of addition"
+      ],
+      "transferring_meaning_into_symbols": [
+        "represent patterns in a variety of ways, for example, using words, drawings, symbols, materials, actions, numbers",
+        "describe number patterns, for example, odd and even numbers, skip counting"
+      ],
+      "applying_with_understanding": [
+        "extend and create patterns in numbers, for example, odd and even numbers, skip counting",
+        "use number patterns to represent and understand real-life situations",
+        "use the properties and relationships of addition and subtraction to solve problems"
+      ]
+    },
+    {
+      "board": "IB", "programme": "PYP", "strand": "Number", "phase": 1,
+      "conceptual_understandings": [
+        "Numbers are a naming system.",
+        "Numbers can be used in many ways for different purposes in the real world.",
+        "Numbers are connected to each other through a variety of relationships.",
+        "Making connections between our experiences with number can help us to develop number sense."
+      ],
+      "constructing_meaning": [
+        "understand one-to-one correspondence",
+        "understand that, for a set of objects, the number name of the last object counted describes the quantity of the whole set",
+        "understand that numbers can be constructed in multiple ways, for example, by combining and partitioning",
+        "understand conservation of number",
+        "understand the relative magnitude of whole numbers",
+        "recognise groups of zero to five objects without counting (subitising)",
+        "understand whole-part relationships",
+        "use the language of mathematics to compare quantities, for example, more, less, first, second"
+      ]
+    },
+    {
+      "board": "IB", "programme": "PYP", "strand": "Number", "phase": 2,
+      "conceptual_understandings": [
+        "The base 10 place value system is used to represent numbers and number relationships.",
+        "Fractions are ways of representing whole-part relationships.",
+        "The operations of addition, subtraction, multiplication and division are related to each other and are used to process information to solve problems.",
+        "Number operations can be modelled in a variety of ways.",
+        "There are many mental methods that can be applied for exact and approximate computations."
+      ],
+      "constructing_meaning": [
+        "model numbers to hundreds or beyond using the base 10 place value system",
+        "estimate quantities to 100 or beyond",
+        "model simple fraction relationships",
+        "use the language of addition and subtraction, for example, add, take away, plus, minus, sum, difference",
+        "model addition and subtraction of whole numbers",
+        "develop strategies for memorising addition and subtraction number facts",
+        "estimate sums and differences",
+        "understand situations that involve multiplication and division",
+        "model addition and subtraction of fractions with the same denominator"
+      ]
+    }
+  ]
+}
