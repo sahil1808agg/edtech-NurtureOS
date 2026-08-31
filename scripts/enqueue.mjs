@@ -22,7 +22,15 @@ const env = Object.fromEntries(
     .map((m) => [m[1], m[2].replace(/\s+#.*$/, "").trim().replace(/^["']|["']$/g, "")]),
 );
 
-const boss = new PgBoss(env.DATABASE_URL);
+// Small pool: this sends one job and exits, and the session pooler's budget is
+// shared with the worker and the web app.
+const boss = new PgBoss({
+  connectionString: env.DATABASE_URL,
+  max: 1,
+  supervise: false,
+  schedule: false,
+  application_name: "nurtureos-script",
+});
 boss.on("error", (e) => console.error("pg-boss:", e.message));
 await boss.start();
 const id = await boss.send(queue, payload ? JSON.parse(payload) : {});

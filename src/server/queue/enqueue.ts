@@ -8,22 +8,41 @@
 
 import { PgBoss } from 'pg-boss';
 
-let _boss: PgBoss | null = null;
+// Held on globalThis, not in a module-scoped variable. Next's dev server
+// re-evaluates modules on hot reload, and a fresh PgBoss each time opens a
+// fresh pool while the old one keeps its connections — which exhausted the
+// Supabase session pooler (max 15) and made enqueue fail with EMAXCONNSESSION.
+const globalForBoss = globalThis as unknown as { _enqueueBoss?: Promise<PgBoss> };
 
-async function sender(): Promise<PgBoss> {
-  if (_boss) return _boss;
+function sender(): Promise<PgBoss> {
+  if (globalForBoss._enqueueBoss) return globalForBoss._enqueueBoss;
 
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error('Missing DATABASE_URL');
 
-  // supervise:false — this instance only sends. Leaving maintenance to the
-  // worker avoids two processes competing to run the same upkeep.
-  const boss = new PgBoss({ connectionString, supervise: false, schedule: false });
-  boss.on('error', (err) => console.error('[pg-boss:send]', err));
+  globalForBoss._enqueueBoss = (async () => {
+    // supervise/schedule off: this instance only sends, and leaving maintenance
+    // to the worker avoids two processes competing to run the same upkeep.
+    // max is small on purpose — sending is a brief write, and the pooler's
+    // budget has to cover the worker too.
+    const boss = new PgBoss({
+      connectionString,
+      max: 2,
+      supervise: false,
+      schedule: false,
+      application_name: 'nurtureos-web',
+    });
+    boss.on('error', (err) => console.error('[pg-boss:send]', err));
+    await boss.start();
+    return boss;
+  })();
 
-  await boss.start();
-  _boss = boss;
-  return boss;
+  // Do not cache a failed start, or every later send inherits the failure.
+  globalForBoss._enqueueBoss.catch(() => {
+    globalForBoss._enqueueBoss = undefined;
+  });
+
+  return globalForBoss._enqueueBoss;
 }
 
 /**

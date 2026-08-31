@@ -90,18 +90,31 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   // unreviewed leaves two drafts in the queue for one child — and the singleton
   // key does not help, since it only collapses jobs that are still queued, not
   // a plan that was already produced and is sitting in review.
+  // Everything above has already been written. If queueing the plan fails the
+  // approval still happened, so failing the whole request would report a
+  // success as an error — and the retry then hits "already published", which is
+  // exactly what a 500 here looked like from the outside. The plan is
+  // recoverable from the child page's "Create a plan" control, so this reports
+  // the approval and says the plan did not start.
   let planQueued = false;
-  if (publishing) {
-    const { data: pendingPlan } = await admin
-      .from('plans')
-      .select('id')
-      .eq('child_id', set.child_id)
-      .in('status', ['draft', 'in_review'])
-      .maybeSingle();
+  let planError: string | null = null;
 
-    if (!pendingPlan) {
-      await enqueue('plan.generate', { childId: set.child_id }, { singletonKey: `plan:${set.child_id}` });
-      planQueued = true;
+  if (publishing) {
+    try {
+      const { data: pendingPlan } = await admin
+        .from('plans')
+        .select('id')
+        .eq('child_id', set.child_id)
+        .in('status', ['draft', 'in_review'])
+        .maybeSingle();
+
+      if (!pendingPlan) {
+        await enqueue('plan.generate', { childId: set.child_id }, { singletonKey: `plan:${set.child_id}` });
+        planQueued = true;
+      }
+    } catch (err) {
+      planError = err instanceof Error ? err.message : 'could not start the plan';
+      console.error('[review:decision] approved but plan not queued', err);
     }
   }
 
@@ -110,5 +123,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     decision,
     status: publishing ? 'published' : 'held',
     planQueued,
+    planError,
   });
 }

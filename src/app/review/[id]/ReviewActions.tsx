@@ -26,10 +26,17 @@ export function ReviewActions({
 
     setBusy(null);
 
+    const body = await res.json().catch(() => ({}));
+
     if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
       setError(body.error ?? `Request failed (${res.status})`);
       return;
+    }
+
+    // Approved, but the plan did not start. Say so rather than looking like it
+    // worked — the child page has a control to start one.
+    if (decision === 'publish' && body.planError) {
+      setError('Approved, but we could not start the plan. Try "Create a plan" on your child’s page.');
     }
 
     // Stay put. Reviewing happens on the report page now, and publishing turns
