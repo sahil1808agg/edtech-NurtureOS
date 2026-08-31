@@ -73,7 +73,7 @@ export default async function Home() {
   }
 
   return (
-    <main>
+    <main className="max-w-3xl">
       <h1 className="text-2xl font-semibold tracking-tight">Your reports</h1>
 
       {user.isOps && (

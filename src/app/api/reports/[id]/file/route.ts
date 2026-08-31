@@ -5,12 +5,13 @@ import { serviceClient } from '../../../../../lib/db/clients';
 export const runtime = 'nodejs';
 
 /**
- * Redirects to a short-lived signed URL for the report file.
+ * Streams the report file.
  *
- * The bucket is private, so this is the only way to read it. Authorisation is
- * checked here — family matched explicitly, since the reports policy widens for
- * ops — and the signed URL is deliberately short-lived: it carries no auth of
- * its own, so anyone holding it can read the file until it expires.
+ * The bytes are proxied rather than redirected to a signed URL. Two reasons:
+ * the viewer needs the response to be same-origin so that a `#page=N` fragment
+ * actually moves the PDF (a fragment does not reliably survive a redirect onto
+ * a cross-origin document), and it keeps a bearer-like signed URL from leaving
+ * the server at all.
  */
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -21,7 +22,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
   // Ops may view any report's source — reviewing a claim means checking it
   // against the page it came from.
-  let query = db.from('reports').select('id, storage_path, family_id').eq('id', id);
+  let query = db.from('reports').select('id, storage_path, source_type').eq('id', id);
   if (!user.isOps) query = query.eq('family_id', user.familyId);
 
   const { data: report } = await query.maybeSingle();
@@ -29,13 +30,25 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: 'Report file not found' }, { status: 404 });
   }
 
-  const { data, error } = await serviceClient()
-    .storage.from('reports')
-    .createSignedUrl(report.storage_path, 300);
-
+  const { data, error } = await serviceClient().storage.from('reports').download(report.storage_path);
   if (error || !data) {
-    return NextResponse.json({ error: `Could not sign URL: ${error?.message}` }, { status: 500 });
+    return NextResponse.json({ error: `Could not read file: ${error?.message}` }, { status: 500 });
   }
 
-  return NextResponse.redirect(data.signedUrl);
+  const contentType =
+    report.source_type === 'pdf'
+      ? 'application/pdf'
+      : report.storage_path.endsWith('.png')
+        ? 'image/png'
+        : 'image/jpeg';
+
+  return new NextResponse(await data.arrayBuffer(), {
+    headers: {
+      'Content-Type': contentType,
+      'Content-Disposition': 'inline',
+      // Private: this is one family's child's report. Cached briefly so paging
+      // around the document does not refetch it on every click.
+      'Cache-Control': 'private, max-age=300',
+    },
+  });
 }

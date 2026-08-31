@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { routeClient, currentUser } from '../../../lib/db/server';
 import { HONESTY_PATH } from '../../../server/gates/sufficiency';
+import { SourceViewer } from './SourceViewer';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +27,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
   // family for an ops account, and this is the parent-facing view.
   const { data: report } = await db
     .from('reports')
-    .select('id, status, failure_reason, term_label, academic_year, child_id, created_at')
+    .select('id, status, failure_reason, term_label, academic_year, child_id, source_type, created_at')
     .eq('id', id)
     .eq('family_id', user.familyId)
     .maybeSingle();
@@ -157,6 +158,13 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
   const strengths = (findings ?? []).filter((f) => f.kind === 'strength');
   const growth = (findings ?? []).filter((f) => f.kind === 'growth');
 
+  const firstPage = (() => {
+    const pages = (observations ?? [])
+      .map((o) => (o.source_ref as { page?: number } | null)?.page)
+      .filter((p): p is number => typeof p === 'number');
+    return pages.length ? Math.min(...pages) : 1;
+  })();
+
   return (
     <main>
       <OpsBanner />
@@ -165,9 +173,11 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
       </h1>
       <p className="mt-2 text-sm text-[var(--muted)]">
         {findings?.length ?? 0} findings, each traceable to what the report actually says.
-        Reviewed by a person before publishing.
+        Click any citation to jump the report to that page.
       </p>
 
+      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start">
+        <div>
       {[
         { title: 'Strengths', items: strengths },
         { title: 'Still developing', items: growth },
@@ -209,20 +219,21 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
                       <ul className="mt-2 space-y-1.5">
                         {cites.map((o, i) => {
                           const ref = o!.source_ref as { page?: number } | null;
-                          const href =
-                            `/reports/${id}/source` +
-                            `?page=${ref?.page ?? ''}` +
-                            `&label=${encodeURIComponent(o!.raw_label)}`;
                           return (
-                            <li key={i} className="text-xs text-[var(--muted)]">
-                              <Link href={href} className="underline decoration-dotted">
+                            <li key={i}>
+                              <button
+                                type="button"
+                                data-source-page={ref?.page ?? undefined}
+                                data-source-label={o!.raw_label}
+                                className="text-left text-xs text-[var(--muted)] underline decoration-dotted hover:text-[var(--foreground)]"
+                              >
                                 <span className="font-mono">
                                   Term {o!.term_index}: {o!.raw_value ?? '—'}
                                 </span>
                                 {ref?.page ? <span> · page {ref.page}</span> : null}
                                 <br />
                                 {o!.raw_label}
-                              </Link>
+                              </button>
                             </li>
                           );
                         })}
@@ -235,6 +246,14 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
           </section>
         ),
       )}
+        </div>
+
+        <SourceViewer
+          reportId={report.id}
+          isPdf={report.source_type === 'pdf'}
+          initialPage={firstPage}
+        />
+      </div>
     </main>
   );
 }

@@ -39,7 +39,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <div className="mx-auto max-w-3xl px-6 py-10">
+        {/* Wide enough for the report-beside-findings split; text-only pages
+            constrain themselves with their own max-width. */}
+        <div className="mx-auto max-w-6xl px-6 py-10">
           <Nav />
           {children}
         </div>

@@ -4,6 +4,7 @@ import { routeClient, currentUser } from '../../../lib/db/server';
 import { serviceClient } from '../../../lib/db/clients';
 import { ReviewActions } from './ReviewActions';
 import { HONESTY_PATH } from '../../../server/gates/sufficiency';
+import { SourceViewer } from '../../reports/[id]/SourceViewer';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,6 +55,18 @@ export default async function ReviewDetailPage({ params }: { params: Promise<{ i
     : { data: [] };
   const obsById = new Map((observations ?? []).map((o) => [o.id, o]));
 
+  const { data: sourceReport } = await admin
+    .from('reports')
+    .select('source_type')
+    .eq('id', set.report_id)
+    .maybeSingle();
+  const sourceIsPdf = sourceReport?.source_type !== 'photo';
+
+  const citedPages = (observations ?? [])
+    .map((o) => (o.source_ref as { page?: number } | null)?.page)
+    .filter((p): p is number => typeof p === 'number');
+  const firstPage = citedPages.length ? Math.min(...citedPages) : 1;
+
   return (
     <main>
       <Link href="/review" className="text-xs underline text-[var(--muted)]">← Review queue</Link>
@@ -62,8 +75,10 @@ export default async function ReviewDetailPage({ params }: { params: Promise<{ i
         {set.model_deployment} · {set.prompt_version} · status {set.status}
       </p>
 
+      <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start">
+        <div>
       {set.honesty_path ? (
-        <section className="mt-6 rounded-lg border border-[var(--border)] p-5">
+        <section className="rounded-lg border border-[var(--border)] p-5">
           <h2 className="text-sm font-medium">Honesty path</h2>
           <p className="mt-2 text-sm">{HONESTY_PATH.statement}</p>
           <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-[var(--muted)]">
@@ -75,7 +90,7 @@ export default async function ReviewDetailPage({ params }: { params: Promise<{ i
           </p>
         </section>
       ) : (
-        <ol className="mt-6 space-y-5">
+        <ol className="space-y-5">
           {(findings ?? []).map((f) => {
             const cites = (citations ?? []).filter((c) => c.finding_id === f.id);
             return (
@@ -111,15 +126,17 @@ export default async function ReviewDetailPage({ params }: { params: Promise<{ i
                       const o = c.observation_id ? obsById.get(c.observation_id) : null;
                       if (!o) return <li key={i} className="text-xs text-[var(--muted)]">narrative citation</li>;
                       const ref = o.source_ref as { page?: number } | null;
-                      const href =
-                        `/reports/${set.report_id}/source` +
-                        `?page=${ref?.page ?? ''}&label=${encodeURIComponent(o.raw_label)}`;
                       return (
-                        <li key={i} className="text-xs text-[var(--muted)]">
-                          <Link href={href} className="underline decoration-dotted">
+                        <li key={i}>
+                          <button
+                            type="button"
+                            data-source-page={ref?.page ?? undefined}
+                            data-source-label={o.raw_label}
+                            className="text-left text-xs text-[var(--muted)] underline decoration-dotted hover:text-[var(--foreground)]"
+                          >
                             <span className="font-mono">T{o.term_index} = {o.raw_value ?? '—'}</span>
                             {ref?.page ? <span> · p{ref.page}</span> : null} · {o.raw_label}
-                          </Link>
+                          </button>
                         </li>
                       );
                     })}
@@ -138,6 +155,10 @@ export default async function ReviewDetailPage({ params }: { params: Promise<{ i
           Already reviewed — status is <strong>{set.status}</strong>.
         </p>
       )}
+        </div>
+
+        <SourceViewer reportId={set.report_id} isPdf={sourceIsPdf} initialPage={firstPage} />
+      </div>
     </main>
   );
 }

@@ -25,7 +25,7 @@ export default async function UploadPage() {
   }));
 
   return (
-    <main>
+    <main className="max-w-2xl">
       <h1 className="text-xl font-semibold tracking-tight">Upload a report</h1>
       <p className="mt-2 text-sm text-[var(--muted)]">
         We read the report, pull out what was actually assessed, and turn it into a small number of
