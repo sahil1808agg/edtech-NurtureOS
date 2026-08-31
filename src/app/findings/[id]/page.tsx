@@ -27,7 +27,7 @@ export default async function FindingPage({ params }: { params: Promise<{ id: st
   // any report they are reviewing.
   let findingQuery = db
     .from('findings')
-    .select('id, kind, statement, corroboration_status, corroboration_quote, finding_set_id, family_id')
+    .select('id, kind, statement, original_statement, excluded, corroboration_status, corroboration_quote, finding_set_id, family_id')
     .eq('id', id);
   if (!user.isOps) findingQuery = findingQuery.eq('family_id', user.familyId);
 
@@ -101,6 +101,17 @@ export default async function FindingPage({ params }: { params: Promise<{ id: st
           </span>
 
           <h1 className="mt-3 text-lg font-semibold tracking-tight">{finding.statement}</h1>
+
+          {finding.original_statement && (
+            <details className="mt-2">
+              <summary className="cursor-pointer text-xs text-[var(--muted)]">
+                You reworded this — see what we originally wrote
+              </summary>
+              <p className="mt-1 border-l-2 border-[var(--border)] pl-3 text-xs italic text-[var(--muted)]">
+                {finding.original_statement}
+              </p>
+            </details>
+          )}
 
           {finding.corroboration_status === 'corroborated' && finding.corroboration_quote && (
             <div className="mt-4">

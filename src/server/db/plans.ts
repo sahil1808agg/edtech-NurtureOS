@@ -68,6 +68,7 @@ export async function getTargetFindings(childId: string): Promise<TargetFinding[
     .from('findings')
     .select('id, statement')
     .eq('finding_set_id', findingSet.id)
+    .eq('excluded', false)
     .neq('corroboration_status', 'conflicting')
     .order('position');
 

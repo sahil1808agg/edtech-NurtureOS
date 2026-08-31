@@ -4,6 +4,7 @@ import { routeClient, currentUser } from '../../../lib/db/server';
 import { HONESTY_PATH } from '../../../server/gates/sufficiency';
 import { SourceViewer } from './SourceViewer';
 import { ReviewActions } from '../../review/[id]/ReviewActions';
+import { EditableFinding } from './EditableFinding';
 
 export const dynamic = 'force-dynamic';
 
@@ -124,7 +125,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
 
   const { data: findings } = await db
     .from('findings')
-    .select('id, kind, statement, corroboration_status, corroboration_quote, position')
+    .select('id, kind, statement, original_statement, excluded, corroboration_status, corroboration_quote, position')
     .eq('finding_set_id', findingSet.id)
     .order('position');
 
@@ -159,8 +160,12 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
     unsure: 'You were not sure',
   };
 
-  const strengths = (findings ?? []).filter((f) => f.kind === 'strength');
-  const growth = (findings ?? []).filter((f) => f.kind === 'growth');
+  // While it is still a draft the parent sees everything, including what they
+  // have struck out, so they can put it back. Once approved, a finding they
+  // left out is simply gone.
+  const shown = (findings ?? []).filter((f) => canReview || !f.excluded);
+  const strengths = shown.filter((f) => f.kind === 'strength');
+  const growth = shown.filter((f) => f.kind === 'growth');
 
   const firstPage = (() => {
     const pages = (observations ?? [])
@@ -224,11 +229,20 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
                     id={`finding-${f.id}`}
                     className="scroll-mt-6 rounded-lg border border-[var(--border)] p-5 target:border-[var(--accent)]"
                   >
-                    <p className="text-sm">
-                      <Link href={`/findings/${f.id}`} className="hover:underline">
-                        {f.statement}
-                      </Link>
-                    </p>
+                    {canReview ? (
+                      <EditableFinding
+                        findingId={f.id}
+                        statement={f.statement}
+                        originalStatement={f.original_statement}
+                        excluded={f.excluded}
+                      />
+                    ) : (
+                      <p className="text-sm">
+                        <Link href={`/findings/${f.id}`} className="hover:underline">
+                          {f.statement}
+                        </Link>
+                      </p>
+                    )}
 
                     {responseByFinding.has(f.id) && (
                       <p className="mt-2 text-xs text-[var(--accent)]">

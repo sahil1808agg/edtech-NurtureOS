@@ -62,7 +62,11 @@ export default async function ChildPage({ params }: { params: Promise<{ id: stri
   const setByReport = new Map((sets ?? []).map((s) => [s.report_id, s]));
   const setIds = (sets ?? []).map((s) => s.id);
   const { data: findings } = setIds.length
-    ? await db.from('findings').select('id, kind, statement, finding_set_id').in('finding_set_id', setIds)
+    ? await db
+        .from('findings')
+        .select('id, kind, statement, finding_set_id')
+        .in('finding_set_id', setIds)
+        .eq('excluded', false)
     : { data: [] };
 
   const findingsBySet = new Map<string, typeof findings>();
