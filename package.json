@@ -17,6 +17,7 @@
     "worker": "tsx src/server/queue/worker.ts",
     "worker:stop": "node scripts/stop-workers.mjs",
     "enqueue": "node scripts/enqueue.mjs",
+    "make:ops": "node scripts/make-ops-user.mjs",
     "test:integration": "vitest run --config vitest.integration.config.ts"
   },
   "dependencies": {
