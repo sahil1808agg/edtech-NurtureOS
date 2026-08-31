@@ -71,17 +71,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     .update({ status: publishing ? 'published' : 'held' })
     .eq('id', set.report_id);
 
-  // Publishing findings is what makes a plan possible: plan.generate targets
-  // the child's most recent findings, so there is nothing to plan against until
-  // some exist. A held report produces no plan, by design.
-  if (publishing) {
-    await enqueue('plan.generate', { childId: set.child_id });
-  }
-
+  // Publishing does not generate a plan. It makes the findings visible so the
+  // parent can read them, say which ones match, and ask for a plan when they
+  // are ready — see POST /api/children/[id]/plan. Generating here would build
+  // activities from findings the parent has not seen yet, and would ignore the
+  // ones they go on to reject.
   return NextResponse.json({
     findingSetId: id,
     decision,
     status: publishing ? 'published' : 'held',
-    planQueued: publishing,
   });
 }

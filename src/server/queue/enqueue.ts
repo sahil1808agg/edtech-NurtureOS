@@ -26,6 +26,16 @@ async function sender(): Promise<PgBoss> {
   return boss;
 }
 
-export async function enqueue(queue: string, data: object): Promise<string | null> {
-  return (await sender()).send(queue, data);
+/**
+ * `singletonKey` collapses duplicate work at the queue rather than in a
+ * pre-check. Guarding by "does a row already exist" loses the race between
+ * enqueue and the worker creating that row, so two quick clicks produce two
+ * jobs; pg-boss refuses the second outright and returns null.
+ */
+export async function enqueue(
+  queue: string,
+  data: object,
+  options?: { singletonKey?: string },
+): Promise<string | null> {
+  return (await sender()).send(queue, data, options ?? {});
 }

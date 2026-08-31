@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { routeClient, currentUser } from '../../../lib/db/server';
+import { RequestPlan } from './RequestPlan';
 
 export const dynamic = 'force-dynamic';
 
@@ -52,9 +53,10 @@ export default async function ChildPage({ params }: { params: Promise<{ id: stri
   const { data: sets } = publishedReportIds.length
     ? await db
         .from('finding_sets')
-        .select('id, report_id, honesty_path')
+        .select('id, report_id, honesty_path, created_at')
         .in('report_id', publishedReportIds)
         .eq('status', 'published')
+        .order('created_at', { ascending: false })
     : { data: [] };
 
   const setByReport = new Map((sets ?? []).map((s) => [s.report_id, s]));
@@ -69,6 +71,29 @@ export default async function ChildPage({ params }: { params: Promise<{ id: stri
     list.push(f);
     findingsBySet.set(f.finding_set_id, list as never);
   }
+
+  // The plan is built from the most recent published set only (see
+  // getTargetFindings), so the counts offered to the parent must describe that
+  // set — not every finding this child has ever had — or the button would
+  // promise activities from findings it will never look at.
+  const latestSetId = (sets ?? [])[0]?.id ?? null;
+  const allFindingIds = (findings ?? [])
+    .filter((f) => f.finding_set_id === latestSetId)
+    .map((f) => f.id);
+
+  const { data: responses } = allFindingIds.length
+    ? await db
+        .from('parent_finding_responses')
+        .select('finding_id, response')
+        .in('finding_id', allFindingIds)
+    : { data: [] };
+
+  const rejectedCount = (responses ?? []).filter((r) => r.response === 'doesnt_match').length;
+  const reviewedCount = (responses ?? []).length;
+  const usableCount = allFindingIds.length - rejectedCount;
+  const unreviewedCount = allFindingIds.length - reviewedCount;
+
+  const planInFlight = (plans ?? []).some((p) => p.status === 'draft' || p.status === 'in_review');
 
   const ageYears = Math.floor(
     (Date.now() - new Date(child.dob).getTime()) / (365.25 * 24 * 3600 * 1000),
@@ -136,10 +161,21 @@ export default async function ChildPage({ params }: { params: Promise<{ id: stri
       <section className="mt-10">
         <h2 className="text-sm font-medium uppercase tracking-wide text-[var(--muted)]">Plans</h2>
 
+        {allFindingIds.length > 0 && !planInFlight && (
+          <RequestPlan
+            childId={child.id}
+            usableFindings={usableCount}
+            rejectedFindings={rejectedCount}
+            unreviewedFindings={unreviewedCount}
+          />
+        )}
+
         {(plans ?? []).length === 0 ? (
-          <p className="mt-3 text-sm text-[var(--muted)]">
-            A plan is created once findings from a report have been published.
-          </p>
+          allFindingIds.length === 0 ? (
+            <p className="mt-3 text-sm text-[var(--muted)]">
+              Once a report’s findings are published, you can read them and then ask for a plan.
+            </p>
+          ) : null
         ) : (
           <ul className="mt-3 space-y-3">
             {(plans ?? []).map((p) => (

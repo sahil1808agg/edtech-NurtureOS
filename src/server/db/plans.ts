@@ -72,7 +72,21 @@ export async function getTargetFindings(childId: string): Promise<TargetFinding[
     .order('position');
 
   if (error) throw new Error(`fetching findings for finding_set ${findingSet.id}: ${error.message}`);
-  return (findings ?? []).map(f => ({ id: f.id, statement: f.statement }));
+
+  // A finding the parent has told us is wrong must not drive an activity. They
+  // know the child; planning against something they have explicitly rejected
+  // would be both useless and a good way to lose their trust in the rest.
+  const { data: rejected } = await serviceClient()
+    .from('parent_finding_responses')
+    .select('finding_id')
+    .eq('response', 'doesnt_match')
+    .in('finding_id', (findings ?? []).map(f => f.id));
+
+  const rejectedIds = new Set((rejected ?? []).map(r => r.finding_id));
+
+  return (findings ?? [])
+    .filter(f => !rejectedIds.has(f.id))
+    .map(f => ({ id: f.id, statement: f.statement }));
 }
 
 /** Empty until the resource library (PRD: "the moat") is actually curated. */
