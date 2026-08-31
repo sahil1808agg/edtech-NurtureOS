@@ -42,12 +42,22 @@ export interface TargetFinding {
   statement: string;
 }
 
-/** Findings from the child's most recent finding_set, excluding actively-contradicted claims. */
+/**
+ * Findings from the child's most recent PUBLISHED finding set, excluding
+ * actively-contradicted claims.
+ *
+ * Published, not merely most recent: a draft has not been through review, and a
+ * superseded one was replaced. Planning against either would justify an
+ * activity with a claim the parent has never been shown and no reviewer ever
+ * approved — and would leave "why this" pointing at a finding that does not
+ * appear anywhere in the app.
+ */
 export async function getTargetFindings(childId: string): Promise<TargetFinding[]> {
   const { data: findingSet } = await serviceClient()
     .from('finding_sets')
     .select('id')
     .eq('child_id', childId)
+    .eq('status', 'published')
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();

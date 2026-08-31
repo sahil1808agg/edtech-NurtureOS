@@ -198,7 +198,11 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
                     id={`finding-${f.id}`}
                     className="scroll-mt-6 rounded-lg border border-[var(--border)] p-5 target:border-[var(--accent)]"
                   >
-                    <p className="text-sm">{f.statement}</p>
+                    <p className="text-sm">
+                      <Link href={`/findings/${f.id}`} className="hover:underline">
+                        {f.statement}
+                      </Link>
+                    </p>
 
                     {f.corroboration_status === 'corroborated' && f.corroboration_quote && (
                       <div className="mt-3">

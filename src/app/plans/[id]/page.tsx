@@ -131,15 +131,11 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
               {finding && (
                 <p className="mt-3 border-t border-[var(--border)] pt-3 text-xs text-[var(--muted)]">
                   Why this:{' '}
-                  {reportBySetId.has(finding.finding_set_id) ? (
-                    <Link
-                      href={`/reports/${reportBySetId.get(finding.finding_set_id)}#finding-${finding.id}`}
-                      className="underline decoration-dotted"
-                    >
-                      {finding.statement}
-                    </Link>
-                  ) : (
-                    finding.statement
+                  <Link href={`/findings/${finding.id}`} className="underline decoration-dotted">
+                    {finding.statement}
+                  </Link>
+                  {reportBySetId.has(finding.finding_set_id) ? null : (
+                    <span className="ml-1 italic">(from an earlier analysis)</span>
                   )}
                 </p>
               )}
