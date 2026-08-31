@@ -21,11 +21,13 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
   const user = await currentUser(db);
   if (!user) redirect('/signin');
 
-  // RLS: a report from another family simply does not resolve.
+  // Scoped explicitly, not left to RLS: the reports policy widens to every
+  // family for an ops account, and this is the parent-facing view.
   const { data: report } = await db
     .from('reports')
     .select('id, status, failure_reason, term_label, academic_year, child_id, created_at')
     .eq('id', id)
+    .eq('family_id', user.familyId)
     .maybeSingle();
 
   if (!report) return <main><p className="text-sm">Report not found.</p></main>;

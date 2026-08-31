@@ -39,9 +39,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: `File is ${(file.size / 1e6).toFixed(1)}MB; the limit is 20MB.` }, { status: 413 });
   }
 
-  // Read through the caller's RLS-scoped client: a child in another family
-  // simply does not resolve, so this doubles as the ownership check.
-  const { data: child } = await db.from('children').select('id, family_id').eq('id', childId).maybeSingle();
+  // family_id is matched explicitly rather than left to RLS. The children read
+  // policy is `family_id = current_family_id() OR is_ops()`, so for an ops
+  // account RLS alone resolves ANY child — which would let a reviewer upload a
+  // report on another family's behalf. Ops is a trusted role, but this route
+  // means "the caller's own child", so it says so.
+  const { data: child } = await db
+    .from('children')
+    .select('id, family_id')
+    .eq('id', childId)
+    .eq('family_id', user.familyId)
+    .maybeSingle();
+
   if (!child) return NextResponse.json({ error: 'Child not found' }, { status: 404 });
 
   try {

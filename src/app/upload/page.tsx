@@ -9,10 +9,13 @@ export default async function UploadPage() {
   const user = await currentUser(db);
   if (!user) redirect('/signin');
 
-  // RLS scopes this to the caller's own family.
+  // Scoped explicitly: the children read policy widens to every family for an
+  // ops account, so relying on RLS here would offer a reviewer the whole
+  // system's children in the dropdown.
   const { data: children } = await db
     .from('children')
     .select('id, first_name, grade')
+    .eq('family_id', user.familyId)
     .order('first_name');
 
   const options: ChildOption[] = (children ?? []).map((c) => ({
