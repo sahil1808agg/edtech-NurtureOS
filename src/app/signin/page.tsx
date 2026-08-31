@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabaseBrowser } from '../../lib/db/browser';
 
@@ -59,6 +60,10 @@ export default function SignInPage() {
           {busy ? 'Signing in…' : 'Sign in'}
         </button>
       </form>
+
+      <p className="mt-4 text-sm text-[var(--muted)]">
+        New here? <Link href="/signup" className="underline">Create an account</Link>
+      </p>
     </main>
   );
 }

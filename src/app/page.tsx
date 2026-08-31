@@ -22,7 +22,7 @@ export default async function Home() {
 
   if (!user) {
     return (
-      <main>
+      <main className="max-w-2xl">
         <h1 className="text-2xl font-semibold tracking-tight">
           Understand your child’s school report
         </h1>
@@ -31,37 +31,43 @@ export default async function Home() {
           exact cell it came from. Every finding is checked by a person before you see it, and we
           say so plainly when a report does not contain enough to draw a conclusion.
         </p>
-        <Link
-          href="/signin"
-          className="mt-6 inline-block rounded bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white"
-        >
-          Sign in
-        </Link>
+        <div className="mt-6 flex items-center gap-4">
+          <Link
+            href="/signup"
+            className="rounded bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white"
+          >
+            Create an account
+          </Link>
+          <Link href="/signin" className="text-sm underline">Sign in</Link>
+        </div>
       </main>
     );
   }
 
   // Scoped explicitly to the caller's family. RLS is deliberately wider for ops
-  // (`... OR is_ops()`) so the review console can cross families — but this list
-  // is headed "Your reports", and for a reviewer that must mean theirs, not
-  // everyone's.
-  const { data: reports } = await db
-    .from('reports')
-    .select('id, status, term_label, academic_year, child_id, created_at')
-    .eq('family_id', user.familyId)
-    .order('created_at', { ascending: false });
+  // (`... OR is_ops()`) so the review console can cross families — but this is
+  // the parent view, and for a reviewer it must mean their own family.
+  const [{ data: children }, { data: reports }, { data: plans }] = await Promise.all([
+    db.from('children').select('id, first_name, grade').eq('family_id', user.familyId).order('first_name'),
+    db
+      .from('reports')
+      .select('id, child_id, status, term_label, created_at')
+      .eq('family_id', user.familyId)
+      .order('created_at', { ascending: false }),
+    db.from('plans').select('id, child_id, cycle_no, status').eq('family_id', user.familyId),
+  ]);
 
-  const { data: children } = await db
-    .from('children')
-    .select('id, first_name')
-    .eq('family_id', user.familyId);
+  const reportsByChild = new Map<string, NonNullable<typeof reports>>();
+  for (const r of reports ?? []) {
+    const list = reportsByChild.get(r.child_id) ?? [];
+    list.push(r);
+    reportsByChild.set(r.child_id, list);
+  }
 
-  const { data: plans } = await db
-    .from('plans')
-    .select('id, child_id, cycle_no, status, created_at')
-    .eq('family_id', user.familyId)
-    .order('created_at', { ascending: false });
-  const nameById = new Map((children ?? []).map((c) => [c.id, c.first_name]));
+  const planCountByChild = new Map<string, number>();
+  for (const p of plans ?? []) {
+    planCountByChild.set(p.child_id, (planCountByChild.get(p.child_id) ?? 0) + 1);
+  }
 
   let pendingReviews = 0;
   if (user.isOps) {
@@ -74,83 +80,69 @@ export default async function Home() {
 
   return (
     <main className="max-w-3xl">
-      <h1 className="text-2xl font-semibold tracking-tight">Your reports</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">Your children</h1>
 
       {user.isOps && (
         <div className="mt-4 rounded-lg border border-[var(--border)] p-4">
           <p className="text-sm">
             <strong>{pendingReviews}</strong> item{pendingReviews === 1 ? '' : 's'} waiting for
-            review.{' '}
-            <Link href="/review" className="underline">Open the review console</Link>
+            review. <Link href="/review" className="underline">Open the review console</Link>
           </p>
         </div>
       )}
 
-      {(reports ?? []).length === 0 ? (
+      {(children ?? []).length === 0 ? (
         <div className="mt-6">
-          <p className="text-sm text-[var(--muted)]">No reports yet.</p>
+          <p className="text-sm text-[var(--muted)]">
+            Add your child to get started. We ask for consent at the same time — nothing is
+            analysed without it.
+          </p>
           <Link
-            href="/upload"
+            href="/children/new"
             className="mt-4 inline-block rounded bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white"
           >
-            Upload a report
+            Add a child
           </Link>
         </div>
       ) : (
         <>
           <ul className="mt-6 space-y-3">
-            {(reports ?? []).map((r) => (
-              <li key={r.id} className="rounded-lg border border-[var(--border)] p-4">
-                <div className="flex items-baseline justify-between gap-4">
-                  <Link href={`/reports/${r.id}`} className="text-sm font-medium underline">
-                    {nameById.get(r.child_id) ?? 'Child'}
-                    {r.term_label ? ` — ${r.term_label}` : ''}
-                    {r.academic_year ? ` (${r.academic_year})` : ''}
-                  </Link>
-                  <span className="shrink-0 text-xs text-[var(--muted)]">
-                    {STAGE_LABEL[r.status] ?? r.status}
-                  </span>
-                </div>
-                <p className="mt-1 text-xs text-[var(--muted)]">
-                  Uploaded {new Date(r.created_at).toLocaleDateString()}
-                </p>
-              </li>
-            ))}
+            {(children ?? []).map((c) => {
+              const childReports = reportsByChild.get(c.id) ?? [];
+              const planCount = planCountByChild.get(c.id) ?? 0;
+              const latest = childReports[0];
+              return (
+                <li key={c.id} className="rounded-lg border border-[var(--border)] p-4">
+                  <div className="flex items-baseline justify-between gap-4">
+                    <Link href={`/children/${c.id}`} className="text-sm font-medium underline">
+                      {c.first_name}
+                    </Link>
+                    <span className="shrink-0 text-xs text-[var(--muted)]">
+                      {childReports.length} report{childReports.length === 1 ? '' : 's'} ·{' '}
+                      {planCount} plan{planCount === 1 ? '' : 's'}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-[var(--muted)]">
+                    {c.grade}
+                    {latest
+                      ? ` · latest: ${latest.term_label ?? 'report'} — ${STAGE_LABEL[latest.status] ?? latest.status}`
+                      : ' · no reports yet'}
+                  </p>
+                </li>
+              );
+            })}
           </ul>
 
-          <Link
-            href="/upload"
-            className="mt-6 inline-block rounded bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white"
-          >
-            Upload another report
-          </Link>
+          <div className="mt-6 flex items-center gap-4">
+            <Link
+              href="/upload"
+              className="rounded bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white"
+            >
+              Upload a report
+            </Link>
+            <Link href="/children/new" className="text-sm underline">Add another child</Link>
+          </div>
         </>
-      )}
-
-      {(plans ?? []).length > 0 && (
-        <section className="mt-10">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-[var(--muted)]">
-            Plans
-          </h2>
-          <ul className="mt-3 space-y-3">
-            {(plans ?? []).map((p) => (
-              <li key={p.id} className="rounded-lg border border-[var(--border)] p-4">
-                <div className="flex items-baseline justify-between gap-4">
-                  <Link href={`/plans/${p.id}`} className="text-sm font-medium underline">
-                    {nameById.get(p.child_id) ?? 'Child'} — cycle {p.cycle_no}
-                  </Link>
-                  <span className="shrink-0 text-xs text-[var(--muted)]">
-                    {p.status === 'approved' || p.status === 'published'
-                      ? 'Ready'
-                      : p.status === 'draft'
-                        ? 'Waiting for review'
-                        : p.status}
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
       )}
     </main>
   );
