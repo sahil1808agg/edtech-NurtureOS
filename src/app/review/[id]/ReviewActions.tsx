@@ -25,7 +25,10 @@ export function ReviewActions({ findingSetId }: { findingSetId: string }) {
       setError(body.error ?? `Request failed (${res.status})`);
       return;
     }
-    router.push('/review');
+
+    // Stay put. Reviewing happens on the report page now, and publishing turns
+    // that same page into what the parent will see — which is the most useful
+    // thing to look at immediately after deciding.
     router.refresh();
   }
 

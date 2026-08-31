@@ -25,7 +25,7 @@ export function PlanReviewActions({ planId }: { planId: string }) {
       setError(body.error ?? `Request failed (${res.status})`);
       return;
     }
-    router.push('/review');
+    // Stay on the plan; approving turns this page into the parent's view of it.
     router.refresh();
   }
 

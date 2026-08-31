@@ -32,8 +32,13 @@ export default async function ReviewQueuePage() {
   const setIds = (queue ?? []).filter((q) => q.artifact_type === 'finding_set').map((q) => q.artifact_id);
   const planIds = (queue ?? []).filter((q) => q.artifact_type === 'plan').map((q) => q.artifact_id);
 
+  // Finding sets are reviewed on the report page itself, so the queue links
+  // straight there rather than to a console that showed the same thing again.
   const { data: sets } = setIds.length
-    ? await admin.from('finding_sets').select('id, honesty_path, model_deployment').in('id', setIds)
+    ? await admin
+        .from('finding_sets')
+        .select('id, report_id, honesty_path, model_deployment')
+        .in('id', setIds)
     : { data: [] };
   const { data: plans } = planIds.length
     ? await admin.from('plans').select('id, cycle_no, model_deployment').in('id', planIds)
@@ -57,7 +62,11 @@ export default async function ReviewQueuePage() {
             const isPlan = q.artifact_type === 'plan';
             const set = setById.get(q.artifact_id);
             const plan = planById.get(q.artifact_id);
-            const href = isPlan ? `/review/plan/${q.artifact_id}` : `/review/${q.artifact_id}`;
+            const href = isPlan
+              ? `/plans/${q.artifact_id}`
+              : set?.report_id
+                ? `/reports/${set.report_id}`
+                : `/review/${q.artifact_id}`;
 
             return (
               <li key={q.id} className="rounded-lg border border-[var(--border)] p-4">

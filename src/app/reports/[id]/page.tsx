@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { routeClient, currentUser } from '../../../lib/db/server';
 import { HONESTY_PATH } from '../../../server/gates/sufficiency';
 import { SourceViewer } from './SourceViewer';
+import { ReviewActions } from '../../review/[id]/ReviewActions';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,14 +24,18 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
   const user = await currentUser(db);
   if (!user) redirect('/signin');
 
-  // Scoped explicitly, not left to RLS: the reports policy widens to every
-  // family for an ops account, and this is the parent-facing view.
-  const { data: report } = await db
+  // Parents are scoped to their own family explicitly rather than relying on
+  // RLS. Reviewers are not: reviewing happens on this page now, and a reviewer
+  // necessarily works across families. That is the same widening the RLS policy
+  // already grants (`... OR is_ops()`), applied deliberately rather than by
+  // accident.
+  let reportQuery = db
     .from('reports')
-    .select('id, status, failure_reason, term_label, academic_year, child_id, source_type, created_at')
-    .eq('id', id)
-    .eq('family_id', user.familyId)
-    .maybeSingle();
+    .select('id, status, failure_reason, term_label, academic_year, child_id, source_type, family_id, created_at')
+    .eq('id', id);
+  if (!user.isOps) reportQuery = reportQuery.eq('family_id', user.familyId);
+
+  const { data: report } = await reportQuery.maybeSingle();
 
   if (!report) return <main><p className="text-sm">Report not found.</p></main>;
 
@@ -41,34 +46,6 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
     .maybeSingle();
 
   const name = child?.first_name ?? 'your child';
-
-  // A reviewer looking at a report they also parent should not have to go
-  // hunting through the queue for it. Parents never see this.
-  let reviewLink: string | null = null;
-  if (user.isOps) {
-    const { data: set } = await db
-      .from('finding_sets')
-      .select('id, status')
-      .eq('report_id', id)
-      .neq('status', 'rejected')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (set) reviewLink = `/review/${set.id}`;
-  }
-
-  const OpsBanner = () =>
-    reviewLink ? (
-      <div className="mb-6 rounded-lg border border-[var(--border)] p-4">
-        <p className="text-sm">
-          <span className="mr-2 rounded bg-[var(--border)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide">
-            reviewer
-          </span>
-          You can review this report.{' '}
-          <Link href={reviewLink} className="underline">Open it in the review console</Link>
-        </p>
-      </div>
-    ) : null;
 
   if (report.status === 'failed') {
     return (
@@ -97,18 +74,26 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
     );
   }
 
-  // Only a published set is ever readable here — the gate, enforced in the query.
+  // A draft is fetched too, but only a reviewer may see one. Reviewing happens
+  // on this page rather than in a separate console: the console showed the same
+  // findings, the same citations and the same report, so the only thing it
+  // added was two navigations between reading a claim and acting on it.
   const { data: findingSet } = await db
     .from('finding_sets')
-    .select('id, honesty_path, published_at')
+    .select('id, status, honesty_path, published_at')
     .eq('report_id', id)
-    .eq('status', 'published')
+    .in('status', ['draft', 'published'])
+    .order('created_at', { ascending: false })
+    .limit(1)
     .maybeSingle();
 
-  if (!findingSet) {
+  const isDraft = findingSet?.status === 'draft';
+  const canReview = Boolean(isDraft && user.isOps);
+  const visible = Boolean(findingSet && (findingSet.status === 'published' || canReview));
+
+  if (!findingSet || !visible) {
     return (
       <main>
-        <OpsBanner />
         <h1 className="text-xl font-semibold tracking-tight">{name}’s report</h1>
         <p className="mt-3 text-sm text-[var(--muted)]">
           {STAGE_MESSAGE[report.status] ?? 'Working on it.'}
@@ -181,7 +166,6 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
 
   return (
     <main>
-      <OpsBanner />
       <h1 className="text-xl font-semibold tracking-tight">
         {name}’s report{report.term_label ? ` — ${report.term_label}` : ''}
       </h1>
@@ -189,6 +173,18 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
         {findings?.length ?? 0} findings, each traceable to what the report actually says.
         Click any citation to jump the report to that page.
       </p>
+
+      {canReview && (
+        <div className="mt-4 rounded-lg border border-[var(--accent)] p-4">
+          <p className="text-sm">
+            <span className="mr-2 rounded bg-[var(--accent)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white">
+              not yet published
+            </span>
+            You are seeing this as a reviewer. Check each claim against the report, then publish or
+            hold it at the bottom of the page.
+          </p>
+        </div>
+      )}
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start">
         <div>
@@ -270,6 +266,8 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
           </section>
         ),
       )}
+
+          {canReview && <ReviewActions findingSetId={findingSet.id} />}
         </div>
 
         <SourceViewer

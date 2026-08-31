@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { routeClient, currentUser } from '../../../lib/db/server';
+import { PlanReviewActions } from '../../review/plan/[id]/PlanReviewActions';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,14 +12,15 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
   const user = await currentUser(db);
   if (!user) redirect('/signin');
 
-  // Scoped explicitly: the plans read policy widens to every family for ops,
-  // and this is the parent-facing view.
-  const { data: plan } = await db
+  // Parents scoped to their own family; reviewers not, since plans are reviewed
+  // on this page and a reviewer works across families.
+  let planQuery = db
     .from('plans')
     .select('id, child_id, cycle_no, status, topic_context, created_at')
-    .eq('id', id)
-    .eq('family_id', user.familyId)
-    .maybeSingle();
+    .eq('id', id);
+  if (!user.isOps) planQuery = planQuery.eq('family_id', user.familyId);
+
+  const { data: plan } = await planQuery.maybeSingle();
 
   if (!plan) return <main><p className="text-sm">Plan not found.</p></main>;
 
@@ -33,23 +35,13 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
   // the sender will set once email exists; 'approved' means ready but unsent.
   const ready = plan.status === 'approved' || plan.status === 'published';
 
-  let reviewLink: string | null = null;
-  if (user.isOps && plan.status === 'draft') reviewLink = `/review/plan/${plan.id}`;
+  // Reviewers see and decide on the draft here, rather than in a separate
+  // console showing the same activities over again.
+  const canReview = user.isOps && plan.status === 'draft';
 
-  if (!ready) {
+  if (!ready && !canReview) {
     return (
-      <main>
-        {reviewLink && (
-          <div className="mb-6 rounded-lg border border-[var(--border)] p-4">
-            <p className="text-sm">
-              <span className="mr-2 rounded bg-[var(--border)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide">
-                reviewer
-              </span>
-              This plan is waiting for review.{' '}
-              <Link href={reviewLink} className="underline">Open it in the review console</Link>
-            </p>
-          </div>
-        )}
+      <main className="max-w-2xl">
         <h1 className="text-xl font-semibold tracking-tight">{name}’s plan</h1>
         <p className="mt-3 text-sm text-[var(--muted)]">
           {plan.status === 'rejected'
@@ -103,6 +95,18 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
         Three things to try over the next two weeks. Each one targets something the report actually
         showed — you can see which.
       </p>
+
+      {canReview && (
+        <div className="mt-4 rounded-lg border border-[var(--accent)] p-4">
+          <p className="text-sm">
+            <span className="mr-2 rounded bg-[var(--accent)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white">
+              not yet approved
+            </span>
+            You are seeing this as a reviewer. Check each activity against the finding it targets,
+            then approve or reject at the bottom.
+          </p>
+        </div>
+      )}
       {plan.topic_context && (
         <p className="mt-2 text-xs text-[var(--muted)]">Linked to class topic: {plan.topic_context}</p>
       )}
@@ -143,6 +147,8 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
           );
         })}
       </ol>
+
+      {canReview && <PlanReviewActions planId={plan.id} />}
 
       {plan.status === 'approved' && (
         <p className="mt-6 text-xs text-[var(--muted)]">

@@ -23,12 +23,15 @@ export default async function FindingPage({ params }: { params: Promise<{ id: st
   const user = await currentUser(db);
   if (!user) redirect('/signin');
 
-  const { data: finding } = await db
+  // Parents scoped to their own family; reviewers need to follow a finding from
+  // any report they are reviewing.
+  let findingQuery = db
     .from('findings')
     .select('id, kind, statement, corroboration_status, corroboration_quote, finding_set_id, family_id')
-    .eq('id', id)
-    .eq('family_id', user.familyId)
-    .maybeSingle();
+    .eq('id', id);
+  if (!user.isOps) findingQuery = findingQuery.eq('family_id', user.familyId);
+
+  const { data: finding } = await findingQuery.maybeSingle();
 
   if (!finding) return <main className="max-w-3xl"><p className="text-sm">Finding not found.</p></main>;
 
@@ -38,7 +41,11 @@ export default async function FindingPage({ params }: { params: Promise<{ id: st
     .eq('id', finding.finding_set_id)
     .maybeSingle();
 
-  if (!set || set.status !== 'published') {
+  // A reviewer may follow a finding out of a draft they are reviewing; a parent
+  // may not, because the gate exists so unreviewed output never reaches them.
+  const readable = set && (set.status === 'published' || (set.status === 'draft' && user.isOps));
+
+  if (!set || !readable) {
     return (
       <main className="max-w-3xl">
         <h1 className="text-xl font-semibold tracking-tight">This finding is not current</h1>
@@ -130,11 +137,15 @@ export default async function FindingPage({ params }: { params: Promise<{ id: st
             })}
           </ul>
 
-          <FindingResponse
-            findingId={finding.id}
-            initialResponse={(existingResponse?.response as 'matches' | 'doesnt_match' | 'unsure') ?? null}
-            initialNote={existingResponse?.note ?? null}
-          />
+          {/* Only the family this finding belongs to can respond to it, and only
+              once it is published — a reviewer reading a draft is not the audience. */}
+          {finding.family_id === user.familyId && set.status === 'published' && (
+            <FindingResponse
+              findingId={finding.id}
+              initialResponse={(existingResponse?.response as 'matches' | 'doesnt_match' | 'unsure') ?? null}
+              initialNote={existingResponse?.note ?? null}
+            />
+          )}
         </div>
 
         {report && (
