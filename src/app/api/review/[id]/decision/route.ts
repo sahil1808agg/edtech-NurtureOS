@@ -18,7 +18,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const db = await routeClient();
   const user = await currentUser(db);
   if (!user) return NextResponse.json({ error: 'Not signed in' }, { status: 401 });
-  if (!user.isOps) return NextResponse.json({ error: 'Not authorised' }, { status: 403 });
 
   const body = await request.json().catch(() => null);
   const decision = body?.decision;
@@ -30,11 +29,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   const { data: set } = await admin
     .from('finding_sets')
-    .select('id, report_id, child_id, status')
+    .select('id, report_id, child_id, family_id, status')
     .eq('id', id)
     .maybeSingle();
 
   if (!set) return NextResponse.json({ error: 'Finding set not found' }, { status: 404 });
+
+  // The parent decides on their own child's findings; ops can decide on any.
+  // Keeping ops able to act preserves sampling and audit without it blocking
+  // the family — which is where the PRD expects review to end up at Launch.
+  const ownsIt = set.family_id === user.familyId;
+  if (!ownsIt && !user.isOps) {
+    return NextResponse.json({ error: 'Not authorised' }, { status: 403 });
+  }
   if (set.status === 'published') {
     return NextResponse.json({ error: 'Already published' }, { status: 409 });
   }

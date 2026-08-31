@@ -87,8 +87,11 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
     .limit(1)
     .maybeSingle();
 
+  // The parent approves their own child's findings; ops can also act, on any
+  // family, which keeps sampling and audit possible without blocking anyone.
+  const ownsReport = report.family_id === user.familyId;
   const isDraft = findingSet?.status === 'draft';
-  const canReview = Boolean(isDraft && user.isOps);
+  const canReview = Boolean(isDraft && (ownsReport || user.isOps));
   const visible = Boolean(findingSet && (findingSet.status === 'published' || canReview));
 
   if (!findingSet || !visible) {
@@ -178,10 +181,11 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
         <div className="mt-4 rounded-lg border border-[var(--accent)] p-4">
           <p className="text-sm">
             <span className="mr-2 rounded bg-[var(--accent)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white">
-              not yet published
+              needs your approval
             </span>
-            You are seeing this as a reviewer. Check each claim against the report, then publish or
-            hold it at the bottom of the page.
+            {ownsReport
+              ? 'Read these against the report — click any citation to jump to the page it came from. Approve them and we will build a plan.'
+              : 'You are seeing this as a reviewer. Check each claim against the report, then approve or hold it below.'}
           </p>
         </div>
       )}
@@ -267,7 +271,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
         ),
       )}
 
-          {canReview && <ReviewActions findingSetId={findingSet.id} />}
+          {canReview && <ReviewActions findingSetId={findingSet.id} asParent={ownsReport} />}
         </div>
 
         <SourceViewer

@@ -3,7 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export function PlanReviewActions({ planId }: { planId: string }) {
+export function PlanReviewActions({
+  planId,
+  asParent = false,
+}: {
+  planId: string;
+  asParent?: boolean;
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState<'approve' | 'reject' | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -38,18 +44,20 @@ export function PlanReviewActions({ planId }: { planId: string }) {
           disabled={busy !== null}
           className="rounded bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
-          {busy === 'approve' ? 'Approving…' : 'Approve plan'}
+          {busy === 'approve' ? 'Starting…' : asParent ? 'Start this plan' : 'Approve plan'}
         </button>
         <button
           onClick={() => decide('reject')}
           disabled={busy !== null}
           className="rounded border border-[var(--border)] px-4 py-2 text-sm font-medium disabled:opacity-50"
         >
-          {busy === 'reject' ? 'Rejecting…' : 'Reject'}
+          {busy === 'reject' ? 'Holding…' : asParent ? 'Not right for us' : 'Reject'}
         </button>
       </div>
       <p className="mt-3 text-xs text-[var(--muted)]">
-        Approving marks the plan ready for the parent. It is not sent until email delivery exists.
+        {asParent
+          ? 'Starting a plan means these are the three things to try over the next couple of weeks.'
+          : 'Approving marks the plan ready for the parent. It is not sent until email delivery exists.'}
       </p>
     </div>
   );

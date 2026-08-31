@@ -16,7 +16,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
   // on this page and a reviewer works across families.
   let planQuery = db
     .from('plans')
-    .select('id, child_id, cycle_no, status, topic_context, created_at')
+    .select('id, child_id, cycle_no, status, topic_context, family_id, created_at')
     .eq('id', id);
   if (!user.isOps) planQuery = planQuery.eq('family_id', user.familyId);
 
@@ -35,9 +35,9 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
   // the sender will set once email exists; 'approved' means ready but unsent.
   const ready = plan.status === 'approved' || plan.status === 'published';
 
-  // Reviewers see and decide on the draft here, rather than in a separate
-  // console showing the same activities over again.
-  const canReview = user.isOps && plan.status === 'draft';
+  // The parent decides on their own child's plan; ops can also act on any.
+  const ownsPlan = plan.family_id === user.familyId;
+  const canReview = plan.status === 'draft' && (ownsPlan || user.isOps);
 
   if (!ready && !canReview) {
     return (
@@ -100,10 +100,11 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
         <div className="mt-4 rounded-lg border border-[var(--accent)] p-4">
           <p className="text-sm">
             <span className="mr-2 rounded bg-[var(--accent)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white">
-              not yet approved
+              needs your approval
             </span>
-            You are seeing this as a reviewer. Check each activity against the finding it targets,
-            then approve or reject at the bottom.
+            {ownsPlan
+              ? 'Three things to try. Each says which finding it targets — approve them to start, or tell us they are not right.'
+              : 'You are seeing this as a reviewer. Check each activity against the finding it targets, then approve or reject at the bottom.'}
           </p>
         </div>
       )}
@@ -148,7 +149,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
         })}
       </ol>
 
-      {canReview && <PlanReviewActions planId={plan.id} />}
+      {canReview && <PlanReviewActions planId={plan.id} asParent={ownsPlan} />}
 
       {plan.status === 'approved' && (
         <p className="mt-6 text-xs text-[var(--muted)]">

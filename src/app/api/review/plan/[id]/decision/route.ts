@@ -17,7 +17,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const db = await routeClient();
   const user = await currentUser(db);
   if (!user) return NextResponse.json({ error: 'Not signed in' }, { status: 401 });
-  if (!user.isOps) return NextResponse.json({ error: 'Not authorised' }, { status: 403 });
 
   const body = await request.json().catch(() => null);
   const decision = body?.decision;
@@ -27,8 +26,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   const admin = serviceClient();
 
-  const { data: plan } = await admin.from('plans').select('id, status').eq('id', id).maybeSingle();
+  const { data: plan } = await admin
+    .from('plans')
+    .select('id, status, family_id')
+    .eq('id', id)
+    .maybeSingle();
+
   if (!plan) return NextResponse.json({ error: 'Plan not found' }, { status: 404 });
+
+  const ownsIt = plan.family_id === user.familyId;
+  if (!ownsIt && !user.isOps) {
+    return NextResponse.json({ error: 'Not authorised' }, { status: 403 });
+  }
   if (plan.status !== 'draft') {
     return NextResponse.json({ error: `Already reviewed (status ${plan.status})` }, { status: 409 });
   }

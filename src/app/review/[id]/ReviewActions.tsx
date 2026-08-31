@@ -3,7 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export function ReviewActions({ findingSetId }: { findingSetId: string }) {
+export function ReviewActions({
+  findingSetId,
+  asParent = false,
+}: {
+  findingSetId: string;
+  asParent?: boolean;
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState<'publish' | 'reject' | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -41,19 +47,28 @@ export function ReviewActions({ findingSetId }: { findingSetId: string }) {
           disabled={busy !== null}
           className="rounded bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
-          {busy === 'publish' ? 'Publishing…' : 'Approve and publish'}
+          {busy === 'publish'
+            ? 'Approving…'
+            : asParent
+              ? 'These look right — build my plan'
+              : 'Approve and publish'}
         </button>
         <button
           onClick={() => decide('reject')}
           disabled={busy !== null}
           className="rounded border border-[var(--border)] px-4 py-2 text-sm font-medium disabled:opacity-50"
         >
-          {busy === 'reject' ? 'Rejecting…' : 'Reject (hold)'}
+          {busy === 'reject'
+            ? 'Holding…'
+            : asParent
+              ? 'These do not look right'
+              : 'Reject (hold)'}
         </button>
       </div>
       <p className="mt-3 text-xs text-[var(--muted)]">
-        Publishing makes this visible to the parent. Rejecting holds the report and shows them an
-        honest message instead.
+        {asParent
+          ? 'Approving builds a plan from these findings. If they do not look right we will hold them rather than act on them, and you can tell us what we got wrong.'
+          : 'Publishing makes this visible to the parent. Rejecting holds the report and shows them an honest message instead.'}
       </p>
     </div>
   );
