@@ -87,12 +87,14 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
     .limit(1)
     .maybeSingle();
 
-  // The parent approves their own child's findings; ops can also act, on any
-  // family, which keeps sampling and audit possible without blocking anyone.
+  // Approving is the parent's alone. Ops may still read a draft — sampling and
+  // audit need that — but they get no controls, because deciding whether a
+  // claim about someone's child is right is not an operator's call.
   const ownsReport = report.family_id === user.familyId;
   const isDraft = findingSet?.status === 'draft';
-  const canReview = Boolean(isDraft && (ownsReport || user.isOps));
-  const visible = Boolean(findingSet && (findingSet.status === 'published' || canReview));
+  const canReview = Boolean(isDraft && ownsReport);
+  const canAudit = Boolean(isDraft && !ownsReport && user.isOps);
+  const visible = Boolean(findingSet && (findingSet.status === 'published' || canReview || canAudit));
 
   if (!findingSet || !visible) {
     return (
@@ -183,9 +185,19 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
             <span className="mr-2 rounded bg-[var(--accent)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white">
               needs your approval
             </span>
-            {ownsReport
-              ? 'Read these against the report — click any citation to jump to the page it came from. Approve them and we will build a plan.'
-              : 'You are seeing this as a reviewer. Check each claim against the report, then approve or hold it below.'}
+            Read these against the report — click any citation to jump to the page it came from.
+            Approve them and we will build a plan.
+          </p>
+        </div>
+      )}
+
+      {canAudit && (
+        <div className="mt-4 rounded-lg border border-[var(--border)] p-4">
+          <p className="text-sm text-[var(--muted)]">
+            <span className="mr-2 rounded bg-[var(--border)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide">
+              audit
+            </span>
+            Awaiting the parent’s approval. You can read it, but the decision is theirs.
           </p>
         </div>
       )}

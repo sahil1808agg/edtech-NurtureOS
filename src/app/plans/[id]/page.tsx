@@ -35,11 +35,12 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
   // the sender will set once email exists; 'approved' means ready but unsent.
   const ready = plan.status === 'approved' || plan.status === 'published';
 
-  // The parent decides on their own child's plan; ops can also act on any.
+  // Approving is the parent's alone; ops may read a draft for audit only.
   const ownsPlan = plan.family_id === user.familyId;
-  const canReview = plan.status === 'draft' && (ownsPlan || user.isOps);
+  const canReview = plan.status === 'draft' && ownsPlan;
+  const canAudit = plan.status === 'draft' && !ownsPlan && user.isOps;
 
-  if (!ready && !canReview) {
+  if (!ready && !canReview && !canAudit) {
     return (
       <main className="max-w-2xl">
         <h1 className="text-xl font-semibold tracking-tight">{name}’s plan</h1>
@@ -102,9 +103,19 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
             <span className="mr-2 rounded bg-[var(--accent)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white">
               needs your approval
             </span>
-            {ownsPlan
-              ? 'Three things to try. Each says which finding it targets — approve them to start, or tell us they are not right.'
-              : 'You are seeing this as a reviewer. Check each activity against the finding it targets, then approve or reject at the bottom.'}
+            Three things to try. Each says which finding it targets — approve them to start, or
+            tell us they are not right.
+          </p>
+        </div>
+      )}
+
+      {canAudit && (
+        <div className="mt-4 rounded-lg border border-[var(--border)] p-4">
+          <p className="text-sm text-[var(--muted)]">
+            <span className="mr-2 rounded bg-[var(--border)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide">
+              audit
+            </span>
+            Awaiting the parent’s approval. You can read it, but the decision is theirs.
           </p>
         </div>
       )}

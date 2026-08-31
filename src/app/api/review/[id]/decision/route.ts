@@ -35,12 +35,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   if (!set) return NextResponse.json({ error: 'Finding set not found' }, { status: 404 });
 
-  // The parent decides on their own child's findings; ops can decide on any.
-  // Keeping ops able to act preserves sampling and audit without it blocking
-  // the family — which is where the PRD expects review to end up at Launch.
-  const ownsIt = set.family_id === user.familyId;
-  if (!ownsIt && !user.isOps) {
-    return NextResponse.json({ error: 'Not authorised' }, { status: 403 });
+  // Only the parent decides. Ops can read a set for audit or sampling, but
+  // approving on a family's behalf is not theirs to do — these are claims about
+  // their child, and the decision to act on them belongs to them.
+  if (set.family_id !== user.familyId) {
+    return NextResponse.json({ error: 'Only the parent can approve their own findings' }, { status: 403 });
   }
   if (set.status === 'published') {
     return NextResponse.json({ error: 'Already published' }, { status: 409 });

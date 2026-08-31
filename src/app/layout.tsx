@@ -21,7 +21,7 @@ async function Nav() {
           <>
             <Link href="/upload" className="text-[var(--muted)] hover:underline">Upload</Link>
             {user.isOps && (
-              <Link href="/review" className="text-[var(--muted)] hover:underline">Review</Link>
+              <Link href="/review" className="text-[var(--muted)] hover:underline">Monitor</Link>
             )}
             <form action="/api/auth/signout" method="post">
               <button type="submit" className="text-[var(--muted)] hover:underline">Sign out</button>

@@ -34,9 +34,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   if (!plan) return NextResponse.json({ error: 'Plan not found' }, { status: 404 });
 
-  const ownsIt = plan.family_id === user.familyId;
-  if (!ownsIt && !user.isOps) {
-    return NextResponse.json({ error: 'Not authorised' }, { status: 403 });
+  // Only the parent decides — see the finding-set decision route.
+  if (plan.family_id !== user.familyId) {
+    return NextResponse.json({ error: 'Only the parent can approve their own plan' }, { status: 403 });
   }
   if (plan.status !== 'draft') {
     return NextResponse.json({ error: `Already reviewed (status ${plan.status})` }, { status: 409 });

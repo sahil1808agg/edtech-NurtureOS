@@ -12,10 +12,10 @@ export default async function ReviewQueuePage() {
 
   if (!user.isOps) {
     return (
-      <main>
-        <h1 className="text-xl font-semibold">Review queue</h1>
+      <main className="max-w-3xl">
+        <h1 className="text-xl font-semibold">Awaiting approval</h1>
         <p className="mt-3 text-sm text-[var(--muted)]">
-          This console is for reviewers. Your account is not marked as ops.
+          This view is for operators. Your account is not marked as ops.
         </p>
       </main>
     );
@@ -49,9 +49,10 @@ export default async function ReviewQueuePage() {
 
   return (
     <main>
-      <h1 className="text-xl font-semibold tracking-tight">Review queue</h1>
+      <h1 className="text-xl font-semibold tracking-tight">Awaiting approval</h1>
       <p className="mt-2 text-sm text-[var(--muted)]">
-        Nothing here has been seen by a parent. Every item must be approved or rejected.
+        Findings and plans waiting on the parent who owns them. Read any of them to sample quality
+        — approving is theirs to do, not yours.
       </p>
 
       {(queue ?? []).length === 0 ? (
