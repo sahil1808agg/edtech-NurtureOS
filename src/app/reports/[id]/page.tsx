@@ -155,6 +155,20 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
     : { data: [] };
   const obsById = new Map((observations ?? []).map((o) => [o.id, o]));
 
+  const { data: responses } = findingIds.length
+    ? await db
+        .from('parent_finding_responses')
+        .select('finding_id, response')
+        .in('finding_id', findingIds)
+    : { data: [] };
+  const responseByFinding = new Map((responses ?? []).map((r) => [r.finding_id, r.response]));
+
+  const RESPONSE_LABEL: Record<string, string> = {
+    matches: 'You said this matches',
+    doesnt_match: 'You said this does not match',
+    unsure: 'You were not sure',
+  };
+
   const strengths = (findings ?? []).filter((f) => f.kind === 'strength');
   const growth = (findings ?? []).filter((f) => f.kind === 'growth');
 
@@ -203,6 +217,12 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
                         {f.statement}
                       </Link>
                     </p>
+
+                    {responseByFinding.has(f.id) && (
+                      <p className="mt-2 text-xs text-[var(--accent)]">
+                        {RESPONSE_LABEL[responseByFinding.get(f.id)!]}
+                      </p>
+                    )}
 
                     {f.corroboration_status === 'corroborated' && f.corroboration_quote && (
                       <div className="mt-3">

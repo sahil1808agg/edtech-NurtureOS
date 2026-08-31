@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { routeClient, currentUser } from '../../../lib/db/server';
 import { SourceViewer } from '../../reports/[id]/SourceViewer';
+import { FindingResponse } from './FindingResponse';
 
 export const dynamic = 'force-dynamic';
 
@@ -74,6 +75,12 @@ export default async function FindingPage({ params }: { params: Promise<{ id: st
     .filter((p): p is number => typeof p === 'number');
   const firstPage = pages.length ? Math.min(...pages) : 1;
 
+  const { data: existingResponse } = await db
+    .from('parent_finding_responses')
+    .select('response, note')
+    .eq('finding_id', id)
+    .maybeSingle();
+
   return (
     <main>
       <Link href={`/reports/${set.report_id}`} className="text-xs underline text-[var(--muted)]">
@@ -122,6 +129,12 @@ export default async function FindingPage({ params }: { params: Promise<{ id: st
               );
             })}
           </ul>
+
+          <FindingResponse
+            findingId={finding.id}
+            initialResponse={(existingResponse?.response as 'matches' | 'doesnt_match' | 'unsure') ?? null}
+            initialNote={existingResponse?.note ?? null}
+          />
         </div>
 
         {report && (
