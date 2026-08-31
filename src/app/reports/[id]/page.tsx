@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { routeClient, currentUser } from '../../../lib/db/server';
 import { HONESTY_PATH } from '../../../server/gates/sufficiency';
 
@@ -40,6 +41,34 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
 
   const name = child?.first_name ?? 'your child';
 
+  // A reviewer looking at a report they also parent should not have to go
+  // hunting through the queue for it. Parents never see this.
+  let reviewLink: string | null = null;
+  if (user.isOps) {
+    const { data: set } = await db
+      .from('finding_sets')
+      .select('id, status')
+      .eq('report_id', id)
+      .neq('status', 'rejected')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (set) reviewLink = `/review/${set.id}`;
+  }
+
+  const OpsBanner = () =>
+    reviewLink ? (
+      <div className="mb-6 rounded-lg border border-[var(--border)] p-4">
+        <p className="text-sm">
+          <span className="mr-2 rounded bg-[var(--border)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide">
+            reviewer
+          </span>
+          You can review this report.{' '}
+          <Link href={reviewLink} className="underline">Open it in the review console</Link>
+        </p>
+      </div>
+    ) : null;
+
   if (report.status === 'failed') {
     return (
       <main>
@@ -78,6 +107,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
   if (!findingSet) {
     return (
       <main>
+        <OpsBanner />
         <h1 className="text-xl font-semibold tracking-tight">{name}’s report</h1>
         <p className="mt-3 text-sm text-[var(--muted)]">
           {STAGE_MESSAGE[report.status] ?? 'Working on it.'}
@@ -129,6 +159,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
 
   return (
     <main>
+      <OpsBanner />
       <h1 className="text-xl font-semibold tracking-tight">
         {name}’s report{report.term_label ? ` — ${report.term_label}` : ''}
       </h1>
