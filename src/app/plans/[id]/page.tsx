@@ -68,9 +68,25 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
 
   const findingIds = [...new Set((activities ?? []).map((a) => a.addresses_finding_id))];
   const { data: findings } = findingIds.length
-    ? await db.from('findings').select('id, kind, statement').in('id', findingIds)
+    ? await db.from('findings').select('id, kind, statement, finding_set_id').in('id', findingIds)
     : { data: [] };
   const findingById = new Map((findings ?? []).map((f) => [f.id, f]));
+
+  // A finding knows its set; the set knows the report. Needed so "why this"
+  // can link back to the finding on the report it came from.
+  //
+  // Only a published set is linkable. A plan outlives the findings it was built
+  // from: re-analysing a report supersedes its draft set, and the activities
+  // still reference those older findings (the FK keeps them alive). Those
+  // findings are not rendered on the report page, so linking to them would send
+  // a parent to an anchor that does not exist.
+  const setIds = [...new Set((findings ?? []).map((f) => f.finding_set_id))];
+  const { data: sets } = setIds.length
+    ? await db.from('finding_sets').select('id, report_id, status').in('id', setIds)
+    : { data: [] };
+  const reportBySetId = new Map(
+    (sets ?? []).filter((s) => s.status === 'published').map((s) => [s.id, s.report_id]),
+  );
 
   const resourceIds = (activities ?? []).map((a) => a.resource_id).filter(Boolean) as string[];
   const { data: resources } = resourceIds.length
@@ -114,7 +130,17 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
 
               {finding && (
                 <p className="mt-3 border-t border-[var(--border)] pt-3 text-xs text-[var(--muted)]">
-                  Why this: {finding.statement}
+                  Why this:{' '}
+                  {reportBySetId.has(finding.finding_set_id) ? (
+                    <Link
+                      href={`/reports/${reportBySetId.get(finding.finding_set_id)}#finding-${finding.id}`}
+                      className="underline decoration-dotted"
+                    >
+                      {finding.statement}
+                    </Link>
+                  ) : (
+                    finding.statement
+                  )}
                 </p>
               )}
             </li>

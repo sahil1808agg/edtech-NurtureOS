@@ -111,10 +111,15 @@ export default async function ReviewDetailPage({ params }: { params: Promise<{ i
                       const o = c.observation_id ? obsById.get(c.observation_id) : null;
                       if (!o) return <li key={i} className="text-xs text-[var(--muted)]">narrative citation</li>;
                       const ref = o.source_ref as { page?: number } | null;
+                      const href =
+                        `/reports/${set.report_id}/source` +
+                        `?page=${ref?.page ?? ''}&label=${encodeURIComponent(o.raw_label)}`;
                       return (
                         <li key={i} className="text-xs text-[var(--muted)]">
-                          <span className="font-mono">T{o.term_index} = {o.raw_value ?? '—'}</span>
-                          {ref?.page ? <span> · p{ref.page}</span> : null} · {o.raw_label}
+                          <Link href={href} className="underline decoration-dotted">
+                            <span className="font-mono">T{o.term_index} = {o.raw_value ?? '—'}</span>
+                            {ref?.page ? <span> · p{ref.page}</span> : null} · {o.raw_label}
+                          </Link>
                         </li>
                       );
                     })}

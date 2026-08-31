@@ -183,7 +183,11 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
                   .filter(Boolean);
 
                 return (
-                  <li key={f.id} className="rounded-lg border border-[var(--border)] p-5">
+                  <li
+                    key={f.id}
+                    id={`finding-${f.id}`}
+                    className="scroll-mt-6 rounded-lg border border-[var(--border)] p-5 target:border-[var(--accent)]"
+                  >
                     <p className="text-sm">{f.statement}</p>
 
                     {f.corroboration_status === 'corroborated' && f.corroboration_quote && (
@@ -202,15 +206,23 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
                       <summary className="cursor-pointer text-xs text-[var(--muted)]">
                         Where this comes from ({cites.length})
                       </summary>
-                      <ul className="mt-2 space-y-1">
+                      <ul className="mt-2 space-y-1.5">
                         {cites.map((o, i) => {
                           const ref = o!.source_ref as { page?: number } | null;
+                          const href =
+                            `/reports/${id}/source` +
+                            `?page=${ref?.page ?? ''}` +
+                            `&label=${encodeURIComponent(o!.raw_label)}`;
                           return (
                             <li key={i} className="text-xs text-[var(--muted)]">
-                              <span className="font-mono">Term {o!.term_index}: {o!.raw_value ?? '—'}</span>
-                              {ref?.page ? <span> · page {ref.page}</span> : null}
-                              <br />
-                              {o!.raw_label}
+                              <Link href={href} className="underline decoration-dotted">
+                                <span className="font-mono">
+                                  Term {o!.term_index}: {o!.raw_value ?? '—'}
+                                </span>
+                                {ref?.page ? <span> · page {ref.page}</span> : null}
+                                <br />
+                                {o!.raw_label}
+                              </Link>
                             </li>
                           );
                         })}
