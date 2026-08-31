@@ -121,17 +121,18 @@ Every stage is a queue job. Jobs are idempotent and keyed on `(report_id, stage)
 | 1 | `report.classify` | — | Yes (MVP 1; MVP assumes one template) |
 | 2 | `report.extract` | — | Yes — vision tier, native PDF, whole document in one call |
 | 3 | `report.normalise` | — | Yes |
-| 4 | `report.analyse` | — | Yes |
-| 5 | `claim.corroborate` | **Per candidate, parallel** | Yes |
-| 6 | `report.gate` | — | **No — deterministic** |
-| 7 | `review.enqueue` | — | No |
-| 8 | `findings.publish` | Human-triggered | No |
-| 9 | `plan.generate` → gate → review → send | — | Yes |
-| 10 | `checkin.schedule` / `checkin.process` | Fortnightly cron | Yes (small) |
+| 4 | `report.analyse` — analyse, corroborate, gate, enqueue for review | — | Yes ×2 (analyse, then corroborate per claim) |
+| 5 | *review console* — publish or hold | Human-triggered | No |
+| 6 | `plan.generate` → enqueue for review → *review console* | — | Yes |
+| 7 | `checkin.process` | Per response | Yes (small) |
 
-**Report state machine:** `uploaded → classified → extracted → normalised → analysed → gated → in_review → published` with `held` and `failed` as terminal branches.
+**Stages 4–6 collapsed from the original design.** `claim.corroborate`, `report.gate` and `review.enqueue` were specified as separate jobs; they run inside `report.analyse` instead. `findings.corroboration_status` is `NOT NULL`, so a finding cannot be written before it has been corroborated — the fan-out would need a completion counter that does not exist. Corroboration is therefore sequential per claim rather than parallel, which is the cost of that simplification and the thing to revisit if analyse gets slow.
 
-**Stage 7 is deterministic and load-bearing.** The gate is SQL and TypeScript, not a model:
+**Chaining.** `report.extract` enqueues `report.normalise`, which enqueues `report.analyse`. `report.analyse` ends at `in_review` and enqueues nothing: everything downstream is human-triggered. `plan.generate` has no automatic trigger yet — publishing findings does not start it.
+
+**Report state machine:** `uploaded → extracted → normalised → analysed → in_review → published`, with `held` (reviewer rejected, or honesty path) and `failed` as terminal branches. `classified` and `gated` are not currently used — classify is MVP 1, and the gate is a step inside analyse rather than a state.
+
+**The gate is deterministic and load-bearing.** It is SQL and TypeScript, not a model:
 
 - **Citation resolution** — every `finding_citations.observation_id` must exist and belong to this report. Unresolvable → finding dropped before it can be displayed.
 - **Sufficiency** — count of non-ambiguous observations below threshold → honesty path.

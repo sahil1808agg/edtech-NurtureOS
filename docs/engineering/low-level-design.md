@@ -267,19 +267,21 @@ export function buildTrajectory(rows: ObservationRow[]): Trajectory {
 
 ## 3. Jobs
 
-`pg-boss`, one queue per stage. Idempotency key `(report_id, stage)` or `(claim_id, stage)`.
+`pg-boss`, one queue per stage. Writes are idempotent per report, so a retry replaces what the previous attempt wrote rather than duplicating it.
 
 | Job | Retries | Backoff | Concurrency | Timeout |
 |---|---|---|---|---|
 | `report.extract` | 3 | 10s exp | 2 | 300s |
 | `report.normalise` | 2 | 10s | 2 | 90s |
-| `report.analyse` | 2 | 15s | 2 | 120s |
-| `claim.corroborate` | 3 | 5s | 8 | 45s |
-| `report.gate` | 0 | — | 4 | 10s |
+| `report.analyse` | 2 | 15s exp | 2 | 120s |
 | `plan.generate` | 2 | 15s | 2 | 120s |
-| `checkin.send` | 5 | 60s exp | 4 | 30s |
+| `checkin.process` | 5 | 60s exp | 4 | 30s |
 
-**Fan-in.** `report.extract` is a single call per report, so it enqueues `report.normalise` directly — no counter needed. `claim.corroborate` still fans out per candidate claim; completions decrement a counter on the report, and the last one enqueues `report.gate`.
+**No fan-out.** `claim.corroborate` and `report.gate` are not separate queues. Both run inside `report.analyse`, in sequence: sufficiency gate → analyse → citation gate → corroborate each surviving claim → write findings → enqueue for review. `findings.corroboration_status` is `NOT NULL`, so a finding cannot be written before its verdict exists, and the per-claim fan-out the original design called for would need a completion counter on `reports` that the schema does not have.
+
+**Chaining.** Each stage enqueues the next on success: `report.extract` → `report.normalise` → `report.analyse`. Analyse is the last automatic stage. It ends at `reports.status = 'in_review'` with a `review_queue` row, and enqueues nothing — the human gate is a hard stop, not a delay.
+
+**Idempotency, concretely.** `extractions` upserts on `report_id`. `observations` and `narratives` replace by delete-then-insert scoped to the report. A re-analysed report *supersedes* its prior draft finding set by marking it `rejected` rather than deleting it: `plan_activities.addresses_finding_id` references `findings(id)` without a cascade, so deleting a draft whose findings an existing plan targets is refused by the database — correctly, since it would orphan a real plan.
 
 **Retry rules.** `SCHEMA_INVALID` retries once with the validation error appended to the prompt input, then fails. `PROVIDER_ERROR` retries only when `retryable`. `LOW_CONFIDENCE` and `SEN_DETECTED` never retry — they route to review and to the decline path respectively.
 
