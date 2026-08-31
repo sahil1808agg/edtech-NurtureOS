@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { routeClient, currentUser } from '../../../../../lib/db/server';
 import { serviceClient } from '../../../../../lib/db/clients';
+import { enqueue } from '../../../../../server/queue/enqueue';
 
 export const runtime = 'nodejs';
 
@@ -29,7 +30,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   const { data: set } = await admin
     .from('finding_sets')
-    .select('id, report_id, status')
+    .select('id, report_id, child_id, status')
     .eq('id', id)
     .maybeSingle();
 
@@ -70,5 +71,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     .update({ status: publishing ? 'published' : 'held' })
     .eq('id', set.report_id);
 
-  return NextResponse.json({ findingSetId: id, decision, status: publishing ? 'published' : 'held' });
+  // Publishing findings is what makes a plan possible: plan.generate targets
+  // the child's most recent findings, so there is nothing to plan against until
+  // some exist. A held report produces no plan, by design.
+  if (publishing) {
+    await enqueue('plan.generate', { childId: set.child_id });
+  }
+
+  return NextResponse.json({
+    findingSetId: id,
+    decision,
+    status: publishing ? 'published' : 'held',
+    planQueued: publishing,
+  });
 }

@@ -55,6 +55,12 @@ export default async function Home() {
     .from('children')
     .select('id, first_name')
     .eq('family_id', user.familyId);
+
+  const { data: plans } = await db
+    .from('plans')
+    .select('id, child_id, cycle_no, status, created_at')
+    .eq('family_id', user.familyId)
+    .order('created_at', { ascending: false });
   const nameById = new Map((children ?? []).map((c) => [c.id, c.first_name]));
 
   let pendingReviews = 0;
@@ -119,6 +125,32 @@ export default async function Home() {
             Upload another report
           </Link>
         </>
+      )}
+
+      {(plans ?? []).length > 0 && (
+        <section className="mt-10">
+          <h2 className="text-sm font-medium uppercase tracking-wide text-[var(--muted)]">
+            Plans
+          </h2>
+          <ul className="mt-3 space-y-3">
+            {(plans ?? []).map((p) => (
+              <li key={p.id} className="rounded-lg border border-[var(--border)] p-4">
+                <div className="flex items-baseline justify-between gap-4">
+                  <Link href={`/plans/${p.id}`} className="text-sm font-medium underline">
+                    {nameById.get(p.child_id) ?? 'Child'} — cycle {p.cycle_no}
+                  </Link>
+                  <span className="shrink-0 text-xs text-[var(--muted)]">
+                    {p.status === 'approved' || p.status === 'published'
+                      ? 'Ready'
+                      : p.status === 'draft'
+                        ? 'Waiting for review'
+                        : p.status}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
     </main>
   );
