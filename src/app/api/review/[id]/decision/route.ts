@@ -71,14 +71,38 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     .update({ status: publishing ? 'published' : 'held' })
     .eq('id', set.report_id);
 
-  // Publishing does not generate a plan. It makes the findings visible so the
-  // parent can read them, say which ones match, and ask for a plan when they
-  // are ready — see POST /api/children/[id]/plan. Generating here would build
-  // activities from findings the parent has not seen yet, and would ignore the
-  // ones they go on to reject.
+  // Publishing findings starts the plan. A held report produces none, by
+  // design: we do not suggest activities off findings we would not stand behind.
+  //
+  // The parent's matches / does-not-match answers cannot reach this first plan —
+  // they can only respond once a finding is published, which is this moment. So
+  // their feedback shapes the *next* plan, and the child page keeps a control
+  // for rebuilding once they have given it. The singleton key stops a publish
+  // and a manual rebuild from racing into two plans.
+  // One plan in flight per child, the same rule the manual route enforces.
+  // Without it, publishing a second report while the first plan is still
+  // unreviewed leaves two drafts in the queue for one child — and the singleton
+  // key does not help, since it only collapses jobs that are still queued, not
+  // a plan that was already produced and is sitting in review.
+  let planQueued = false;
+  if (publishing) {
+    const { data: pendingPlan } = await admin
+      .from('plans')
+      .select('id')
+      .eq('child_id', set.child_id)
+      .in('status', ['draft', 'in_review'])
+      .maybeSingle();
+
+    if (!pendingPlan) {
+      await enqueue('plan.generate', { childId: set.child_id }, { singletonKey: `plan:${set.child_id}` });
+      planQueued = true;
+    }
+  }
+
   return NextResponse.json({
     findingSetId: id,
     decision,
     status: publishing ? 'published' : 'held',
+    planQueued,
   });
 }

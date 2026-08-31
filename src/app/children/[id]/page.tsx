@@ -167,6 +167,7 @@ export default async function ChildPage({ params }: { params: Promise<{ id: stri
             usableFindings={usableCount}
             rejectedFindings={rejectedCount}
             unreviewedFindings={unreviewedCount}
+            hasExistingPlan={(plans ?? []).length > 0}
           />
         )}
 

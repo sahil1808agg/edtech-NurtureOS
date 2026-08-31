@@ -8,11 +8,13 @@ export function RequestPlan({
   usableFindings,
   rejectedFindings,
   unreviewedFindings,
+  hasExistingPlan,
 }: {
   childId: string;
   usableFindings: number;
   rejectedFindings: number;
   unreviewedFindings: number;
+  hasExistingPlan: boolean;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -46,8 +48,13 @@ export function RequestPlan({
 
   return (
     <div className="mt-3 rounded-lg border border-[var(--border)] p-4">
-      <p className="text-sm">Ready for a plan?</p>
+      <p className="text-sm">
+        {hasExistingPlan ? 'Build a new plan from your feedback?' : 'Ready for a plan?'}
+      </p>
       <p className="mt-1 text-xs text-[var(--muted)]">
+        {hasExistingPlan
+          ? 'Your first plan was made when the findings were published, before you had marked any of them. '
+          : ''}
         We will build three activities from the {usableFindings} finding
         {usableFindings === 1 ? '' : 's'} you have not ruled out.
         {rejectedFindings > 0 && (
@@ -67,7 +74,7 @@ export function RequestPlan({
         disabled={busy || usableFindings === 0}
         className="mt-3 rounded bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
       >
-        {busy ? 'Starting…' : 'Create a plan'}
+        {busy ? 'Starting…' : hasExistingPlan ? 'Create an updated plan' : 'Create a plan'}
       </button>
 
       {usableFindings === 0 && (
