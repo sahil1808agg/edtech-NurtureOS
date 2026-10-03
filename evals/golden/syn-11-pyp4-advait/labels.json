@@ -1,0 +1,51 @@
+{
+  "caseId": "syn-11-pyp4-advait",
+  "origin": "synthetic",
+  "caseLabel": null,
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. PYP4, age 9, Chennai. profile: academic=emerging social=developing emotional=developing.",
+  "reportId": "8354b59e-e84b-4aba-ab46-ad7a52f14713",
+  "expectedFindings": [
+    {
+      "kind": "growth",
+      "statement": "Continues to develop social skills with support.",
+      "citedObservationIds": [
+        "db313b78-df58-438b-9eda-97f7134fc62d",
+        "e31ad246-aec1-4ab7-8346-c7861d396007",
+        "00030ed0-c9b3-4b6d-a953-1edafeb3b7d0",
+        "6a2b8798-d691-493e-9052-f4e7601efca9"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Continues to develop emotional skills with support.",
+      "citedObservationIds": [
+        "ae4e8bd6-8672-4094-a7a4-57a3c0760d59",
+        "f056f717-4219-46f9-8252-20041e48a5dc",
+        "0ebbda50-1b9d-4b44-8114-0a51c107057d",
+        "e84f7929-8726-4c16-ba5b-f5a35203799c"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing literacy skills across the year.",
+      "citedObservationIds": [
+        "39d81be7-ff54-4358-806f-ed0aa2a0e9c4",
+        "980ffaeb-dd72-4c3f-ac7d-078e7854835d",
+        "13c6774f-559d-4378-8a59-f4fe1ff0bbc6",
+        "016bf3b2-d049-4398-87db-942071865c32"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing numeracy skills across the year.",
+      "citedObservationIds": [
+        "1d7a943a-3b04-42b3-9053-df7e7483c8bc",
+        "fd9cb492-319b-461d-abef-9ae51293ad79",
+        "6e7d8aa3-feb9-4df4-968a-caa24e51151c",
+        "d9b66895-c1ee-428a-9588-eced0f6724e3"
+      ]
+    }
+  ],
+  "expectedCorroborations": []
+}

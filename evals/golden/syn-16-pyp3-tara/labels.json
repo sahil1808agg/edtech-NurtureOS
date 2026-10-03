@@ -1,0 +1,51 @@
+{
+  "caseId": "syn-16-pyp3-tara",
+  "origin": "synthetic",
+  "caseLabel": null,
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. PYP3, age 8, New Delhi. profile: academic=emerging social=reserved emotional=needs_support.",
+  "reportId": "c08aef3e-c8c2-42bb-b672-7bedfe76f9d5",
+  "expectedFindings": [
+    {
+      "kind": "growth",
+      "statement": "Continues to develop social skills with support.",
+      "citedObservationIds": [
+        "f59fc3ab-5b73-4116-903d-143225326de0",
+        "4048176a-7c22-4055-8777-0a4ec0a1c1ee",
+        "f8012e50-924a-4022-ab48-8364e86d9ded",
+        "9bc2abfa-314d-4792-bb14-6a5c67c5ab9b"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Continues to develop emotional skills with support.",
+      "citedObservationIds": [
+        "b9d1947d-ddb1-4e5a-97bf-e636f057cad6",
+        "a551de66-777a-4297-96dd-b52236ac0b0d",
+        "cc2edbe6-823b-4c78-81b3-dd98392cf89e",
+        "ee4f92bb-0484-4f26-9834-d279f03aa016"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing literacy skills across the year.",
+      "citedObservationIds": [
+        "8b6d993a-8f25-40e8-b86f-300d9c47e02f",
+        "ee72546e-fe1e-412c-b3e9-de86a2ca1d6f",
+        "9b0a1053-896a-432c-8355-8d24dc767af3",
+        "ca4cd829-67be-4119-988f-f996263314bf"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing numeracy skills across the year.",
+      "citedObservationIds": [
+        "8da14d78-cedb-4d5f-a33b-3ce15b1e6814",
+        "a0f597f9-0812-4d8f-945d-5845c14ff6fc",
+        "945a0ff1-ae30-4bbf-8a10-118561b7b5dc",
+        "d46e42d0-a464-42c4-9fad-28690bbb090f"
+      ]
+    }
+  ],
+  "expectedCorroborations": []
+}

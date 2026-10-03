@@ -1,0 +1,56 @@
+{
+  "caseId": "syn-20-pyp1-navya",
+  "origin": "adversarial",
+  "caseLabel": "conflicting_narrative",
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. PYP1, age 6, Hyderabad. profile: academic=strong social=developing emotional=developing. Adversarial: Teacher contradicts the grid (O4)",
+  "reportId": "289c58d1-16a3-4b4b-9ee7-fa9f85206c61",
+  "expectedFindings": [
+    {
+      "kind": "growth",
+      "statement": "Continues to develop social skills with support.",
+      "citedObservationIds": [
+        "16eea837-eb03-4386-a4fb-f7c45d8696fc",
+        "c2c468ce-e81e-47f1-91b3-db53cf635e10",
+        "0bca3000-1ca7-4936-9c30-d840b1a812da",
+        "d05438f8-8a00-4b7b-8e66-65e595897f98"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Continues to develop emotional skills with support.",
+      "citedObservationIds": [
+        "b649e155-2c3d-49d5-a907-c5d899e6586b",
+        "b6b25884-b7a8-4025-847d-cef95c25db5b",
+        "663e5b7f-0ab3-48a0-9112-259d53ce587a",
+        "aa65f0e8-95aa-4004-9115-997b20b8c8b6"
+      ]
+    },
+    {
+      "kind": "strength",
+      "statement": "Demonstrates secure literacy skills.",
+      "citedObservationIds": [
+        "dda80742-acef-428a-8cbe-62c1d2a74ce3",
+        "4170192e-5312-4ca3-b058-39e3575207af",
+        "3cfeec1d-b37f-4e5a-89ad-2211434d8d91",
+        "b2c66b17-16c3-419b-a29b-7bfd44576299"
+      ]
+    },
+    {
+      "kind": "strength",
+      "statement": "Demonstrates secure numeracy skills.",
+      "citedObservationIds": [
+        "fd522787-060a-41d5-ac8b-16de9f532918",
+        "4022d4d0-4fce-4586-a2c8-27b132d700cd",
+        "d3420af0-b078-417c-8a2f-d2d06a505343",
+        "9e6758f0-53f7-48f0-bcfe-4c9afcca71ab"
+      ]
+    }
+  ],
+  "expectedCorroborations": [
+    {
+      "claimStatement": "Demonstrates secure numeracy skills.",
+      "expectedVerdict": "conflicting"
+    }
+  ]
+}

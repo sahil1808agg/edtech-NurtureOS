@@ -1,0 +1,51 @@
+{
+  "caseId": "syn-14-pyp1-anika",
+  "origin": "synthetic",
+  "caseLabel": null,
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. PYP1, age 6, Chennai. profile: academic=emerging social=confident emotional=regulated.",
+  "reportId": "6e5d28c5-43bb-4c8f-9b07-56e6b1862cd3",
+  "expectedFindings": [
+    {
+      "kind": "strength",
+      "statement": "Shows consistent social development across the year.",
+      "citedObservationIds": [
+        "de435532-eafb-401f-a2d8-50d4b91cf769",
+        "ccfc3a6a-673c-47ac-8120-2eb1b7cde252",
+        "0a32bd9b-39ba-4938-9156-4a6af9ed2064",
+        "e911b5bf-8002-4f4b-8de4-fc6a3f4c1a10"
+      ]
+    },
+    {
+      "kind": "strength",
+      "statement": "Shows consistent emotional development across the year.",
+      "citedObservationIds": [
+        "6f4338f9-f511-4275-9413-f8a499dc4c23",
+        "947d9306-964c-42c5-b862-3bfba0d8e26a",
+        "9fcef533-ab04-4df0-85ea-aae9b8ed1846",
+        "f0ba4e95-093f-4555-a458-314efd0304ee"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing literacy skills across the year.",
+      "citedObservationIds": [
+        "6124be4f-ffcf-479b-9bf1-278df201e121",
+        "314817ba-c2fc-45d0-8855-63aa3a4d70cd",
+        "6e4da4fc-9ef1-438f-a09b-61c8f539b989",
+        "b89b7423-e610-4094-939f-142b2d26c43f"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing numeracy skills across the year.",
+      "citedObservationIds": [
+        "557f7eac-f2b5-4374-b12b-db7bfaee36dd",
+        "4d493f96-dcf0-4851-80fd-c4bb568d3597",
+        "77229062-074e-449e-be50-d88697c41831",
+        "20e58740-e2cf-4c4c-983d-1d3623eaea51"
+      ]
+    }
+  ],
+  "expectedCorroborations": []
+}

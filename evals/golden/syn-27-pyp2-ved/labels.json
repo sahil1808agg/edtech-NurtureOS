@@ -1,0 +1,51 @@
+{
+  "caseId": "syn-27-pyp2-ved",
+  "origin": "synthetic",
+  "caseLabel": null,
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. PYP2, age 7, Bengaluru. profile: academic=strong social=confident emotional=regulated.",
+  "reportId": "60e93d15-3c06-4639-91b7-e2ac5b59fcf9",
+  "expectedFindings": [
+    {
+      "kind": "strength",
+      "statement": "Shows consistent social development across the year.",
+      "citedObservationIds": [
+        "830a5741-3828-4724-9609-17f5bb3300f3",
+        "ee3f0302-e7b9-4194-9c82-73d2e3132e06",
+        "e85ff606-17c7-4b5d-908c-774a14b136a5",
+        "9ea5bcff-0524-4f72-96ad-5098d8f8c9b3"
+      ]
+    },
+    {
+      "kind": "strength",
+      "statement": "Shows consistent emotional development across the year.",
+      "citedObservationIds": [
+        "64dc3d90-e343-445b-bfa0-a1afe574bffb",
+        "91596a73-baa8-41d0-b282-d5128d059d3c",
+        "e59badb8-a8e1-4696-8cb4-c23fd1d813d0",
+        "79bf9eae-65f1-42b3-89a8-0f0fb0545a88"
+      ]
+    },
+    {
+      "kind": "strength",
+      "statement": "Demonstrates secure literacy skills.",
+      "citedObservationIds": [
+        "fc27cf45-22f1-4d17-8b5a-6c57f44dcfdc",
+        "fdcf7e54-1550-46cc-b780-8fb48e03c063",
+        "acbed890-066c-4358-985e-051412558785",
+        "6665dda0-a3fa-4bba-adfa-753e02f29438"
+      ]
+    },
+    {
+      "kind": "strength",
+      "statement": "Demonstrates secure numeracy skills.",
+      "citedObservationIds": [
+        "f684ba6a-c72a-4595-87fa-1541c0aed828",
+        "92c32dec-a15b-4b58-9416-24da6641992d",
+        "a31a78a3-aed5-425c-a9a9-9baf339ed331",
+        "fc50cef2-dfef-45f1-95f2-d6a4bccb6224"
+      ]
+    }
+  ],
+  "expectedCorroborations": []
+}

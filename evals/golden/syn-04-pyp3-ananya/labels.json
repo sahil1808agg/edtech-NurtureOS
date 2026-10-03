@@ -1,0 +1,51 @@
+{
+  "caseId": "syn-04-pyp3-ananya",
+  "origin": "synthetic",
+  "caseLabel": null,
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. PYP3, age 8, Noida. profile: academic=strong social=confident emotional=developing.",
+  "reportId": "8b31500d-8c43-4a3a-8409-217adb2da98b",
+  "expectedFindings": [
+    {
+      "kind": "strength",
+      "statement": "Shows consistent social development across the year.",
+      "citedObservationIds": [
+        "b9a8f992-dbaa-45fe-bd7c-ef03b505c49d",
+        "c626ac60-b473-4ba3-b100-4d409c3abd09",
+        "16af5024-201e-4a4b-b281-10a0217460db",
+        "1e418f42-5533-4d65-b426-e9a50af0ed5f"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Continues to develop emotional skills with support.",
+      "citedObservationIds": [
+        "d614046d-8968-437f-adaf-7f0a32a34202",
+        "030a8c35-a94e-4d99-9f82-40335858864b",
+        "dd03a99f-d290-4914-9f2a-a66931b75501",
+        "7dd729d1-9eec-4002-9b10-813a3269b9fe"
+      ]
+    },
+    {
+      "kind": "strength",
+      "statement": "Demonstrates secure literacy skills.",
+      "citedObservationIds": [
+        "67b4dbff-a570-414f-b45d-abe1cf5ef947",
+        "7ef9a9a3-72d1-4da5-8ab8-9a2db6694580",
+        "a6e3f0f4-0522-4f35-9465-322b9baeb1d3",
+        "d574e4d8-ab11-4d99-a6e1-bbd95cde40a0"
+      ]
+    },
+    {
+      "kind": "strength",
+      "statement": "Demonstrates secure numeracy skills.",
+      "citedObservationIds": [
+        "ae4e8210-be7c-4ba6-994d-db3522ee2ca3",
+        "6f33a158-214e-4e5b-9305-a3961608a5b3",
+        "2d972950-3611-4c33-b23a-160977bed925",
+        "ee6dbe5d-0752-4b34-8c97-f40fc5504b47"
+      ]
+    }
+  ],
+  "expectedCorroborations": []
+}

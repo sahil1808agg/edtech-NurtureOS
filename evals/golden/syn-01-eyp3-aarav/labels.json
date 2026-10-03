@@ -1,0 +1,51 @@
+{
+  "caseId": "syn-01-eyp3-aarav",
+  "origin": "synthetic",
+  "caseLabel": null,
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. EYP3, age 4, New Delhi. profile: academic=emerging social=confident emotional=regulated.",
+  "reportId": "564eba18-1681-4735-8952-e073d751434a",
+  "expectedFindings": [
+    {
+      "kind": "strength",
+      "statement": "Shows consistent social development across the year.",
+      "citedObservationIds": [
+        "232253d9-9836-4f51-a929-5faf5017773f",
+        "ea89b8d2-4556-4d2c-b76e-e682d805131a",
+        "f05c7f0a-ac15-4377-81ab-e8f67aaeb82c",
+        "e8c9da9e-662c-4d15-8a5f-def82e818ea6"
+      ]
+    },
+    {
+      "kind": "strength",
+      "statement": "Shows consistent emotional development across the year.",
+      "citedObservationIds": [
+        "5460fbc1-6bee-48b9-b80c-07e11e59fc80",
+        "da1f921c-e3a3-41c0-99ce-02b5e2ec634b",
+        "ff6aa1a0-1770-4766-9c2b-1eea28653da4",
+        "537866c4-ed5a-4eca-a38b-460447870a55"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing literacy skills across the year.",
+      "citedObservationIds": [
+        "961d4458-715c-438c-ac8e-9a3061d3565e",
+        "e6ec70ee-357d-49bb-910a-a8d77f14c1b0",
+        "39f5953e-ee6b-423f-b38f-6c7d1055c10b",
+        "1043502d-2219-4359-8ddf-2b40fe1877ee"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing numeracy skills across the year.",
+      "citedObservationIds": [
+        "26ad1c55-7a1e-4724-a1fc-a078ee5ff53c",
+        "1847924c-6e85-458b-a91a-3fd1d9590ea3",
+        "279a52c3-8825-4a0c-a08b-660b82559413",
+        "0f1cb839-e56e-44be-9dee-b353f42b29da"
+      ]
+    }
+  ],
+  "expectedCorroborations": []
+}

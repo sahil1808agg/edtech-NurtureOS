@@ -1,0 +1,10 @@
+{
+  "caseId": "syn-30-pyp5-nitara",
+  "origin": "adversarial",
+  "caseLabel": "single_term",
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. PYP5, age 10, Gurugram. profile: academic=mixed social=developing emotional=developing. Adversarial: One term only — no trajectory can be built",
+  "reportId": "944565dd-081f-4cc8-a585-22c14cbcd980",
+  "expectedFindings": [],
+  "expectedCorroborations": []
+}

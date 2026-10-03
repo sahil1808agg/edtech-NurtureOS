@@ -1,0 +1,51 @@
+{
+  "caseId": "syn-13-eyp3-rohan",
+  "origin": "synthetic",
+  "caseLabel": null,
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. EYP3, age 4, Gurugram. profile: academic=mixed social=reserved emotional=developing.",
+  "reportId": "d4ad18a7-b4ac-486e-b269-eb18c7d1451a",
+  "expectedFindings": [
+    {
+      "kind": "growth",
+      "statement": "Continues to develop social skills with support.",
+      "citedObservationIds": [
+        "06a0fa2e-7338-47ae-9905-e1fe8c87ebda",
+        "b6cf894f-631c-4c89-9d63-c92fc182fb44",
+        "7918ed34-dc21-4d3c-a1ad-cc6e50252013",
+        "0c5a84c7-ebce-464d-bc05-8efae7c0ecf1"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Continues to develop emotional skills with support.",
+      "citedObservationIds": [
+        "d60eebd5-a796-470b-b763-74a04a4e0ce0",
+        "755646f0-4149-47f2-a33b-133f86cb3f19",
+        "cef90132-6c40-4a72-9cb6-05903eb81512",
+        "b2ba987a-41f4-4893-ab6f-ed0ecdbd7f6d"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing literacy skills across the year.",
+      "citedObservationIds": [
+        "02559c4f-25c8-49c0-8fa4-d82259529574",
+        "d409f5e8-25dd-467a-8fc7-78ae692d0b68",
+        "c81cda8b-c0d5-40c9-8826-0fae5f95de3b",
+        "ae6cc6c6-da11-4699-add2-7368f8e265cc"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing numeracy skills across the year.",
+      "citedObservationIds": [
+        "6e5e9d75-23c2-4b16-a47e-dc1bb84978e3",
+        "cc944493-d1d2-4f69-9f7c-46f846d1298b",
+        "8aa2fd08-ffb9-4f99-9daa-c35800b8e106",
+        "0b403df0-49f1-4243-9ee9-ca89416128a5"
+      ]
+    }
+  ],
+  "expectedCorroborations": []
+}

@@ -1,0 +1,51 @@
+{
+  "caseId": "syn-22-pyp3-riya",
+  "origin": "synthetic",
+  "caseLabel": null,
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. PYP3, age 8, New Delhi. profile: academic=strong social=developing emotional=regulated.",
+  "reportId": "3541122a-e2c4-43b2-b531-8944791844a5",
+  "expectedFindings": [
+    {
+      "kind": "growth",
+      "statement": "Continues to develop social skills with support.",
+      "citedObservationIds": [
+        "2b199b2f-8a91-43b5-909f-1a9a2c33a8e3",
+        "ab252d45-868b-422f-9fbe-922450cb7ccb",
+        "dd39e657-193e-47b1-ad54-66ec5bd7b3cd",
+        "baa77f62-a170-4c96-90b9-77e9d3defdba"
+      ]
+    },
+    {
+      "kind": "strength",
+      "statement": "Shows consistent emotional development across the year.",
+      "citedObservationIds": [
+        "761bd051-41ef-46b9-9e85-5d601d360300",
+        "7d080898-6c85-4d37-8c42-fb3450cfa4c5",
+        "32161dc8-3b8b-4a89-839d-bac2f20fc0a2",
+        "37743de1-a374-410a-ab88-7aa200b3ca06"
+      ]
+    },
+    {
+      "kind": "strength",
+      "statement": "Demonstrates secure literacy skills.",
+      "citedObservationIds": [
+        "d4fc2f01-3e67-46ca-b133-71f0d9197f5b",
+        "be07ab8e-9d85-48d5-bd53-80b41a2e5227",
+        "13f01147-437d-4cc7-8919-ab9b994812d7",
+        "8b963c10-7c4d-426a-80b8-ea5f33c97db4"
+      ]
+    },
+    {
+      "kind": "strength",
+      "statement": "Demonstrates secure numeracy skills.",
+      "citedObservationIds": [
+        "95a3d5a5-3bdc-4af2-9afc-8b7378790fc3",
+        "a8e5accb-0445-440a-b4fb-575ae2af97d8",
+        "f5849a0f-cddc-4be5-8f39-ad81c00d48a7",
+        "66451113-4a0c-4eed-a1dc-3ca4f344f9a6"
+      ]
+    }
+  ],
+  "expectedCorroborations": []
+}

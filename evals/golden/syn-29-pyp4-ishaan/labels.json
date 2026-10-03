@@ -1,0 +1,51 @@
+{
+  "caseId": "syn-29-pyp4-ishaan",
+  "origin": "synthetic",
+  "caseLabel": null,
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. PYP4, age 9, New Delhi. profile: academic=emerging social=reserved emotional=developing.",
+  "reportId": "9b2c2130-d8ab-4a28-b525-66d77c68d2c7",
+  "expectedFindings": [
+    {
+      "kind": "growth",
+      "statement": "Continues to develop social skills with support.",
+      "citedObservationIds": [
+        "bb179ff9-68d0-4990-b158-054a9d2a0c76",
+        "6d33048e-1713-4d2f-b781-92189fe22178",
+        "a5ef2d4e-cdc5-4581-a927-0aeb7e802aca",
+        "83b65c99-785f-4d26-9e74-f1d227a22e69"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Continues to develop emotional skills with support.",
+      "citedObservationIds": [
+        "911fda61-0363-4d15-8068-01993f48aa65",
+        "b16ffd91-6cdb-4292-84d1-d2cae240c673",
+        "f44b8f92-46af-4a3a-90cc-669dd0767e88",
+        "8c1851b6-bef8-45d6-8087-57decd2a6533"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing literacy skills across the year.",
+      "citedObservationIds": [
+        "5537b419-2039-4bf9-9aa4-03bbdf535eb0",
+        "d6d3fd20-4958-4083-b4a1-26316a7766b0",
+        "ef91d3aa-726a-4f18-ad2d-8f297b7f53ed",
+        "04bf621b-f53e-4b73-945e-5233c23f7aa4"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing numeracy skills across the year.",
+      "citedObservationIds": [
+        "3d62740f-5bb2-4452-893c-fb784e9fdd77",
+        "fb7fbb7c-9f9b-434d-9a63-557332cf2058",
+        "3959bc75-65d0-498c-b065-78d9cb803d2f",
+        "65bfd44a-986c-4aec-8f6b-ac6c4f5add8c"
+      ]
+    }
+  ],
+  "expectedCorroborations": []
+}

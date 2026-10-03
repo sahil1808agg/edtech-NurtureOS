@@ -1,0 +1,51 @@
+{
+  "caseId": "syn-23-pyp4-krish",
+  "origin": "synthetic",
+  "caseLabel": null,
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. PYP4, age 9, Kolkata. profile: academic=mixed social=confident emotional=regulated.",
+  "reportId": "237422b7-5791-47e9-a86f-9fa0e1801103",
+  "expectedFindings": [
+    {
+      "kind": "strength",
+      "statement": "Shows consistent social development across the year.",
+      "citedObservationIds": [
+        "28353966-313d-4bc3-b221-08031e0b5f86",
+        "0e163410-cdb1-403d-af73-44b747149b13",
+        "950132f0-4694-43ac-a5ff-8918ee7502b0",
+        "a779c3c9-9a46-4f9d-bcc0-ccca25f4eff4"
+      ]
+    },
+    {
+      "kind": "strength",
+      "statement": "Shows consistent emotional development across the year.",
+      "citedObservationIds": [
+        "529d2fde-3497-4b1a-a3e9-1569b9bac1c8",
+        "0805c86e-89fb-4636-a048-5701672cc226",
+        "474b3beb-37d9-495d-afc5-8d2e153f1409",
+        "709d6352-657f-4983-8a3c-3147e87b91d6"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing literacy skills across the year.",
+      "citedObservationIds": [
+        "9e7d0f1f-7b61-4a6e-9926-1ec00d8a5d87",
+        "5d8412f6-7f3f-4f28-9f49-aaef2b4f3a19",
+        "2ace263a-f8c7-4db9-8857-d0acacc45b48",
+        "2ad432c8-867e-473b-a208-0162841f951c"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing numeracy skills across the year.",
+      "citedObservationIds": [
+        "b625d8b9-3fc0-471e-a6c5-eaed3bae2ec7",
+        "1e01f90f-632d-45eb-93ae-160033493439",
+        "b48cf8c1-2f4c-4317-b670-abe7e1907411",
+        "a4176e8e-50e2-482c-8e00-dfb5a276c813"
+      ]
+    }
+  ],
+  "expectedCorroborations": []
+}

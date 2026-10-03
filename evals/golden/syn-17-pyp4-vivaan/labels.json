@@ -1,0 +1,51 @@
+{
+  "caseId": "syn-17-pyp4-vivaan",
+  "origin": "synthetic",
+  "caseLabel": null,
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. PYP4, age 9, Ahmedabad. profile: academic=strong social=confident emotional=developing.",
+  "reportId": "07fcfd57-eec6-4496-9af2-53b3473322af",
+  "expectedFindings": [
+    {
+      "kind": "strength",
+      "statement": "Shows consistent social development across the year.",
+      "citedObservationIds": [
+        "1cca9066-489c-4e79-912e-7444258127b3",
+        "a9dfa7a6-56b6-4107-96d5-e678d2bdd80c",
+        "31933150-3a9e-4ef7-8b6e-5c60412ff94d",
+        "d927a1db-1b95-4d0d-a1a9-0555d6d67334"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Continues to develop emotional skills with support.",
+      "citedObservationIds": [
+        "06644958-7d20-44bf-bbd9-09cde5ba5a7e",
+        "a615300b-62ed-45be-840a-0494baf23786",
+        "4dc8313f-d3dd-451e-9736-b5598b94283e",
+        "39680426-9d46-4ce1-bfc4-d8711ca4b2f8"
+      ]
+    },
+    {
+      "kind": "strength",
+      "statement": "Demonstrates secure literacy skills.",
+      "citedObservationIds": [
+        "8a4c4bdd-8965-47c8-953a-12d6dbfbd10c",
+        "823e6dbb-e794-4ac6-8e07-d7595b033980",
+        "751f3fa7-36c0-42c7-bc02-aeb4b82ef5bc",
+        "851a332a-c223-47ee-83f4-90dc337b9f50"
+      ]
+    },
+    {
+      "kind": "strength",
+      "statement": "Demonstrates secure numeracy skills.",
+      "citedObservationIds": [
+        "430923ff-668e-43bc-88a6-00294f997941",
+        "8fbff28e-ecb1-440c-b4a9-abf37a8a8700",
+        "f4673aaf-23de-49d1-bfbd-936ad5178cad",
+        "bbc5c3d3-f0f0-45b5-93ab-a43668bbdd21"
+      ]
+    }
+  ],
+  "expectedCorroborations": []
+}

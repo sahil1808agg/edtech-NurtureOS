@@ -1,0 +1,51 @@
+{
+  "caseId": "syn-18-pyp5-myra",
+  "origin": "synthetic",
+  "caseLabel": null,
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. PYP5, age 10, Kolkata. profile: academic=mixed social=developing emotional=developing.",
+  "reportId": "5f198489-8585-46a4-8b0c-016c452acf17",
+  "expectedFindings": [
+    {
+      "kind": "growth",
+      "statement": "Continues to develop social skills with support.",
+      "citedObservationIds": [
+        "56e08858-8ba9-448d-9100-3e08fbab0c33",
+        "979f1dd6-66ca-4aa2-b7ba-95cef3ba9f2e",
+        "46c035e3-ae15-4f42-86ac-4bc267b642e3",
+        "b36b6399-e967-488b-953a-6102014847d8"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Continues to develop emotional skills with support.",
+      "citedObservationIds": [
+        "fd50d965-0590-42ac-a050-7071633ed44a",
+        "00daaa77-4578-481f-8864-57a16c0a9422",
+        "cf318503-96ac-42b0-a64f-1685c37f898d",
+        "a977fabd-8515-4453-8f50-086b37280aaf"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing literacy skills across the year.",
+      "citedObservationIds": [
+        "e61a3409-c1e1-4efb-a9a4-c6971e1c234a",
+        "c779fef9-0e95-4026-9c62-e0ab334a33eb",
+        "40d5e2c9-5b0b-478c-a800-ecec0de36719",
+        "4922402e-3428-4727-936c-35643e36b0d8"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing numeracy skills across the year.",
+      "citedObservationIds": [
+        "7a4904f6-fd58-4e00-a35e-7ad17a708759",
+        "89ff75b5-17f9-4307-959b-d6d5ad452eef",
+        "bd120c0c-eb33-4840-b973-d53bcc78f0f1",
+        "f6d20d5c-e575-4a01-8f90-72e72fdf1ee5"
+      ]
+    }
+  ],
+  "expectedCorroborations": []
+}

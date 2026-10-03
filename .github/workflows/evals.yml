@@ -1,0 +1,58 @@
+# Runs the eval suite when something that can move model behaviour changes.
+# LLD §8: "CI runs the full set on any PR touching a pinned prompt version,
+# a gate, or the ontology, and writes the result to eval_runs."
+# 
+# The reporter in evals/lib/report.ts returns false when any blocking target
+# misses, which makes `braintrust eval` exit non-zero and fails this job.
+name: evals
+
+on:
+  pull_request:
+    paths:
+      - 'src/server/prompts/**'
+      - 'src/server/gates/**'
+      - 'src/server/pipeline/**'
+      - 'src/lib/ontology/**'
+      - 'evals/**'
+      - '.github/workflows/evals.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: evals-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      # No .env.local exists in CI. src/test/load-env.ts guards on the file
+      # existing and never overwrites an already-set variable, so these env
+      # values are used directly.
+      - name: Run evals
+        run: npm run eval
+        env:
+          BRAINTRUST_API_KEY: ${{ secrets.BRAINTRUST_API_KEY }}
+          BRAINTRUST_PROJECT: ${{ vars.BRAINTRUST_PROJECT }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

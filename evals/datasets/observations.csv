@@ -1,0 +1,76 @@
+﻿case_id,report_id,observation_id,raw_label,band,skill_id,term_index,raw_value,normalised,is_ambiguous
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,57a1e724-e1fc-4a07-8ee5-ff53c6184792,Responding to and Analyzing Artworks,ARTS,b5f9beb6-875e-45ae-ae7b-89e5f85600f4,1,C,0.5,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,c6e8558b-a91a-43fd-9d95-90ea3c279a52,Responding to and Analyzing Artworks,ARTS,b5f9beb6-875e-45ae-ae7b-89e5f85600f4,2,C,0.5,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,38825a0c-a08b-4660-b825-5941330f1cb8,Responding to and Analyzing Artworks,ARTS,b5f9beb6-875e-45ae-ae7b-89e5f85600f4,3,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,9e56e4be-1dee-4b35-bf42-b29dab16c5e1,Reading fluency and sight word recognition,LANG,52ba3045-f992-4b18-8662-580cd02aaa92,1,C,0.5,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,0d0468e1-d1ee-4a9f-a415-817a09997354,Reading fluency and sight word recognition,LANG,52ba3045-f992-4b18-8662-580cd02aaa92,2,C,0.5,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,50f4252e-2c04-453f-b53d-70594c961d44,Reading fluency and sight word recognition,LANG,52ba3045-f992-4b18-8662-580cd02aaa92,3,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,8715c38c-ac8e-49a3-861d-3565e6e6ec70,Identifying Wholes and Halves,MATH,1167808f-689b-45ff-b036-b7cd324d6b92,1,C,0.5,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,e357d9bb-910a-4a8d-b7f1-4c1b0a39f595,Identifying Wholes and Halves,MATH,1167808f-689b-45ff-b036-b7cd324d6b92,2,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,eee6b23f-f38f-46c7-9105-5c10b1245323,Identifying Wholes and Halves,MATH,1167808f-689b-45ff-b036-b7cd324d6b92,3,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,38baebe3-67ff-4bfd-9ec4-9616dbd5e297,Speaking in Group Settings,LANG,aff52ce9-c1dc-4cb2-b8c6-5a71c0539a5e,1,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,3ef7edc9-0880-403b-a49f-6247015f8705,Speaking in Group Settings,LANG,aff52ce9-c1dc-4cb2-b8c6-5a71c0539a5e,2,C,0.5,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,85200868-fc8f-4b3a-a349-a3eda9104350,Speaking in Group Settings,LANG,aff52ce9-c1dc-4cb2-b8c6-5a71c0539a5e,3,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,d2219359-0ddf-42b4-8fe1-877ee913a5f8,Listening comprehension of varied texts,LANG,8fa92cba-bdc0-44b8-b3c2-03d7c351a359,1,C,0.5,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,f3a98714-b09e-4ade-80af-3a2ba92c7f88,Listening comprehension of varied texts,LANG,8fa92cba-bdc0-44b8-b3c2-03d7c351a359,2,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,8ac3ef80-0698-4790-adaa-672e1b95b088,Listening comprehension of varied texts,LANG,8fa92cba-bdc0-44b8-b3c2-03d7c351a359,3,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,dcea9059-74f0-44e9-a084-73251ba9ea3f,Dance Etiquette and Performer-Audience Dynamics,ARTS,c25ab463-8c58-4554-929f-f496b39d9348,1,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,b55182e3-4685-4152-81f4-abc4d66b653e,Dance Etiquette and Performer-Audience Dynamics,ARTS,c25ab463-8c58-4554-929f-f496b39d9348,2,C,0.5,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,c3241556-7126-476c-a9ff-b13cbbdfd79b,Dance Etiquette and Performer-Audience Dynamics,ARTS,c25ab463-8c58-4554-929f-f496b39d9348,3,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,b0dda214-0a7e-4621-830c-7647a26a51da,Inquiring and Questioning Text and Illustrations,LANG,3d7783cd-a687-4ec3-92cf-49ef4c78ce61,1,C,0.5,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,7d790ce7-e123-44dc-ac4c-e603b6a0e11a,Inquiring and Questioning Text and Illustrations,LANG,3d7783cd-a687-4ec3-92cf-49ef4c78ce61,2,C,0.5,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,590b589f-bc22-495e-aa15-08c82a05f254,Inquiring and Questioning Text and Illustrations,LANG,3d7783cd-a687-4ec3-92cf-49ef4c78ce61,3,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,c287cee2-8a00-4ba0-8799-1a1d197722d9,Understanding the Purpose of Spoken Language,LANG,89572155-654b-448e-8990-6b3c74e4cb4d,1,C,0.5,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,ec8e2a99-10b4-4f4f-b3b7-a292b665bd3b,Understanding the Purpose of Spoken Language,LANG,89572155-654b-448e-8990-6b3c74e4cb4d,2,C,0.5,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,e43617b7-7e0c-435e-90d5-513729717b4a,Understanding the Purpose of Spoken Language,LANG,89572155-654b-448e-8990-6b3c74e4cb4d,3,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,99443b7b-314e-4caf-8d76-520945798b4d,Participation and enthusiasm in Hindi class,HINDI,f0790727-12c1-45fe-905b-222cd9ce3354,1,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,ba080898-3208-47b6-872b-280e8fbd0f89,Participation and enthusiasm in Hindi class,HINDI,f0790727-12c1-45fe-905b-222cd9ce3354,2,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,c3574e75-336f-47aa-808c-c5ba5f1e50dd,Participation and enthusiasm in Hindi class,HINDI,f0790727-12c1-45fe-905b-222cd9ce3354,3,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,6f5351bc-640a-46b7-ba6c-e0cf49f5a743,Expressing Opinions About Texts,LANG,8ce63c7d-b897-43e7-ab5d-cce0f86c541a,1,C,0.5,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,91ea05ad-082f-42ef-a9bc-15ceb133e184,Expressing Opinions About Texts,LANG,8ce63c7d-b897-43e7-ab5d-cce0f86c541a,2,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,e2c746d9-696e-4321-9b53-6bcc17232253,Expressing Opinions About Texts,LANG,8ce63c7d-b897-43e7-ab5d-cce0f86c541a,3,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,99836f51-2929-45fa-b501-7773f2ea89b8,Direct and Non-Standard Measurement,MATH,b02659d7-5d15-4746-adb1-711b0898ebe7,1,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,24556d2c-376e-4e68-ad80-5131acf05c7f,Direct and Non-Standard Measurement,MATH,b02659d7-5d15-4746-adb1-711b0898ebe7,2,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,aac15377-c1ab-4e8f-a7aa-eb82c6e8c9da,Direct and Non-Standard Measurement,MATH,b02659d7-5d15-4746-adb1-711b0898ebe7,3,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,e662cd15-ca5f-4def-82e8-18ea6568e551,Base-Ten Place Value up to 100,MATH,f760e318-3830-4037-b16c-102d24b15899,1,C,0.5,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,36d51d90-4692-4ca2-9ceb-0f1b0cb0c1d6,Base-Ten Place Value up to 100,MATH,f760e318-3830-4037-b16c-102d24b15899,2,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,29959f9b-faf6-48b3-8dfe-7d800bd7a7e7,Base-Ten Place Value up to 100,MATH,f760e318-3830-4037-b16c-102d24b15899,3,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,3242f19a-13c9-4b2a-8467-3e792bd0f6af,Expressing Ideas and Needs in Hindi,HINDI,7ce4ddd5-bfc3-4419-a7bf-18d745220cd8,1,C,0.5,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,97499d81-0397-492a-bc5a-088438bab487,Expressing Ideas and Needs in Hindi,HINDI,7ce4ddd5-bfc3-4419-a7bf-18d745220cd8,2,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,fdf5b284-7b73-47a6-9119-a456245460fb,Expressing Ideas and Needs in Hindi,HINDI,7ce4ddd5-bfc3-4419-a7bf-18d745220cd8,3,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,16bee8b9-b80c-407e-91e5-9fc802da1f92,Grouping and Sharing in Equal Sets,MATH,27d32168-faf1-41c9-b9e0-b1e590af64f8,1,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,ce3a31c0-59ce-402b-9e2e-c634b8ff6aa1,Grouping and Sharing in Equal Sets,MATH,27d32168-faf1-41c9-b9e0-b1e590af64f8,2,C,0.5,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,01770766-dc2b-41ee-a286-53da4b537866,Grouping and Sharing in Equal Sets,MATH,27d32168-faf1-41c9-b9e0-b1e590af64f8,3,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,4ed5aeca-a38b-4460-8478-70a55d849130,Works cooperatively in small group activities,social,,1,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,2f3bc48d-d1bb-4459-84bb-acc8f5950861,Works cooperatively in small group activities,social,,2,C,0.5,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,722dece5-194b-4e22-90a9-ba58b9ec3df9,Works cooperatively in small group activities,social,,3,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,b3ef5b1f-7b33-4182-9e4e-8138a03bf2a6,Takes turns and shares materials with peers,social,,1,C,0.5,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,a30761dd-d331-4793-82eb-10ed08881b26,Takes turns and shares materials with peers,social,,2,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,1e6448fb-43bb-4ce4-9d6b-29e87b0ea8de,Takes turns and shares materials with peers,social,,3,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,387d9e73-b6ad-4ba3-99b2-6fab73ab79e5,Begins to speak appropriately in small and large group interactions,social,,1,C,0.5,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,ea7f91d6-229a-41b3-b159-2ec24b6359c1,Begins to speak appropriately in small and large group interactions,social,,2,C,0.5,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,ff52bbe3-cf06-40dc-981a-14b9529c8bed,Begins to speak appropriately in small and large group interactions,social,,3,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,b66910aa-2a48-4c62-b106-b55a0670ae43,Resolves minor disagreements with growing independence,social,,1,C,0.5,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,2f579a53-67c1-46f2-bcb4-e242d317b8d1,Resolves minor disagreements with growing independence,social,,2,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,f165759f-7847-48c9-9d8b-e5aa664642ff,Resolves minor disagreements with growing independence,social,,3,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,4f4e790c-e72b-4674-9531-57dc1180dd82,Identifies their feelings and emotions and explains possible causes,emotional,,1,C,0.5,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,f4a8a319-fc44-4870-b20a-3fd53b8cb9a9,Identifies their feelings and emotions and explains possible causes,emotional,,2,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,510b5eed-0e2d-43e6-bcb9-452584b1b730,Identifies their feelings and emotions and explains possible causes,emotional,,3,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,6821fb0e-f2d2-4c24-bd3b-a2b7875917ce,Identifies and explores strategies that help them cope with change,emotional,,1,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,9c58df8b-56bb-4521-85fc-ebb85742d294,Identifies and explores strategies that help them cope with change,emotional,,2,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,586859f2-9d9f-4722-b76b-44b206dba119,Identifies and explores strategies that help them cope with change,emotional,,3,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,a2a51597-4805-457b-b1f5-2e587e9b8a22,Willingly approaches and perseveres with new situations,emotional,,1,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,43a03bee-56ca-4edb-bbdd-d93bf3ef1561,Willingly approaches and perseveres with new situations,emotional,,2,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,9571901d-f87d-4fec-a01d-d318e3addd84,Willingly approaches and perseveres with new situations,emotional,,3,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,21896ac9-77d8-41bf-8bfb-6f41f30d4e13,Describes how they have grown and changed,emotional,,1,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,0d55f3e4-5693-459f-926b-aec770319b10,Describes how they have grown and changed,emotional,,2,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,8ec2b3dc-12f4-469a-a559-1a2ae6f5c469,Describes how they have grown and changed,emotional,,3,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,378100b7-8033-482c-ba29-f6ede9f97675,Develops physical balance and coordination,physical,,1,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,5c63f1a6-9245-4cb5-bfcb-80b77e8626cc,Develops physical balance and coordination,physical,,2,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,b93e7ec1-d8f6-4e20-9f1a-31f721fedd20,Develops physical balance and coordination,physical,,3,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,55856891-bdc7-4fc0-896d-10821b0fc0fc,Demonstrates control in gross motor movement,physical,,1,C,0.5,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,7854be8d-ffd4-4de1-ba02-9b813154e80c,Demonstrates control in gross motor movement,physical,,2,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,ea1d089a-98bc-4486-89b9-eaca21b0a4c1,Demonstrates control in gross motor movement,physical,,3,O,1,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,74a7c011-895a-4339-a899-6acdb4863e6d,Uses fine motor skills with increasing precision,physical,,1,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,64d2fb2c-7583-49a1-ae80-b1eccb1ab910,Uses fine motor skills with increasing precision,physical,,2,P,0.75,false
+syn-01-pyp1-aarav,eba18168-1735-4495-ae07-3d751434abd8,5e0ad7c5-9117-4cee-aa00-83a127b7bc6d,Uses fine motor skills with increasing precision,physical,,3,P,0.75,false

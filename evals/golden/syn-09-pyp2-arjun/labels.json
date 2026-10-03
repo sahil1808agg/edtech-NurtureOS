@@ -1,0 +1,51 @@
+{
+  "caseId": "syn-09-pyp2-arjun",
+  "origin": "synthetic",
+  "caseLabel": null,
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. PYP2, age 7, Pune. profile: academic=emerging social=developing emotional=needs_support.",
+  "reportId": "7d4c109e-52b1-44f5-8496-d3569b5ebef7",
+  "expectedFindings": [
+    {
+      "kind": "growth",
+      "statement": "Continues to develop social skills with support.",
+      "citedObservationIds": [
+        "6f36a89b-7864-4fed-b70d-997bcee5037a",
+        "c29d66bb-93f5-4644-9486-f1f7c2aa001f",
+        "b6866bc5-ffba-4a25-b8e5-0fc4c08e2912",
+        "39aef85a-6053-44b3-a429-d13ddb861d91"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Continues to develop emotional skills with support.",
+      "citedObservationIds": [
+        "8144ebad-d776-4049-93f3-fcfe018e96f5",
+        "d5e1d790-cf8c-4ce4-a5a5-5ebd6c33c6e0",
+        "7824e1de-ca31-482d-89b0-da8b5fe9a354",
+        "a406d5fd-fae2-4768-9ea8-6852a0e57c5d"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing literacy skills across the year.",
+      "citedObservationIds": [
+        "4fbbef9b-f73d-45a6-a835-2384b155d7e9",
+        "051bcb5e-c05c-4f58-89bf-df3538a1e0c3",
+        "ee040c22-a179-4b13-9e45-0210dbc41176",
+        "41f7db4d-a947-466f-9c83-7e1ad41e5543"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing numeracy skills across the year.",
+      "citedObservationIds": [
+        "c47c44f6-c838-4d23-8613-5581b311d53c",
+        "6e212346-dda8-487b-94c3-52bf3bebe4e2",
+        "98e1835b-56a7-4739-876c-441963644cee",
+        "8f5736e3-37ab-4f83-8787-b1fac2c1dc26"
+      ]
+    }
+  ],
+  "expectedCorroborations": []
+}

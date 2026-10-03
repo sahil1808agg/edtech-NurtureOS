@@ -1,0 +1,51 @@
+{
+  "caseId": "syn-26-pyp1-aisha",
+  "origin": "synthetic",
+  "caseLabel": null,
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. PYP1, age 6, Ahmedabad. profile: academic=mixed social=developing emotional=developing.",
+  "reportId": "7c125ac1-1d88-4182-ab75-05a1fcf169a1",
+  "expectedFindings": [
+    {
+      "kind": "growth",
+      "statement": "Continues to develop social skills with support.",
+      "citedObservationIds": [
+        "83aba9d3-fe52-44c7-b1e2-36b0289c57ae",
+        "bf57a6b8-118c-4ec6-9b67-21484bfc6175",
+        "08832a10-45c9-42b0-b854-e223e882868a",
+        "4391af03-f0cf-403c-884e-422e28194b37"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Continues to develop emotional skills with support.",
+      "citedObservationIds": [
+        "d0cc9335-af4b-48ab-9a71-e16e6331fc37",
+        "b1e54cee-baae-451a-9c45-985eca8dd095",
+        "6d230447-9a86-4518-9061-a0ed9a5f0034",
+        "9b7060f3-1ea2-47d4-9592-84ad726a7e30"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing literacy skills across the year.",
+      "citedObservationIds": [
+        "65bd6b69-3289-49d3-92d8-861c50339a2e",
+        "600f7d60-707d-45c1-8294-8495a4288f56",
+        "bb47c3dd-b3a9-4e92-8704-9967fbb8c677",
+        "8831c2c9-5065-4a24-bee5-9594c9cb7f91"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing numeracy skills across the year.",
+      "citedObservationIds": [
+        "62d74ec7-a540-4776-855c-a15999711ab1",
+        "d07f150e-034d-4b47-9980-dcc2ab6e2db9",
+        "0bedb81a-236b-43db-80ec-789eaf12fd20",
+        "89863f02-7c9d-4ff1-b1e1-7ad6cf8b8ad4"
+      ]
+    }
+  ],
+  "expectedCorroborations": []
+}

@@ -1,0 +1,26 @@
+﻿ref,learning_outcome,area,T1,T2,T3,obs_id_T1,obs_id_T2,obs_id_T3
+L01,Responding to and Analyzing Artworks,ARTS,C,C,P,57a1e724-e1fc-4a07-8ee5-ff53c6184792,c6e8558b-a91a-43fd-9d95-90ea3c279a52,38825a0c-a08b-4660-b825-5941330f1cb8
+L02,Reading fluency and sight word recognition,LANG,C,C,P,9e56e4be-1dee-4b35-bf42-b29dab16c5e1,0d0468e1-d1ee-4a9f-a415-817a09997354,50f4252e-2c04-453f-b53d-70594c961d44
+L03,Identifying Wholes and Halves,MATH,C,P,P,8715c38c-ac8e-49a3-861d-3565e6e6ec70,e357d9bb-910a-4a8d-b7f1-4c1b0a39f595,eee6b23f-f38f-46c7-9105-5c10b1245323
+L04,Speaking in Group Settings,LANG,P,C,P,38baebe3-67ff-4bfd-9ec4-9616dbd5e297,3ef7edc9-0880-403b-a49f-6247015f8705,85200868-fc8f-4b3a-a349-a3eda9104350
+L05,Listening comprehension of varied texts,LANG,C,P,P,d2219359-0ddf-42b4-8fe1-877ee913a5f8,f3a98714-b09e-4ade-80af-3a2ba92c7f88,8ac3ef80-0698-4790-adaa-672e1b95b088
+L06,Dance Etiquette and Performer-Audience Dynamics,ARTS,P,C,P,dcea9059-74f0-44e9-a084-73251ba9ea3f,b55182e3-4685-4152-81f4-abc4d66b653e,c3241556-7126-476c-a9ff-b13cbbdfd79b
+L07,Inquiring and Questioning Text and Illustrations,LANG,C,C,P,b0dda214-0a7e-4621-830c-7647a26a51da,7d790ce7-e123-44dc-ac4c-e603b6a0e11a,590b589f-bc22-495e-aa15-08c82a05f254
+L08,Understanding the Purpose of Spoken Language,LANG,C,C,P,c287cee2-8a00-4ba0-8799-1a1d197722d9,ec8e2a99-10b4-4f4f-b3b7-a292b665bd3b,e43617b7-7e0c-435e-90d5-513729717b4a
+L09,Participation and enthusiasm in Hindi class,HINDI,P,P,P,99443b7b-314e-4caf-8d76-520945798b4d,ba080898-3208-47b6-872b-280e8fbd0f89,c3574e75-336f-47aa-808c-c5ba5f1e50dd
+L10,Expressing Opinions About Texts,LANG,C,P,P,6f5351bc-640a-46b7-ba6c-e0cf49f5a743,91ea05ad-082f-42ef-a9bc-15ceb133e184,e2c746d9-696e-4321-9b53-6bcc17232253
+L11,Direct and Non-Standard Measurement,MATH,P,P,P,99836f51-2929-45fa-b501-7773f2ea89b8,24556d2c-376e-4e68-ad80-5131acf05c7f,aac15377-c1ab-4e8f-a7aa-eb82c6e8c9da
+L12,Base-Ten Place Value up to 100,MATH,C,P,P,e662cd15-ca5f-4def-82e8-18ea6568e551,36d51d90-4692-4ca2-9ceb-0f1b0cb0c1d6,29959f9b-faf6-48b3-8dfe-7d800bd7a7e7
+L13,Expressing Ideas and Needs in Hindi,HINDI,C,P,P,3242f19a-13c9-4b2a-8467-3e792bd0f6af,97499d81-0397-492a-bc5a-088438bab487,fdf5b284-7b73-47a6-9119-a456245460fb
+L14,Grouping and Sharing in Equal Sets,MATH,P,C,P,16bee8b9-b80c-407e-91e5-9fc802da1f92,ce3a31c0-59ce-402b-9e2e-c634b8ff6aa1,01770766-dc2b-41ee-a286-53da4b537866
+L15,Works cooperatively in small group activities,social,P,C,P,4ed5aeca-a38b-4460-8478-70a55d849130,2f3bc48d-d1bb-4459-84bb-acc8f5950861,722dece5-194b-4e22-90a9-ba58b9ec3df9
+L16,Takes turns and shares materials with peers,social,C,P,P,b3ef5b1f-7b33-4182-9e4e-8138a03bf2a6,a30761dd-d331-4793-82eb-10ed08881b26,1e6448fb-43bb-4ce4-9d6b-29e87b0ea8de
+L17,Begins to speak appropriately in small and large group interactions,social,C,C,P,387d9e73-b6ad-4ba3-99b2-6fab73ab79e5,ea7f91d6-229a-41b3-b159-2ec24b6359c1,ff52bbe3-cf06-40dc-981a-14b9529c8bed
+L18,Resolves minor disagreements with growing independence,social,C,P,P,b66910aa-2a48-4c62-b106-b55a0670ae43,2f579a53-67c1-46f2-bcb4-e242d317b8d1,f165759f-7847-48c9-9d8b-e5aa664642ff
+L19,Identifies their feelings and emotions and explains possible causes,emotional,C,P,P,4f4e790c-e72b-4674-9531-57dc1180dd82,f4a8a319-fc44-4870-b20a-3fd53b8cb9a9,510b5eed-0e2d-43e6-bcb9-452584b1b730
+L20,Identifies and explores strategies that help them cope with change,emotional,P,P,P,6821fb0e-f2d2-4c24-bd3b-a2b7875917ce,9c58df8b-56bb-4521-85fc-ebb85742d294,586859f2-9d9f-4722-b76b-44b206dba119
+L21,Willingly approaches and perseveres with new situations,emotional,P,P,P,a2a51597-4805-457b-b1f5-2e587e9b8a22,43a03bee-56ca-4edb-bbdd-d93bf3ef1561,9571901d-f87d-4fec-a01d-d318e3addd84
+L22,Describes how they have grown and changed,emotional,P,P,P,21896ac9-77d8-41bf-8bfb-6f41f30d4e13,0d55f3e4-5693-459f-926b-aec770319b10,8ec2b3dc-12f4-469a-a559-1a2ae6f5c469
+L23,Develops physical balance and coordination,physical,P,P,P,378100b7-8033-482c-ba29-f6ede9f97675,5c63f1a6-9245-4cb5-bfcb-80b77e8626cc,b93e7ec1-d8f6-4e20-9f1a-31f721fedd20
+L24,Demonstrates control in gross motor movement,physical,C,P,O,55856891-bdc7-4fc0-896d-10821b0fc0fc,7854be8d-ffd4-4de1-ba02-9b813154e80c,ea1d089a-98bc-4486-89b9-eaca21b0a4c1
+L25,Uses fine motor skills with increasing precision,physical,P,P,P,74a7c011-895a-4339-a899-6acdb4863e6d,64d2fb2c-7583-49a1-ae80-b1eccb1ab910,5e0ad7c5-9117-4cee-aa00-83a127b7bc6d

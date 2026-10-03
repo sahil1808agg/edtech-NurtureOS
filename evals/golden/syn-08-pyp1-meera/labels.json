@@ -1,0 +1,51 @@
+{
+  "caseId": "syn-08-pyp1-meera",
+  "origin": "synthetic",
+  "caseLabel": null,
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. PYP1, age 6, Mumbai. profile: academic=mixed social=confident emotional=developing.",
+  "reportId": "136ecdcb-5e41-4a76-ae28-844878a3e725",
+  "expectedFindings": [
+    {
+      "kind": "strength",
+      "statement": "Shows consistent social development across the year.",
+      "citedObservationIds": [
+        "ddaab853-e8a3-474b-b202-2ef526397831",
+        "a5cae954-0d4e-4c8e-9843-7f48d1b10b02",
+        "a22c3314-6d66-428e-b84d-78dcdd5bd24e",
+        "20754c20-1b45-4f29-9282-a1bcb1d04d61"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Continues to develop emotional skills with support.",
+      "citedObservationIds": [
+        "821dcacb-c303-4860-9ee0-d9ffd5b6a1cd",
+        "411cb9e4-887d-4761-a390-3044fc2fa2cf",
+        "4b40b1d7-0066-4f64-b070-04caba71c306",
+        "556f2a71-5e44-4c90-b767-d9455294dc3f"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing literacy skills across the year.",
+      "citedObservationIds": [
+        "f60b03b1-6cd1-4f42-8eb7-5b1773ee2f70",
+        "1ab9fa2b-c695-4e8b-b2fe-c8611267f4e3",
+        "58d79e96-c8c1-4516-a30e-641630588586",
+        "6b2443fa-8591-4f1f-88a3-a9ed10ef2035"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing numeracy skills across the year.",
+      "citedObservationIds": [
+        "f1bed598-d7fe-4531-8848-848f3f2e7d33",
+        "709d211b-5afa-4bc9-aada-ca3076b8b4ee",
+        "a4c72763-68aa-449a-815b-8b8aa510d93c",
+        "e5fcc98d-633e-4553-bb84-023582bf1ed1"
+      ]
+    }
+  ],
+  "expectedCorroborations": []
+}

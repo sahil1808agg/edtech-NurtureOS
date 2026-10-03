@@ -1,0 +1,10 @@
+{
+  "caseId": "syn-15-pyp2-neel",
+  "origin": "adversarial",
+  "caseLabel": "interior_gap",
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. PYP2, age 7, New Delhi. profile: academic=strong social=confident emotional=regulated. Adversarial: O, -, P — uninterpretable, not reportable (O5)",
+  "reportId": "dc6f806e-47f5-4e5e-8c24-0b5eb5eb155a",
+  "expectedFindings": [],
+  "expectedCorroborations": []
+}

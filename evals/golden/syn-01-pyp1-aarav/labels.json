@@ -1,0 +1,517 @@
+{
+  "caseId": "syn-01-pyp1-aarav",
+  "origin": "synthetic",
+  "caseLabel": null,
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. PYP1, age 6, New Delhi. profile: academic=mixed social=developing emotional=developing.",
+  "reportId": "eba18168-1735-4495-ae07-3d751434abd8",
+  "child": {
+    "firstName": "Aarav",
+    "age": 6,
+    "dob": "2020-07-04",
+    "grade": "PYP1",
+    "school": "Oakridge International School",
+    "address": {
+      "line1": "169, Sector C Marg",
+      "area": "Vasant Kunj",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "pincode": "110070"
+    }
+  },
+  "expectedFindings": [
+    {
+      "kind": "growth",
+      "statement": "Continues to develop social skills with support.",
+      "citedObservationIds": [
+        "4ed5aeca-a38b-4460-8478-70a55d849130",
+        "2f3bc48d-d1bb-4459-84bb-acc8f5950861",
+        "722dece5-194b-4e22-90a9-ba58b9ec3df9",
+        "b3ef5b1f-7b33-4182-9e4e-8138a03bf2a6"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Continues to develop emotional skills with support.",
+      "citedObservationIds": [
+        "4f4e790c-e72b-4674-9531-57dc1180dd82",
+        "f4a8a319-fc44-4870-b20a-3fd53b8cb9a9",
+        "510b5eed-0e2d-43e6-bcb9-452584b1b730",
+        "6821fb0e-f2d2-4c24-bd3b-a2b7875917ce"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing literacy skills across the year.",
+      "citedObservationIds": [
+        "9e56e4be-1dee-4b35-bf42-b29dab16c5e1",
+        "0d0468e1-d1ee-4a9f-a415-817a09997354",
+        "50f4252e-2c04-453f-b53d-70594c961d44",
+        "38baebe3-67ff-4bfd-9ec4-9616dbd5e297"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing numeracy skills across the year.",
+      "citedObservationIds": [
+        "8715c38c-ac8e-49a3-861d-3565e6e6ec70",
+        "e357d9bb-910a-4a8d-b7f1-4c1b0a39f595",
+        "eee6b23f-f38f-46c7-9105-5c10b1245323",
+        "99836f51-2929-45fa-b501-7773f2ea89b8"
+      ]
+    }
+  ],
+  "expectedCells": [
+    {
+      "rawLabel": "Responding to and Analyzing Artworks",
+      "subject": "ARTS",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "C"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "C"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Reading fluency and sight word recognition",
+      "subject": "LANG",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "C"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "C"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Identifying Wholes and Halves",
+      "subject": "MATH",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "C"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Speaking in Group Settings",
+      "subject": "LANG",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "C"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Listening comprehension of varied texts",
+      "subject": "LANG",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "C"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Dance Etiquette and Performer-Audience Dynamics",
+      "subject": "ARTS",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "C"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Inquiring and Questioning Text and Illustrations",
+      "subject": "LANG",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "C"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "C"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Understanding the Purpose of Spoken Language",
+      "subject": "LANG",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "C"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "C"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Participation and enthusiasm in Hindi class",
+      "subject": "HINDI",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Expressing Opinions About Texts",
+      "subject": "LANG",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "C"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Direct and Non-Standard Measurement",
+      "subject": "MATH",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Base-Ten Place Value up to 100",
+      "subject": "MATH",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "C"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Expressing Ideas and Needs in Hindi",
+      "subject": "HINDI",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "C"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Grouping and Sharing in Equal Sets",
+      "subject": "MATH",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "C"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Works cooperatively in small group activities",
+      "subject": "social",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "C"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Takes turns and shares materials with peers",
+      "subject": "social",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "C"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Begins to speak appropriately in small and large group interactions",
+      "subject": "social",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "C"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "C"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Resolves minor disagreements with growing independence",
+      "subject": "social",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "C"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Identifies their feelings and emotions and explains possible causes",
+      "subject": "emotional",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "C"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Identifies and explores strategies that help them cope with change",
+      "subject": "emotional",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Willingly approaches and perseveres with new situations",
+      "subject": "emotional",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Describes how they have grown and changed",
+      "subject": "emotional",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Develops physical balance and coordination",
+      "subject": "physical",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Demonstrates control in gross motor movement",
+      "subject": "physical",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "C"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "O"
+        }
+      ]
+    },
+    {
+      "rawLabel": "Uses fine motor skills with increasing precision",
+      "subject": "physical",
+      "values": [
+        {
+          "termIndex": 1,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 2,
+          "rawValue": "P"
+        },
+        {
+          "termIndex": 3,
+          "rawValue": "P"
+        }
+      ]
+    }
+  ],
+  "expectedCorroborations": []
+}

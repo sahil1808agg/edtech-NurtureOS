@@ -1,0 +1,2 @@
+﻿case_id,child_id,report_id,first_name,grade,age,dob,city,pincode,academic,social,emotional,adversarial,observations,narratives,expected_findings
+syn-01-pyp1-aarav,162259df-54fc-44e2-8524-5d149be9d564,eba18168-1735-4495-ae07-3d751434abd8,Aarav,PYP1,6,2020-07-04,New Delhi,110070,mixed,developing,developing,,75,2,4

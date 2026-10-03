@@ -1,0 +1,10 @@
+{
+  "caseId": "syn-05-pyp4-reyansh",
+  "origin": "adversarial",
+  "caseLabel": "thin_report",
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. PYP4, age 9, Ahmedabad. profile: academic=strong social=confident emotional=developing. Adversarial: Too few observations — sufficiency gate must fire (O3)",
+  "reportId": "5c4e6e36-e8c7-4a37-b10e-0ecad2afcaf8",
+  "expectedFindings": [],
+  "expectedCorroborations": []
+}

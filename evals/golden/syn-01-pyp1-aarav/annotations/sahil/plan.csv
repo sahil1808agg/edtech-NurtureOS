@@ -1,0 +1,4 @@
+﻿activity_id,title,instructions,addresses_finding,note
+A1,,,F1,"addresses_finding must be a finding_id from findings.csv."
+A2,,,,
+A3,,,,

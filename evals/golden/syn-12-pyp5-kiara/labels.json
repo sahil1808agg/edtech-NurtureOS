@@ -1,0 +1,51 @@
+{
+  "caseId": "syn-12-pyp5-kiara",
+  "origin": "synthetic",
+  "caseLabel": null,
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. PYP5, age 10, Mumbai. profile: academic=emerging social=reserved emotional=regulated.",
+  "reportId": "7c5d3cdf-bb5b-47fe-b1ef-0a4014ad70fd",
+  "expectedFindings": [
+    {
+      "kind": "growth",
+      "statement": "Continues to develop social skills with support.",
+      "citedObservationIds": [
+        "db28ddfd-8a99-4ab8-a501-c0681779aa61",
+        "f49988fe-b9c1-4def-9fd9-6301ffef2f2d",
+        "269d5938-3d86-425b-9f70-dda1c7e64f51",
+        "372de736-094c-4cb4-94b9-5f7f1fd708ce"
+      ]
+    },
+    {
+      "kind": "strength",
+      "statement": "Shows consistent emotional development across the year.",
+      "citedObservationIds": [
+        "39a0ef53-0a03-4f7b-8ac3-0925be6ac08d",
+        "b50bacba-13b2-4d68-bdbc-d4cb59ab40f0",
+        "baf3ab35-917f-4cba-b5bb-db749e9bc600",
+        "bb52f043-05ce-4ae2-bc53-536c7cfbe624"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing literacy skills across the year.",
+      "citedObservationIds": [
+        "1aaea8cc-6c19-4155-9a96-ddcf33d5dc80",
+        "46a9d6d2-7a0d-434e-a0ff-d44e9a8741fd",
+        "b44653fd-4c21-4266-9b38-a9f9f904b39f",
+        "8af01eaf-0da9-4cce-93bd-0adfac61a097"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing numeracy skills across the year.",
+      "citedObservationIds": [
+        "9186bc13-297b-4c3b-8a78-bd9fb252a18f",
+        "fb44ce9f-4750-423e-9320-596b20373fe7",
+        "ceeb91ca-0790-4ad4-a7b5-d023828f2709",
+        "88f0aa8d-e661-470c-83fa-2c79cda528e0"
+      ]
+    }
+  ],
+  "expectedCorroborations": []
+}

@@ -1,0 +1,10 @@
+{
+  "caseId": "syn-25-eyp3-dhruv",
+  "origin": "adversarial",
+  "caseLabel": "all_ambiguous",
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. EYP3, age 4, New Delhi. profile: academic=strong social=confident emotional=needs_support. Adversarial: Mostly dashes — solid ratio below threshold (O3)",
+  "reportId": "0a294f26-d558-41a1-89eb-5da6ce7e1459",
+  "expectedFindings": [],
+  "expectedCorroborations": []
+}

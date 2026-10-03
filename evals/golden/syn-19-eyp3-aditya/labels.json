@@ -1,0 +1,51 @@
+{
+  "caseId": "syn-19-eyp3-aditya",
+  "origin": "synthetic",
+  "caseLabel": null,
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. EYP3, age 4, New Delhi. profile: academic=strong social=reserved emotional=regulated.",
+  "reportId": "754e4660-39b4-4374-b9db-145e16f82edf",
+  "expectedFindings": [
+    {
+      "kind": "growth",
+      "statement": "Continues to develop social skills with support.",
+      "citedObservationIds": [
+        "b390d0fd-5d3b-4030-bfb5-2b95ce997b95",
+        "c2d8be4c-f064-432b-b604-08906a77194b",
+        "e054d17d-e3e0-43ba-b7da-a2f4f6d91fd6",
+        "6c5f4292-f90a-4236-aebb-fdc9590c525e"
+      ]
+    },
+    {
+      "kind": "strength",
+      "statement": "Shows consistent emotional development across the year.",
+      "citedObservationIds": [
+        "033070df-83de-43fa-90fd-4815524b1610",
+        "fa2e9719-2efa-4e12-94b6-342ff3906a8a",
+        "26e763bd-d15c-4920-a2c2-866e5c577164",
+        "60892754-429e-4be0-988b-fc6ae4e794fb"
+      ]
+    },
+    {
+      "kind": "strength",
+      "statement": "Demonstrates secure literacy skills.",
+      "citedObservationIds": [
+        "6966c59d-ea64-4d2b-8aa9-5408c9181b37",
+        "c3abb25e-9d16-4c85-8072-a8cb8fb2a19a",
+        "6c8ff29c-26aa-4c91-b7ad-f86414a2299d",
+        "14892447-c87d-4563-99f9-62b9a3a002da"
+      ]
+    },
+    {
+      "kind": "strength",
+      "statement": "Demonstrates secure numeracy skills.",
+      "citedObservationIds": [
+        "ee29e5f5-6e92-4258-ad12-782ddc278c62",
+        "fd82f944-75c1-4d04-9eeb-466981d75693",
+        "936998fb-f2ad-4982-bd8f-990782c86446",
+        "cce35717-61f1-4e63-bfd8-b171d14b0bf9"
+      ]
+    }
+  ],
+  "expectedCorroborations": []
+}

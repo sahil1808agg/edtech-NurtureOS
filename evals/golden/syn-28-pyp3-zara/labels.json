@@ -1,0 +1,51 @@
+{
+  "caseId": "syn-28-pyp3-zara",
+  "origin": "synthetic",
+  "caseLabel": null,
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. PYP3, age 8, Gurugram. profile: academic=mixed social=developing emotional=regulated.",
+  "reportId": "8d911407-cf8e-46b6-b691-e549488da84a",
+  "expectedFindings": [
+    {
+      "kind": "growth",
+      "statement": "Continues to develop social skills with support.",
+      "citedObservationIds": [
+        "baa9ccf9-ca6a-4c2e-8c63-32b04227d2d3",
+        "77fa3b9a-0f61-4255-b7a4-ef63b649b6fa",
+        "6dafa228-aec6-483b-8e44-59dea7c5798e",
+        "a2f8e36d-640d-4eaf-af99-cf5410acdf21"
+      ]
+    },
+    {
+      "kind": "strength",
+      "statement": "Shows consistent emotional development across the year.",
+      "citedObservationIds": [
+        "24de117c-af38-4630-8256-688ee85254cb",
+        "dfed1ba2-93bb-4580-b083-3d07cf056bd8",
+        "a85e1ddc-3842-4535-8a1b-d006619a8458",
+        "74bb1709-d7eb-401e-9d0d-faefd9e37a04"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing literacy skills across the year.",
+      "citedObservationIds": [
+        "ded8e4d7-3482-4ead-b05b-28207d27c175",
+        "c73860dc-4d71-4477-a568-8f3dd6ee1611",
+        "f2eb44fb-809d-4c80-a478-83a75ca973ee",
+        "7a54e74f-712b-4763-9b5e-5d2ad710c000"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing numeracy skills across the year.",
+      "citedObservationIds": [
+        "a9945419-6c63-46af-b451-cfd0897f327b",
+        "2937493a-5333-4ec2-9d3a-08c851792a89",
+        "38f49db7-48cb-4b28-b196-1ff67fe45f24",
+        "d0f7789f-d4c0-4609-8d3a-520eb44c6084"
+      ]
+    }
+  ],
+  "expectedCorroborations": []
+}

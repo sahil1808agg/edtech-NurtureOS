@@ -1,0 +1,51 @@
+{
+  "caseId": "syn-06-pyp5-ishani",
+  "origin": "synthetic",
+  "caseLabel": null,
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. PYP5, age 10, Bengaluru. profile: academic=mixed social=reserved emotional=needs_support.",
+  "reportId": "13421d16-4354-44f2-bd94-e10ffba981e1",
+  "expectedFindings": [
+    {
+      "kind": "growth",
+      "statement": "Continues to develop social skills with support.",
+      "citedObservationIds": [
+        "dfe19bc4-e086-4a5f-9d6d-c892b794b181",
+        "8e725c3e-fce1-4784-8786-8a2511db2a79",
+        "dd652ed7-ff20-4228-a5eb-21fa4bdabbea",
+        "2280ce30-799b-40a1-8917-63b906c7fc89"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Continues to develop emotional skills with support.",
+      "citedObservationIds": [
+        "0b63ea97-3b6e-4642-a22c-050b35d6fe68",
+        "c9f38e6f-a2ba-4319-98c0-2430f6f0fa93",
+        "6b7f6903-8a58-4d49-8a38-f7e7fa257445",
+        "8325938e-fbd5-4810-995f-cd8ac5d9fd26"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing literacy skills across the year.",
+      "citedObservationIds": [
+        "1b1e77bc-77ec-4bec-807c-6d78925b20d6",
+        "abb7f882-5281-4aa3-9268-7f076202d4b8",
+        "8ea9dda3-45c9-4fad-8f57-acf7e8b924c5",
+        "2de8fefe-6943-41d4-83e0-68c057a85b05"
+      ]
+    },
+    {
+      "kind": "growth",
+      "statement": "Is developing numeracy skills across the year.",
+      "citedObservationIds": [
+        "1e3e0a95-1bfe-4b30-812a-54f872c4af5a",
+        "57509e30-5b6b-49b3-8fff-46629291e9ec",
+        "009642da-c84e-4f8e-83f5-66cf74d3805d",
+        "721f053f-cf9a-498d-a284-7a718057ac4e"
+      ]
+    }
+  ],
+  "expectedCorroborations": []
+}

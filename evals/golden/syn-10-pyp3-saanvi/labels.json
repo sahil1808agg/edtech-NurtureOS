@@ -1,0 +1,10 @@
+{
+  "caseId": "syn-10-pyp3-saanvi",
+  "origin": "adversarial",
+  "caseLabel": "trailing_dash",
+  "annotator": "synthetic-generator",
+  "notes": "Synthetic. seed=20260904. PYP3, age 8, Ahmedabad. profile: academic=emerging social=reserved emotional=regulated. Adversarial: Assessment stopped in T3 — must not be read as a fall (O6)",
+  "reportId": "c9f6fdd5-0ca8-4b0d-8af2-ac234333689a",
+  "expectedFindings": [],
+  "expectedCorroborations": []
+}
