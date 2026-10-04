@@ -1,5 +1,6 @@
 import { serviceClient } from '../../lib/db/clients.js';
 import type { ObservationRow, NarrativeRow, CandidateClaim, CorroborationResult } from '../pipeline/types.js';
+import type { TargetFinding } from './plans.js';
 
 export async function getObservations(reportId: string): Promise<ObservationRow[]> {
   const { data, error } = await serviceClient()
@@ -33,6 +34,52 @@ export async function getNarratives(reportId: string): Promise<NarrativeRow[]> {
   if (error) throw new Error(`fetching narratives for report ${reportId}: ${error.message}`);
 
   return (data ?? []).map(n => ({ id: n.id, reportId: n.report_id, subject: n.subject, text: n.text }));
+}
+
+/**
+ * Findings from the child's most recent NON-REJECTED finding set — draft,
+ * in_review, or published, excluding only rejected. Used to ground chat (both
+ * loadChildContext and the report-analysis agent), where a draft summary is
+ * already surfaced into the conversation the moment analyse finishes
+ * (report-analyse.ts's postChatUpdate) — grounding chat on published-only
+ * would contradict what the parent was just told one turn later. Planning
+ * keeps the stricter published-only gate (getTargetFindings, db/plans.ts) —
+ * a plan is a bigger commitment than a chat answer. See
+ * docs/specs/08-orchestrator-chat.md.
+ */
+export async function getFindingsForChat(childId: string): Promise<TargetFinding[]> {
+  const { data: findingSet } = await serviceClient()
+    .from('finding_sets')
+    .select('id')
+    .eq('child_id', childId)
+    .in('status', ['draft', 'in_review', 'published'])
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!findingSet) return [];
+
+  const { data: findings, error } = await serviceClient()
+    .from('findings')
+    .select('id, statement')
+    .eq('finding_set_id', findingSet.id)
+    .eq('excluded', false)
+    .neq('corroboration_status', 'conflicting')
+    .order('position');
+
+  if (error) throw new Error(`fetching findings for finding_set ${findingSet.id}: ${error.message}`);
+
+  const { data: rejected } = await serviceClient()
+    .from('parent_finding_responses')
+    .select('finding_id')
+    .eq('response', 'doesnt_match')
+    .in('finding_id', (findings ?? []).map(f => f.id));
+
+  const rejectedIds = new Set((rejected ?? []).map(r => r.finding_id));
+
+  return (findings ?? [])
+    .filter(f => !rejectedIds.has(f.id))
+    .map(f => ({ id: f.id, statement: f.statement }));
 }
 
 export interface CreateFindingSetInput {
@@ -138,4 +185,67 @@ export async function saveFinding(input: SaveFindingInput): Promise<void> {
 
   const { error: citationError } = await serviceClient().from('finding_citations').insert(citations);
   if (citationError) throw new Error(`saving finding citations: ${citationError.message}`);
+}
+
+// ---------- Editing (legacy page PATCH, and chat's edit_finding_statement / exclude_finding / restore_finding) ----------
+//
+// Extracted from src/app/api/findings/[id]/route.ts so both the legacy route
+// and src/server/chat/dispatch.ts call one implementation. The legacy route
+// still enforces "only while the finding set is draft" itself (see
+// getFindingSetStatus below) — chat does not, by design, since chat-originated
+// findings go straight to approved/published with no draft period. See
+// docs/engineering/engineering-doc.md §4 and §7.
+
+export interface FindingForEdit {
+  id: string;
+  familyId: string;
+  statement: string;
+  originalStatement: string | null;
+  findingSetId: string;
+  excluded: boolean;
+}
+
+export async function getFindingForEdit(findingId: string): Promise<FindingForEdit | null> {
+  const { data } = await serviceClient()
+    .from('findings')
+    .select('id, family_id, statement, original_statement, finding_set_id, excluded')
+    .eq('id', findingId)
+    .maybeSingle();
+
+  if (!data) return null;
+  return {
+    id: data.id,
+    familyId: data.family_id,
+    statement: data.statement,
+    originalStatement: data.original_statement,
+    findingSetId: data.finding_set_id,
+    excluded: data.excluded,
+  };
+}
+
+export async function getFindingSetStatus(findingSetId: string): Promise<string | null> {
+  const { data } = await serviceClient().from('finding_sets').select('status').eq('id', findingSetId).maybeSingle();
+  return data?.status ?? null;
+}
+
+export interface UpdateFindingInput {
+  findingId: string;
+  editedBy: string;
+  statement?: string;
+  excluded?: boolean;
+  /** The model's original wording — pass only when this is the first edit to statement (current.originalStatement is null). */
+  preserveOriginalAs?: string;
+}
+
+export async function updateFinding(input: UpdateFindingInput): Promise<void> {
+  const update: Record<string, unknown> = { edited_at: new Date().toISOString(), edited_by: input.editedBy };
+
+  if (input.statement !== undefined) {
+    update.statement = input.statement;
+    if (input.preserveOriginalAs) update.original_statement = input.preserveOriginalAs;
+  }
+  if (input.excluded !== undefined) update.excluded = input.excluded;
+
+  const { error } = await serviceClient().from('findings').update(update).eq('id', input.findingId);
+  if (error) throw new Error(`updating finding ${input.findingId}: ${error.message}`);
 }

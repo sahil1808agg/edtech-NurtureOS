@@ -6,6 +6,7 @@ import { versionTag } from '../prompts/version.js';
 import { callAnthropic } from './providers/anthropic.js';
 import { callGemini } from './providers/gemini.js';
 import { callOpenAICompat } from './providers/openai-compat.js';
+import { logLlmRequest } from '../db/llm-request-log.js';
 
 type CompatProvider = 'openai' | 'grok' | 'kimi';
 
@@ -17,6 +18,14 @@ const STAGE_TIER: Record<PromptKey, ModelTier> = {
   corroborate: 'small',
   plan: 'reasoning',
   checkin: 'small',
+  // None of the four chat stages ever call dispatch() below — they go through
+  // chat-client.ts's callChatModel(), which has its own per-stage resolution
+  // (LLM_<STAGE>_PROVIDER, falling back to LLM_CHAT_PROVIDER). These entries
+  // exist only because STAGE_TIER must be exhaustive over PromptKey.
+  chat_orchestrator: 'reasoning',
+  chat_report_agent: 'reasoning',
+  chat_planning_agent: 'reasoning',
+  chat_generic_agent: 'reasoning',
 };
 
 const TIER_ENV: Record<ModelTier, string> = {
@@ -94,14 +103,26 @@ export async function callModel<T>(
   stage: PromptKey,
   msg: LlmMessage,
   schema: ZodSchema<T>,
+  familyId?: string,
 ): Promise<StageResult<T>> {
   const started = Date.now();
+  // Resolved here too (dispatch() resolves them again internally) purely so
+  // the provider/model are known for logging even on the catch path below,
+  // where dispatch() never got far enough to return them.
+  const provider = resolveProvider(stage);
+  const model = resolveModel(stage, provider);
+  const requestText = JSON.stringify({ system: msg.system, user: msg.user });
   let response: LlmResponse;
 
   try {
     response = await dispatch(stage, msg);
   } catch (err: unknown) {
     const status = (err as { status?: number }).status ?? 500;
+    await logLlmRequest({
+      stage, provider, model, promptVersion: versionTag(stage), familyId,
+      status: 'error', errorCode: 'PROVIDER_ERROR', latencyMs: Date.now() - started,
+      requestText, responseText: err instanceof Error ? err.message : String(err),
+    });
     return {
       ok: false,
       error: { code: 'PROVIDER_ERROR', status, retryable: status === 429 || status >= 500 },
@@ -120,13 +141,28 @@ export async function callModel<T>(
   try {
     parsed = JSON.parse(response.content);
   } catch {
+    await logLlmRequest({
+      stage, provider, model: response.model, promptVersion: meta.promptVersion, familyId,
+      status: 'error', errorCode: 'SCHEMA_INVALID', inputTokens: meta.inputTokens, outputTokens: meta.outputTokens,
+      latencyMs: meta.latencyMs, requestText, responseText: response.content,
+    });
     return { ok: false, error: { code: 'SCHEMA_INVALID', detail: 'Response was not valid JSON' }, meta };
   }
 
   const result = schema.safeParse(parsed);
   if (!result.success) {
+    await logLlmRequest({
+      stage, provider, model: response.model, promptVersion: meta.promptVersion, familyId,
+      status: 'error', errorCode: 'SCHEMA_INVALID', inputTokens: meta.inputTokens, outputTokens: meta.outputTokens,
+      latencyMs: meta.latencyMs, requestText, responseText: response.content,
+    });
     return { ok: false, error: { code: 'SCHEMA_INVALID', detail: result.error.message }, meta };
   }
 
+  await logLlmRequest({
+    stage, provider, model: response.model, promptVersion: meta.promptVersion, familyId,
+    status: 'ok', inputTokens: meta.inputTokens, outputTokens: meta.outputTokens, latencyMs: meta.latencyMs,
+    requestText, responseText: response.content,
+  });
   return { ok: true, value: result.data, meta };
 }
