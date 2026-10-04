@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { routeClient, currentUser } from '../../../../lib/db/server';
-import { serviceClient } from '../../../../lib/db/clients';
+import { getFindingForEdit, getFindingSetStatus, updateFinding } from '../../../../server/db/findings';
 
 export const runtime = 'nodejs';
 
@@ -36,43 +36,37 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ error: 'Keep it under 600 characters.' }, { status: 400 });
   }
 
-  const admin = serviceClient();
-
-  const { data: finding } = await admin
-    .from('findings')
-    .select('id, family_id, statement, original_statement, finding_set_id')
-    .eq('id', id)
-    .maybeSingle();
+  const finding = await getFindingForEdit(id);
 
   if (!finding) return NextResponse.json({ error: 'Finding not found' }, { status: 404 });
-  if (finding.family_id !== user.familyId) {
+  if (finding.familyId !== user.familyId) {
     return NextResponse.json({ error: 'Only the parent can edit their own findings' }, { status: 403 });
   }
 
-  const { data: set } = await admin
-    .from('finding_sets')
-    .select('status')
-    .eq('id', finding.finding_set_id)
-    .maybeSingle();
-
-  if (set?.status !== 'draft') {
+  // Only while the set is still a draft — the legacy page's approval gate.
+  // Chat's edit_finding_statement/exclude_finding tools skip this check by
+  // design, since chat-originated findings have no draft period. See
+  // docs/engineering/engineering-doc.md §4/§7.
+  const setStatus = await getFindingSetStatus(finding.findingSetId);
+  if (setStatus !== 'draft') {
     return NextResponse.json(
       { error: 'These findings have already been approved and cannot be changed.' },
       { status: 409 },
     );
   }
 
-  const update: Record<string, unknown> = { edited_at: new Date().toISOString(), edited_by: user.id };
-
-  if (statement !== undefined) {
-    update.statement = statement;
-    // Only on the first edit, so repeated edits do not overwrite the model's words.
-    if (!finding.original_statement) update.original_statement = finding.statement;
+  try {
+    await updateFinding({
+      findingId: id,
+      editedBy: user.id,
+      statement,
+      excluded,
+      // Only on the first edit, so repeated edits do not overwrite the model's words.
+      preserveOriginalAs: statement !== undefined && !finding.originalStatement ? finding.statement : undefined,
+    });
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Update failed' }, { status: 500 });
   }
-  if (excluded !== undefined) update.excluded = excluded;
-
-  const { error } = await admin.from('findings').update(update).eq('id', id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   return NextResponse.json({ findingId: id, statement, excluded });
 }

@@ -49,6 +49,7 @@ const TABLES = [
   "curriculum_topics", "resources",
   "plans", "plan_activities", "checkins",
   "review_queue", "golden_reports", "golden_labels", "eval_runs", "audit_log",
+  "conversations", "messages", "llm_request_log",
 ];
 
 const missing = [];

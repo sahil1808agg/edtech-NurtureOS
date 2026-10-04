@@ -48,7 +48,7 @@ export async function registerReportNormaliseWorker(boss: PgBoss): Promise<void>
     const candidates = await getSkillCandidates(board);
     const rawLabels = [...new Set(extraction.cells.map(c => c.rawLabel))];
 
-    const result = await runNormalise({ board, programme: null, scaleId, candidates, rawLabels });
+    const result = await runNormalise({ board, programme: null, scaleId, candidates, rawLabels }, report.familyId);
 
     if (!result.ok) {
       if (result.error.code === 'PROVIDER_ERROR' && result.error.retryable) {

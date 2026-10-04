@@ -54,9 +54,9 @@ export interface ExtractInput {
   images?: string[];
 }
 
-export async function runExtract(input: ExtractInput): Promise<StageResult<ExtractOutput>> {
+export async function runExtract(input: ExtractInput, familyId?: string): Promise<StageResult<ExtractOutput>> {
   const msg = buildExtractMessage(input.pdfBuffer, input.images);
-  const result = await callModel('extract', msg, ExtractOutputSchema);
+  const result = await callModel('extract', msg, ExtractOutputSchema, familyId);
 
   if (!result.ok) return result;
 

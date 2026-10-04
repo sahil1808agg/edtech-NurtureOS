@@ -26,7 +26,7 @@ const AnalyseOutputSchema = z.object({
 
 export type AnalyseInput = PromptInput;
 
-export async function runAnalyse(input: AnalyseInput): Promise<StageResult<AnalyseOutput>> {
+export async function runAnalyse(input: AnalyseInput, familyId?: string): Promise<StageResult<AnalyseOutput>> {
   const msg = buildAnalyseMessage(input);
-  return callModel('analyse', msg, AnalyseOutputSchema);
+  return callModel('analyse', msg, AnalyseOutputSchema, familyId);
 }

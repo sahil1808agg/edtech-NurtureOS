@@ -32,7 +32,7 @@ const PlanOutputSchema = z.object({
 
 export type PlanInput = PromptInput;
 
-export async function runPlan(input: PlanInput): Promise<StageResult<PlanOutput>> {
+export async function runPlan(input: PlanInput, familyId?: string): Promise<StageResult<PlanOutput>> {
   const msg = buildPlanMessage(input);
-  return callModel('plan', msg, PlanOutputSchema);
+  return callModel('plan', msg, PlanOutputSchema, familyId);
 }

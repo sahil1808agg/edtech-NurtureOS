@@ -17,7 +17,7 @@ const CheckinVerdictSchema = z.object({
 
 export type CheckinInput = PromptInput;
 
-export async function runCheckin(input: CheckinInput): Promise<StageResult<CheckinVerdict>> {
+export async function runCheckin(input: CheckinInput, familyId?: string): Promise<StageResult<CheckinVerdict>> {
   const msg = buildCheckinMessage(input);
-  return callModel('checkin', msg, CheckinVerdictSchema);
+  return callModel('checkin', msg, CheckinVerdictSchema, familyId);
 }

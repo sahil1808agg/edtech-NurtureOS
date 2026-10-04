@@ -60,7 +60,7 @@ describe("runExtract", () => {
   it("calls callModel with the extract stage key", async () => {
     mockOk(output());
     await runExtract({ reportId: "r1", pdfBuffer: Buffer.from("pdf") });
-    expect(callModel).toHaveBeenCalledWith("extract", expect.anything(), expect.anything());
+    expect(callModel).toHaveBeenCalledWith("extract", expect.anything(), expect.anything(), undefined);
   });
 
   it("declines when the model reports a SEN indicator", async () => {

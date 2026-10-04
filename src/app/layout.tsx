@@ -19,9 +19,13 @@ async function Nav() {
       <nav className="flex items-center gap-4 text-sm">
         {user ? (
           <>
-            <Link href="/upload" className="text-[var(--muted)] hover:underline">Upload</Link>
+            <Link href="/chat" className="font-medium hover:underline">Chat</Link>
+            <Link href="/upload" className="text-[var(--muted)] hover:underline">Upload (legacy)</Link>
             {user.isOps && (
-              <Link href="/review" className="text-[var(--muted)] hover:underline">Monitor</Link>
+              <>
+                <Link href="/review" className="text-[var(--muted)] hover:underline">Monitor</Link>
+                <Link href="/observability" className="text-[var(--muted)] hover:underline">Observability</Link>
+              </>
             )}
             <form action="/api/auth/signout" method="post">
               <button type="submit" className="text-[var(--muted)] hover:underline">Sign out</button>

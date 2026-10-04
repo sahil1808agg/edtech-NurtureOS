@@ -6,6 +6,9 @@ import { sufficiencyGate, type SufficiencyThresholds, DEFAULT_SUFFICIENCY } from
 import { getReport, updateReportStatus } from '../../db/reports.js';
 import { getObservations, getNarratives, createFindingSet, saveFinding } from '../../db/findings.js';
 import { enqueueForReview } from '../../db/review.js';
+import { getConversationByChild } from '../../db/conversations.js';
+import { getPendingMessageForReport, appendMessage, updateMessage } from '../../db/messages.js';
+import { buildFindingsSummaryForChat, buildFailureMessageForChat } from '../../chat/summarize.js';
 
 export const QUEUE = 'report.analyse';
 
@@ -19,6 +22,27 @@ export async function createReportAnalyseQueue(boss: PgBoss): Promise<void> {
 
 export interface ReportAnalyseJobData {
   reportId: string;
+}
+
+/**
+ * Surfaces pipeline completion in an already-open chat tab — updates the
+ * attachment's pending placeholder if the report came in through chat
+ * (docs/specs/02-report-attachment.md), or posts a fresh message if the
+ * child has a conversation but this report came from the legacy upload
+ * page. Does nothing if neither exists (no chat ever opened for this
+ * child). See docs/specs/05-pipeline-live-updates.md.
+ */
+async function postChatUpdate(reportId: string, familyId: string, childId: string, content: string): Promise<void> {
+  const pending = await getPendingMessageForReport(reportId);
+  if (pending) {
+    await updateMessage(pending.id, { content, status: 'complete' });
+    return;
+  }
+
+  const conversation = await getConversationByChild(childId);
+  if (conversation) {
+    await appendMessage({ conversationId: conversation.id, familyId, role: 'assistant', content, status: 'complete' });
+  }
 }
 
 function sufficiencyThresholdsFromEnv(): SufficiencyThresholds {
@@ -57,16 +81,18 @@ export async function registerReportAnalyseWorker(boss: PgBoss): Promise<void> {
       // The honesty path is still parent-facing text, so it is reviewed too.
       await enqueueForReview('finding_set', honestySetId);
       await updateReportStatus(reportId, 'in_review');
+      await postChatUpdate(reportId, report.familyId, report.childId, buildFindingsSummaryForChat([], true));
       return;
     }
 
-    const result = await runAnalyse({ childId: report.childId, reportId, observations });
+    const result = await runAnalyse({ childId: report.childId, reportId, observations }, report.familyId);
 
     if (!result.ok) {
       if (result.error.code === 'PROVIDER_ERROR' && result.error.retryable) {
         throw new Error(`provider error ${result.error.status}, retrying`);
       }
       await updateReportStatus(reportId, 'failed', JSON.stringify(result.error));
+      await postChatUpdate(reportId, report.familyId, report.childId, buildFailureMessageForChat('failed'));
       return;
     }
 
@@ -75,20 +101,23 @@ export async function registerReportAnalyseWorker(boss: PgBoss): Promise<void> {
     const validObservationIds = new Set(observations.map(o => o.id));
     const { kept } = citationGate(result.value.claims, validObservationIds);
 
+    const honestyPath = result.value.insufficientEvidence || kept.length === 0;
     const findingSetId = await createFindingSet({
       familyId: report.familyId,
       childId: report.childId,
       reportId,
-      honestyPath: result.value.insufficientEvidence || kept.length === 0,
+      honestyPath,
       modelDeployment: result.meta.modelDeployment,
       promptVersion: result.meta.promptVersion,
     });
+
+    const saved: { kind: 'strength' | 'growth'; statement: string }[] = [];
 
     for (const [index, claim] of kept.entries()) {
       const corroboration = await runCorroborate({
         claimStatement: claim.statement,
         narratives: narratives.map(n => ({ id: n.id, subject: n.subject, text: n.text })),
-      });
+      }, report.familyId);
 
       if (!corroboration.ok) {
         // A single claim failing to corroborate should not lose every other
@@ -103,6 +132,7 @@ export async function registerReportAnalyseWorker(boss: PgBoss): Promise<void> {
         claim,
         corroboration: corroboration.value,
       });
+      saved.push({ kind: claim.kind, statement: claim.statement });
     }
 
     // Gates passed, but nothing reaches a parent until a human approves it:
@@ -111,5 +141,6 @@ export async function registerReportAnalyseWorker(boss: PgBoss): Promise<void> {
     // no path that skips review at all.
     await enqueueForReview('finding_set', findingSetId);
     await updateReportStatus(reportId, 'in_review');
+    await postChatUpdate(reportId, report.familyId, report.childId, buildFindingsSummaryForChat(saved, honestyPath));
   });
 }

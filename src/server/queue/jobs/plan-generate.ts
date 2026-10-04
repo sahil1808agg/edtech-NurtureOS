@@ -11,6 +11,9 @@ import {
   savePlanActivities,
 } from '../../db/plans.js';
 import { enqueueForReview } from '../../db/review.js';
+import { getConversationByChild } from '../../db/conversations.js';
+import { appendMessage } from '../../db/messages.js';
+import { buildPlanSummaryForChat } from '../../chat/summarize.js';
 
 export const QUEUE = 'plan.generate';
 
@@ -53,7 +56,7 @@ export async function registerPlanGenerateWorker(boss: PgBoss): Promise<void> {
       topicContext,
       resourceCandidates,
       priorFailures: [],
-    });
+    }, child.familyId);
 
     if (!result.ok) {
       if (result.error.code === 'PROVIDER_ERROR' && result.error.retryable) {
@@ -76,5 +79,20 @@ export async function registerPlanGenerateWorker(boss: PgBoss): Promise<void> {
     // A plan is parent-facing text naming a child, so it goes through the same
     // human gate as findings. It stays 'draft' until a reviewer approves it.
     await enqueueForReview('plan', planId);
+
+    // This job is only ever queued from the legacy RequestPlan.tsx flow —
+    // chat's regenerate_plan tool runs inline, not through this queue (see
+    // src/server/chat/dispatch.ts). Posts only if the child has ever opened
+    // chat; does nothing otherwise. See docs/specs/05-pipeline-live-updates.md.
+    const conversation = await getConversationByChild(childId);
+    if (conversation) {
+      await appendMessage({
+        conversationId: conversation.id,
+        familyId: child.familyId,
+        role: 'assistant',
+        content: buildPlanSummaryForChat(result.value.activities),
+        status: 'complete',
+      });
+    }
   });
 }

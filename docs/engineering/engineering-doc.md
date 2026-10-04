@@ -1,36 +1,52 @@
 # NurtureOS — High Level Design
 
-**Source:** `docs/PRD.md` (Weeks 1–4)
-**Scope:** MVP — segment C, one template family, six model-backed components
-**Last updated:** 29 August 2026
+**Source:** `docs/PRD.md` (Weeks 1–4) + chat-pivot directive (see §0)
+**Scope:** Revision 2 — chat-primary interface, replacing the page-based MVP as the parent's main surface
+**Last updated:** 3 October 2026
+
+---
+
+## 0. Pivot: chat replaces the page-based parent flow
+
+Revision 1 of this design (preserved in git history on `archive/pipeline-app-and-review`) built a page-based product: upload → pipeline → findings page (edit/approve) → plan page (request/approve) → check-in. It is fully working and is **not being rebuilt** — this revision keeps every backend piece that doesn't depend on there being a page, and replaces the piece that does.
+
+Three deliberate reversals of the Revision 1 design, directed by the product owner:
+
+1. **Chat is the primary surface.** The parent's main interaction is a conversation thread, not a sequence of pages. `src/app/upload`, `src/app/reports/[id]`, `src/app/plans/[id]`, `src/app/findings/[id]` are kept, untouched, as a secondary/legacy surface — not deleted, not the default entry point, not retrofitted to look like chat.
+2. **Chat applies changes directly.** A chat-initiated edit to a finding or a plan is not parked in `draft` waiting for a page visit and a button click — it writes immediately, via a scoped tool call, logged to `audit_log`. This removes the explicit human-approval gate that Revision 1 built findings/plans around (`review_queue`, the approve/reject actions). The audit log is what replaces it as the oversight mechanism — see §7.
+3. **Chat may give general advice.** A parent's question can be answered either from the child's own stored data (grounded, cited, same honesty standard as Revision 1) or as general parenting/education knowledge, or both. Revision 1's citation gate and the PRD's "no uncited claim" rule still apply to the grounded path; they do not apply to general advice, which is why the two paths are explicitly routed (§3).
+
+**What this changes architecturally:** Revision 1's one hard boundary — *"the web app never calls a model, only the worker does"* — was correct for a multi-minute, multi-stage report pipeline that would blow a serverless timeout. It does not hold for a chat turn, which has to respond in the same request. This revision adds a second, narrower boundary alongside it (§2): short, single-call model work (a chat turn, an intent classification, a plan regeneration) runs synchronously from the API route; long, multi-stage work (extract → normalise → analyse) stays on the queue exactly as built, and chat surfaces its async nature as a message that updates in place.
 
 ---
 
 ## 1. Decisions and assumptions
 
-Stated up front so they can be overruled cheaply.
+Carried over from Revision 1 unless marked **(new)**.
 
 | Decision | Choice | Basis |
 |---|---|---|
 | Frontend + backend | Next.js 14 App Router, TypeScript, built in Claude Code | Directed |
-| Prompts | **In this repository**, TypeScript under `src/server/prompts/`, versions pinned in `version.ts` | A prompt change is a commit, so CI sees it like any other diff |
-| Models | **Provider-agnostic, routed per stage** — Anthropic, Gemini, OpenAI, Grok or Kimi, selected by `LLM_*_PROVIDER` | No lock-in; each stage can move independently on evidence |
+| Prompts | In this repository, TypeScript under `src/server/prompts/`, versions pinned in `version.ts` | A prompt change is a commit, so CI sees it like any other diff |
+| Models | Provider-agnostic, routed per stage — Anthropic, Gemini, OpenAI, Grok or Kimi, selected by `LLM_*_PROVIDER` | No lock-in; each stage can move independently on evidence |
 | Document handling | Native PDF support, no OCR pre-pass | Keeps a standard's label visually joined to its T1/T2/T3 columns |
 | Database, auth, storage | Supabase (Postgres + Auth + Storage + RLS) | Project guide default; RLS maps directly onto per-family isolation |
 | Long-running work | Postgres-backed job queue (`pg-boss`) with a container worker | Pipeline exceeds serverless timeouts |
-| Email | Transactional provider with templating (Resend or Azure Communication Services) | PRD requires the plan and check-in to live in the email body |
+| Email | Transactional provider with templating (Resend or Azure Communication Services) | Check-in still lives in an email; chat does not replace email delivery |
+| **(new)** Primary UI | Chat thread, one per child | Directed — see §0 |
+| **(new)** Chat-initiated writes | Direct, via scoped tool calls + `audit_log`, no approval gate | Directed — see §0 |
+| **(new)** Chat model-call boundary | API routes may call the model layer directly for single-call, in-request work (chat turn, routing, plan regeneration); multi-stage report processing stays on the worker queue | Reconciles chat's request/response shape with the existing async pipeline — see §2 |
+| **(new)** Grounded vs. general advice | Explicit routing/classification step per turn, not left to one blended prompt | Directed — keeps the citation/honesty gate meaningful for the grounded path without constraining general advice |
 
-### Two PRD conflicts resolved here
+### Conflicts resolved in Revision 1 (unchanged)
 
-**Conflict 1 — 100% human review versus ≤90s time-to-first-insight.** These cannot both hold for a parent sitting and waiting. **Resolution: MVP is asynchronous.** The parent uploads and leaves; the pipeline runs on a queue; you review; findings arrive by email. At ten families and two or three uploads per child per year, that is roughly thirty reviews across the whole MVP — trivially achievable within hours. The 90-second budget and the streaming requirement return at Launch when review drops to sampling.
+**100% human review versus ≤90s time-to-first-insight** — resolved by making report processing asynchronous; still true here, since extract/normalise/analyse is unchanged.
 
-**Consequence:** "Streaming output" is *not* a model requirement at MVP. It becomes one at Launch. This materially simplifies the MVP architecture — no SSE, no partial rendering, no perceived-latency staging.
+**Prompts outside the repository** — resolved by keeping prompts as versioned TypeScript modules; unchanged, and the same applies to the new chat/routing prompts.
 
-**Conflict 2 — prompts outside the repository.** An earlier draft authored prompts in Azure AI Foundry. That made a prompt change something other than a commit, so the PRD's "regression on every prompt change, in CI" had nothing to hook onto, and versions had to be pinned in config purely to force a pull request.
+### Conflict introduced by this revision, resolved here
 
-**Resolved by removing the cause.** Prompts are TypeScript modules in `src/server/prompts/`. A prompt change is a diff, reviewed and CI-gated like any other. `version.ts` still pins a version per stage, but now it records *what ran* into `findings.prompt_version` rather than compensating for prompts living elsewhere.
-
-The same move dropped Azure Document Intelligence. Native PDF support sends the document to the model whole, which preserves the visual relationship between a standard's label and its term columns — the structure a separate OCR pass tends to flatten. The cost is that `sourceRef` coordinates become a model claim rather than a geometric measurement; if extraction fidelity misses 98%, a layout pre-pass is the first thing to reinstate.
+**Chat's request/response shape versus "the worker is the only thing that calls a model."** A chat reply has to happen inside the HTTP request that asked for it; a multi-stage report analysis cannot. **Resolution:** split by call shape, not by surface. One model call that returns in a few seconds (chat generation, intent routing, plan regeneration reusing the existing `plan.ts` pipeline module) runs inline in the API route. A chain of model calls over a whole document (extract → normalise → analyse) stays a queued job, unchanged. The chat UI never blocks on the second kind — it posts a placeholder message and the worker updates it in place via Supabase Realtime when the job finishes (§2, §4).
 
 ---
 
@@ -39,199 +55,170 @@ The same move dropped Azure Document Intelligence. Native PDF support sends the 
 ```mermaid
 flowchart TB
     subgraph client[Client]
-        PW[Parent web app<br/>upload, findings, plans]
-        RC[Review console<br/>approve before send]
+        CH[Chat UI — primary<br/>conversation per child, file attach]
+        PW[Legacy parent pages<br/>upload, findings, plans — kept, secondary]
+        AU[Audit view<br/>read-only, ops]
     end
     subgraph app[Application — Claude Code]
-        API[API routes<br/>auth, uploads, check-ins]
+        CAPI[Chat API routes<br/>turn, route/classify, tool calls]
+        API[Legacy API routes<br/>auth, uploads, check-ins]
         W[Job worker<br/>pipeline stages]
-        DB[(Postgres<br/>record + citations)]
+        DB[(Postgres<br/>record + citations + audit_log)]
+        RT[Supabase Realtime<br/>message updates]
         EM[Email<br/>plan + check-in]
     end
     subgraph llm[Model layer]
         LC[LLM client<br/>tier routing]
+        LCC[Chat-capable client<br/>multi-turn + tool use — new]
         PR[Prompts in repo<br/>versioned by git]
         PV[Providers<br/>anthropic / gemini / openai / grok / kimi]
     end
+    CH --> CAPI
     PW --> API
-    RC --> API
+    AU --> DB
+    CAPI --> DB
+    CAPI --> LCC
+    CAPI -- enqueue report jobs --> W
     API --> DB
     API --> W
     W --> DB
     W --> LC
     LC --> PR & PV
+    LCC --> PR & PV
     W --> EM
+    DB --> RT --> CH
 ```
 
-**Boundary that matters:** the worker is the only thing that calls a model. The web app never calls a model. Every model call is a queued job with a persisted input, output, prompt version and deployment name — which is what makes the PRD's traceability requirement (FR-9.4) fall out of the architecture rather than needing to be added.
+**Two boundaries now, not one.** Multi-stage report processing (extract → normalise → analyse → corroborate) is still worker-only — unchanged from Revision 1, for the same reason (exceeds a request lifetime). Chat API routes are newly allowed to call the model layer directly, but only for calls that complete within a request: a chat turn, the grounded/general routing classification, and plan regeneration (reusing `src/server/pipeline/plan.ts` as a function call instead of a queue job, since it is already a single reasoning-tier call). If a future chat tool needs multi-stage work, it enqueues exactly like report upload does today and the chat thread shows a pending placeholder.
+
+**Every model call is still attributable.** Pipeline-stage calls keep writing `prompt_version` and `model_deployment` as before. Chat turns and tool calls write the same pair into `messages` and into `audit_log`, so "what ran" is traceable either way (§5).
 
 ---
 
 ## 3. The model layer
 
-### Prompts
+### Existing: single-shot pipeline calls (unchanged)
 
-One module per component under `src/server/prompts/`, versioned by git:
+One module per component under `src/server/prompts/`, versioned by git — reused as-is:
 
 | Module | Component | Tier | Output |
 |---|---|---|---|
-| `extract.ts` | C2 | vision | Typed report record (all pages) |
-| `normalise.ts` | C3 | reasoning | Skill-code mappings |
-| `analyse.ts` | C5 | reasoning | Candidate claims + cited observation ids |
-| `corroborate.ts` | C6 | small | Verdict enum + supporting quote |
-| `plan.ts` | C10 | reasoning | 3 activities + finding ids + resource ids |
-| `checkin.ts` | C13 | small | Decision enum + rationale |
+| `extract.ts` | Report extraction | vision | Typed report record (all pages) |
+| `normalise.ts` | Skill-code mapping | reasoning | Skill-code mappings |
+| `analyse.ts` | Finding generation | reasoning | Candidate claims + cited observation ids |
+| `corroborate.ts` | Cross-check vs. narrative | small | Verdict enum + supporting quote |
+| `plan.ts` | Plan generation | reasoning | 3+ activities + finding ids + resource ids |
+| `checkin.ts` | Check-in decision | small | Decision enum + rationale |
 
-Shared non-diagnostic constraints (PRD Week 4) live in `constraints.ts` and are composed into every generating prompt, so those rules are edited in one place. Together with 100% human review, that is the enforcement mechanism for the diagnostic-language gate at MVP.
+`src/server/llm/client.ts` (`callModel`) is unchanged: one system+user message in, one schema-validated JSON object out, no history, no tools. It stays exactly as built, called from the worker exactly as today.
 
-### Tier routing
+### New: chat-capable client (multi-turn + tool use)
 
-Stages ask for a capability, never a vendor by default — but each of the six stages can also be pinned to its own provider and model independently, so no two stages are forced onto the same model just because they share a tier. `src/server/llm/client.ts` resolves stage → provider → model at call time, checking a per-stage override before falling back to the tier default.
+`callModel` cannot serve chat — it takes no message history and has no concept of a tool call. This revision adds a parallel, chat-specific path rather than retrofitting the pipeline client:
 
-```
-LLM_VISION_PROVIDER=gemini          # tier default for Extract
-LLM_REASONING_PROVIDER=gemini       # tier default for Normalise, Analyse, Plan
-LLM_SMALL_PROVIDER=openai           # tier default for Corroborate, Check-in
+- **New types** alongside `LlmMessage`/`LlmResponse`: a `ChatMessage[]` history (role: user/assistant/tool), a `ToolDefinition[]` (name, JSON-schema input, description), and a `ToolCallResponse` (tool name + arguments, or a final text reply).
+- **New provider functions** (one per provider, alongside `callAnthropic`/`callGemini`/`callOpenAICompat`): `callAnthropicChat`, `callGeminiChat`, `callOpenAICompatChat` — same adapters, extended to pass message history and tool definitions through to each SDK's native tool-use support, and to return a tool call when the model makes one.
+- **New prompt modules**: `src/server/prompts/chat.ts` (the conversational system prompt — identity, tone, what it can and cannot claim, the general-advice allowance) and `src/server/prompts/chat-route.ts` (the routing/classification prompt, small tier — see below).
+- **Tier**: chat turns run on the `reasoning` tier (quality matters for a conversation); routing/classification and tool-argument extraction run on `small` (fast, cheap, structured output only).
 
-LLM_MODEL_VISION=                   # optional tier-wide model override
+### Grounded vs. general-advice routing
 
-LLM_ANALYSE_PROVIDER=openai         # per-stage override — Analyse on a different vendor than Normalise/Plan
-LLM_MODEL_ANALYSE=gpt-4o            # per-stage model override
-PROMPT_VERSION_EXTRACT=1            # pinned, recorded on every artifact
-```
+A chat turn is handled in two steps, not one blended prompt:
 
-Anthropic and Gemini each use their own SDK for native PDF support. OpenAI, Grok and Kimi share one OpenAI-compatible adapter differing only in base URL and model id. Adding a provider means adding an adapter, not touching a stage.
+1. **Classify** (`chat-route.ts`, small tier, structured output): does this turn need the child's own data (observations/findings/plans), is it general advice, or both? This is a cheap, schema-validated call — same shape as every existing pipeline call, just fast.
+2. **Respond** (`chat.ts`, reasoning tier): generate the reply. If the classifier flagged "grounded," the system prompt requires every claim about the child to carry a citation back to an `observation`/`finding`/`narrative` row — reusing the same citation convention as `finding_citations` — and the response is rejected/retried if it makes an uncited claim about the child (same spirit as `src/server/gates/citation.ts`, applied to a chat reply instead of a `findings` row). If general advice is in scope, that part of the reply carries no such requirement. A single reply may contain both: cited material about the child, plus general guidance, clearly distinguishable to the parent.
 
-Every row in `findings` and `plans` stores the `prompt_version` and the resolved `model_deployment`. A regression is attributable to a specific change — and because prompts are in git, that change is a diff.
+### Tool-calling for direct-apply writes
 
-### Why not a hosted prompt platform
+The reasoning-tier chat call is given a small, explicit tool list — not open database access:
 
-Azure AI Foundry, Bedrock Prompt Management and the hosted eval platforms all move prompts out of the repository. That breaks the PRD's "regression on every prompt change, in CI", because a prompt change stops being a commit. Keeping prompts in git is the cheaper answer and the one that matches how the rest of the system is gated.
+| Tool | Does | Backing code (reused) |
+|---|---|---|
+| `edit_finding_statement` | Reword a finding's statement, keeping the original | `src/server/db/findings.ts` |
+| `exclude_finding` / `restore_finding` | Toggle a finding out of/into the active set | `src/server/db/findings.ts` |
+| `edit_plan_activity` | Change an activity's title/instructions, or mark it declined | `src/server/db/plans.ts` |
+| `regenerate_plan` | Re-run `src/server/pipeline/plan.ts` for the child's current findings | `src/server/pipeline/plan.ts` (single reasoning call, run inline — see §2) |
+| `request_report_reanalysis` | Enqueue `report.analyse` again (e.g. after new findings context) | `src/server/queue/enqueue.ts` — this one *does* queue, since analysis is multi-stage |
 
-What that gives up is hosted evaluation tooling. It matters less here than it looks: the top blocking axis, groundedness, is a foreign-key join rather than a model evaluator. Tracing is the one genuine gap — Langfuse is the obvious later addition, and it is self-hostable and additive, so it would not undo git-versioned prompts.
+Every tool call executes the same underlying function the legacy pages already use (no parallel write path, no duplicated validation), then inserts one `audit_log` row (`actor`, `action` = tool name, `entity`/`entity_id`, `payload` = before/after + `conversation_id`/`message_id`). No `review_queue` row is written for a chat-originated change — that table's workflow was *for* the approval gate this revision removes. Legacy-page-originated findings/plans (if a parent still uses the old pages) keep working exactly as before, `review_queue` included.
+
+### Tier routing (unchanged)
+
+`src/server/llm/client.ts` resolves stage → provider → model exactly as in Revision 1; the chat client adds its own `LLM_CHAT_PROVIDER` / `LLM_MODEL_CHAT` and `LLM_CHATROUTE_PROVIDER` / `LLM_MODEL_CHATROUTE` overrides following the identical resolution order (per-call override → tier default → hardcoded default).
 
 ---
 
-## 4. Pipeline
+## 4. Pipeline (unchanged, reused as-is)
 
-Every stage is a queue job. Jobs are idempotent and keyed on `(report_id, stage)` so retries cannot double-write.
+Every stage is still a queue job, idempotent and keyed on `(report_id, stage)`:
 
 | # | Job | Fan-out | Model? |
 |---|---|---|---|
-| 1 | `report.classify` | — | Yes (MVP 1; MVP assumes one template) |
-| 2 | `report.extract` | — | Yes — vision tier, native PDF, whole document in one call |
-| 3 | `report.normalise` | — | Yes |
-| 4 | `report.analyse` — analyse, corroborate, gate, enqueue for review | — | Yes ×2 (analyse, then corroborate per claim) |
-| 5 | *review console* — publish or hold | Human-triggered | No |
-| 6 | `plan.generate` → enqueue for review → *review console* | — | Yes |
-| 7 | `checkin.process` | Per response | Yes (small) |
+| 1 | `report.extract` | — | Yes — vision tier, native PDF, whole document in one call |
+| 2 | `report.normalise` | — | Yes |
+| 3 | `report.analyse` — analyse, corroborate, gate | — | Yes ×2 (analyse, then corroborate per claim) |
+| 4 | `plan.generate` | — | Yes (now also callable inline from chat via `regenerate_plan` — see §3) |
+| 5 | `checkin.process` | Per response | Yes (small) |
 
-**Stages 4–6 collapsed from the original design.** `claim.corroborate`, `report.gate` and `review.enqueue` were specified as separate jobs; they run inside `report.analyse` instead. `findings.corroboration_status` is `NOT NULL`, so a finding cannot be written before it has been corroborated — the fan-out would need a completion counter that does not exist. Corroboration is therefore sequential per claim rather than parallel, which is the cost of that simplification and the thing to revisit if analyse gets slow.
+**What changes is not the pipeline — it's what happens after `report.analyse` finishes and after `plan.generate` finishes.** Revision 1 ended both at `in_review`, waiting for a page visit. In this revision:
 
-**Chaining.** `report.extract` enqueues `report.normalise`, which enqueues `report.analyse`. `report.analyse` ends at `in_review` and enqueues nothing: everything downstream is human-triggered. `plan.generate` has no automatic trigger yet — publishing findings does not start it.
+- The report-attachment path in chat (§6) enqueues `report.extract` exactly as `POST /api/reports` does today — same consent check, same storage, same function. The chat thread gets a "processing your report…" placeholder message when the attachment is accepted.
+- When `report.analyse` finishes (worker-side, unchanged code), it writes a `messages` row into the child's conversation (findings summary, with citations) instead of — or in addition to, for the legacy page surface — enqueuing nothing further. Supabase Realtime pushes this to the open chat UI, replacing the placeholder.
+- Findings/plans produced this way go straight to `published`/`approved` status (skipping `review_queue`), since there is no longer a page-driven approval step in the primary flow; the `audit_log` entry recording "pipeline published this without review" is what ops can sample (§7).
 
-**Report state machine:** `uploaded → extracted → normalised → analysed → in_review → published`, with `held` (reviewer rejected, or honesty path) and `failed` as terminal branches. `classified` and `gated` are not currently used — classify is MVP 1, and the gate is a step inside analyse rather than a state.
-
-**The gate is deterministic and load-bearing.** It is SQL and TypeScript, not a model:
-
-- **Citation resolution** — every `finding_citations.observation_id` must exist and belong to this report. Unresolvable → finding dropped before it can be displayed.
-- **Sufficiency** — count of non-ambiguous observations below threshold → honesty path.
-- **Ambiguity** — any trajectory containing a null/dash value is flagged low-confidence and excluded from change claims.
-
-That the groundedness check is a foreign-key join rather than an LLM call is the single most important structural decision in this design.
+The gate (`src/server/gates/citation.ts`, `sufficiency.ts`, `trajectory.ts`) is unchanged and still load-bearing: a finding with no resolvable citation still never renders, chat or no chat.
 
 ---
 
 ## 5. Data model
 
-Core tables. Every table with family-scoped data carries `family_id` and an RLS policy keyed to the authenticated user.
+Everything from Revision 1 is kept (families, profiles, children, consents, reports, observations, narratives, finding_sets, findings, finding_citations, plans, plan_activities, checkins, review_queue, audit_log, reference data). **New, for chat:**
 
-**Identity and consent**
-- `families` · `profiles` (parent, → auth.users) · `children` (family_id, first_name, dob, grade, board, school_id, city, pincode)
-- `consents` (family_id, child_id, granted_by, method, verified_at, purposes[], revoked_at) — **no processing without a live row**
-- `constraints` (family_id, weekly_minutes, budget_band, radius_km, materials, interests)
+- `conversations` (id, family_id, child_id, created_at) — one per child, per the "per-child" scoping decision; a family with two children has two conversations.
+- `messages` (id, conversation_id, family_id, role: `user`|`assistant`|`system`, content text, tool_calls jsonb, tool_results jsonb, attachment_report_id uuid references reports, status: `pending`|`complete`, prompt_version, model_deployment, created_at) — `status = 'pending'` is the placeholder row updated in place when a queued job finishes; `attachment_report_id` links a chat message to the `reports` row it created, reusing the existing upload path rather than inventing a new one.
 
-**Reports and extraction**
-- `schools` · `report_templates` (school_id, board, programme, paradigm A|B|C, status: known|new|unparseable)
-- `reports` (child_id, template_id, term_label, academic_year, source_type, storage_path, status, classification_confidence)
-- `report_pages` (report_id, page_no, storage_path) — **pending migration:** originally the unit of parallel extraction; extraction now runs once per report over the whole document, so this table is only used to store rasterised page images for a provider with no native PDF support (OpenAI, Grok, Kimi — not Anthropic or Gemini)
-- `extractions` (report_id, page_no, raw_json, model_deployment, prompt_version, confidence) — **pending migration:** now written once per report, not once per page; `page_no` should become nullable or be dropped when the schema is next revisited
+RLS: both new tables carry `family_id` and follow the exact same `family_read`/`family_write` policy pattern as every other family-scoped table (§8 of Revision 1, unchanged mechanism).
 
-**The normalised record**
-- `skills` (code, name, domain, sub_domain) — the ontology
-- `skill_aliases` (skill_id, board, raw_label) — the cross-board mapping layer, and the moat
-- `observations` (child_id, report_id, skill_id, term_index, raw_value, normalised_value, confidence, **source_ref jsonb**, is_ambiguous)
-- `narratives` (report_id, subject, text, source_ref)
+No change is needed to `findings`/`plans`/`plan_activities` to support direct-apply — `artifact_status` already includes `approved`/`published` alongside `draft`/`in_review`; chat-originated writes simply go straight to `approved`/`published` and skip the `review_queue` insert that would otherwise park them at `in_review`.
 
-`observations.source_ref` holds `{page, table, row, cell}`. It is what lets any displayed value be traced to its origin (FR-3.3) and what the citation check joins against.
-
-**Findings and plans**
-- `findings` (child_id, report_id, kind, statement, corroboration_status, status, prompt_version, model_deployment)
-- `finding_citations` (finding_id, observation_id | narrative_id, quote) — **the groundedness join**
-- `parent_finding_responses` (finding_id, response, note)
-- `plans` (child_id, cycle_no, status, prompt_version) · `plan_activities` (plan_id, position, title, instructions, addresses_finding_id, resource_id, place_id, kind)
-- `checkins` (plan_id, sent_at, responded_at, q1_done, q2_response, q3_note, decision)
-
-**Reference data — no model involved**
-- `curriculum_topics` (board, programme, grade, month, topic) — the syllabus lookup
-- `resources` (title, type, url, age_min, age_max, skill_ids[], language, last_validated_at, status)
-- `places` (provider_place_id, name, address, phone, hours, lat, lng, verified_at) — MVP 1
-
-**Ops and evaluation**
-- `review_queue` (artifact_type, artifact_id, status, reviewer_id, checklist jsonb, violations jsonb)
-- `golden_reports` · `golden_labels` (annotator, expected_findings, frozen_at) · `eval_runs` (git_sha, prompt_versions, results)
-- `audit_log` (actor, action, entity, entity_id, payload)
+Stage 2 should confirm the exact current schema against applied migrations (`supabase/migrations/`) before writing the new `supabase-schema.sql` delta — the canonical file in `docs/specs/` predates several since-applied migrations (consent, extraction-whole-report, curriculum phases, parent-edited findings, uncapped plan activities).
 
 ---
 
-## 6. API surface
+## 6. Report upload, inside chat
 
-**Parent**
-```
-POST   /api/children
-POST   /api/children/:id/reports        multipart → 202 + report_id
-GET    /api/reports/:id/status
-GET    /api/children/:id/findings
-POST   /api/findings/:id/response       matches | doesnt_match | unsure
-GET    /api/children/:id/plans/current
-POST   /api/plans/:id/activities/:aid/swap
-POST   /api/checkins/:token             tokenised, one-click from email, no session
-GET    /api/children/:id/export
-DELETE /api/children/:id
-```
+Per the confirmed decision, there is no separate upload page in the primary flow. The parent attaches the report-card file to a chat message. The attachment handler:
 
-**Ops**
-```
-GET    /api/review/queue
-GET    /api/review/:id
-POST   /api/review/:id/approve          body: checklist
-POST   /api/review/:id/reject           body: violation categories
-GET    /api/ops/templates               coverage dashboard
-```
-
-`/api/checkins/:token` is deliberately sessionless — the PRD requires a check-in answerable in one click from an email. Tokens are single-use, scoped to one check-in, and expire with the cycle.
+1. Resolves the child the conversation belongs to (no `childId` form field needed — it's implicit in which conversation the message was sent to).
+2. Runs the exact same consent check, file-type/size validation, storage write and `reports` insert as `src/app/api/reports/route.ts` today — that logic is extracted into a shared function both the legacy upload route and the new chat attachment route call, rather than duplicated.
+3. Enqueues `report.extract` exactly as today.
+4. Inserts a `pending` placeholder message ("Looking at this report now…") into `messages`, linked via `attachment_report_id`.
+5. When `report.analyse` completes, the worker updates that message (or inserts a follow-up) with the findings summary; Realtime pushes it to the open chat.
 
 ---
 
-## 7. Review console
+## 7. Audit, in place of the approval gate
 
-Not an afterthought — at MVP it is the enforcement mechanism for a Week 1 hard gate, so it ships in week one of the build.
+Revision 1's `review_queue` + review console enforced the PRD's human-review requirement by blocking publication until a reviewer acted. This revision removes that block for chat-originated writes, by directive (§0). What replaces it as the oversight mechanism:
 
-Per queued artifact it shows the generated output beside its citations, resolving each one back to the source cell, with the six-point checklist as explicit toggles and a rejection taxonomy (diagnostic language, comparison, deficit framing, uncited claim, constraint violation, resource not in library). Rejections write to `review_queue.violations`, which becomes the training set for the Launch-stage classifier.
+- Every chat tool call that writes a finding/plan change, every pipeline publish that used to need review, and every legacy-page approval all write to `audit_log` (`actor`, `action`, `entity`, `entity_id`, `payload` with before/after state) — the table already existed in Revision 1 for traceability and is now load-bearing rather than supplementary.
+- The ops surface (`src/app/review/*`) becomes a **read-only audit view** over `audit_log`, for sampling and quality oversight — no approve/reject actions, since there is nothing left to approve before the fact. `review_queue` and its actions remain functional only for the legacy page surface, if a parent still uses it.
+- This is a real reduction in the pre-publication safety net the PRD originally specified, by explicit product direction, not an oversight — flagged here so it is visible in review rather than buried in a diff.
 
 ---
 
-## 8. Security and compliance
+## 8. Security and compliance (unchanged mechanisms, one new row)
 
 | Control | Implementation |
 |---|---|
-| Per-family isolation | Postgres RLS on every family-scoped table; verified by test (FR-9.2) |
-| Consent gate | Pipeline refuses to enqueue without a live `consents` row |
-| Report storage | Private bucket, signed URLs, short TTL |
-| No training on customer data | Provider accounts configured with zero data retention; no customer data in any training or tuning path |
-| Retention and deletion | Cascade delete across derived records; export endpoint returns the full record |
-| SEN decline path | Classification detects IEP/support-plan indicators and halts with an explanatory message rather than analysing |
-| Audit | Every model call and every review decision written to `audit_log` |
+| Per-family isolation | Postgres RLS on every family-scoped table, including the new `conversations`/`messages` | 
+| Consent gate | Pipeline refuses to enqueue without a live `consents` row — unchanged, applies to the chat attachment path too |
+| Report storage | Private bucket, signed URLs, short TTL — unchanged |
+| No training on customer data | Provider accounts configured with zero data retention — applies to chat-tier calls as well as pipeline-tier |
+| Retention and deletion | Cascade delete across derived records, now including `conversations`/`messages`; export endpoint returns the full record |
+| SEN decline path | Unchanged — classification halts analysis rather than proceeding |
+| **(new)** Tool-call scope | Chat tools are an explicit allowlist (§3) operating through existing validated DB functions — the model is never given raw SQL or an unscoped write path |
+| Audit | Now the primary oversight mechanism for chat-originated writes, not a supplement to human review (§7) |
 
 ---
 
@@ -240,36 +227,38 @@ Per queued artifact it shows the generated output beside its citations, resolvin
 ```
 src/
   app/
-    (parent)/            upload, findings, plan, history
-    (ops)/review/        review console
-    api/                 route handlers
+    (chat)/              NEW — primary surface: conversation thread, attach, per child
+    upload/ reports/ plans/ findings/   legacy pages — kept, untouched, secondary
+    review/              now an audit-only view over audit_log
+    api/
+      chat/              NEW — turn, route/classify, attachments, tool execution
+      ...                existing routes, kept (reused internally by chat attachment handler)
   server/
-    pipeline/            one module per stage
-      classify.ts extract.ts normalise.ts analyse.ts
-      corroborate.ts gate.ts plan.ts checkin.ts
-    foundry/             client, prompt-version registry, typed responses
-    queue/               pg-boss setup, job definitions
-    gates/               citation.ts sufficiency.ts ambiguity.ts   ← no model calls
-    email/               templates, token handling
+    chat/                NEW — tool definitions, tool dispatch, routing logic
+    pipeline/            unchanged: extract.ts normalise.ts analyse.ts corroborate.ts plan.ts checkin.ts
+    llm/
+      client.ts          unchanged — single-shot pipeline calls
+      chat-client.ts     NEW — multi-turn + tool-use calls
+      providers/         existing adapters extended with a *Chat variant each
+    prompts/             existing six, plus NEW chat.ts and chat-route.ts
+    queue/               unchanged
+    gates/               unchanged — citation.ts sufficiency.ts trajectory.ts, no model calls
+    db/                  existing per-table modules, plus NEW conversations.ts / messages.ts
   lib/
-    ontology/            skill codes, alias mapping
-    db/                  schema types, RLS-aware client
-worker/                  container entrypoint for the queue
-evals/
-  golden/                26 reports + frozen labels
-  runners/               groundedness, correctness, HHH
+    ontology/            unchanged
+    db/                  unchanged
+worker/                  unchanged — container entrypoint for the queue
+evals/                   unchanged (parked on archive/pipeline-app-and-review pending cherry-pick)
 supabase/
-  migrations/
-  rls-policies.sql
+  migrations/            NEW migration for conversations/messages + RLS
 ```
-
-`src/server/gates/` contains no model calls by design. If a gate ever needs one, the gate has stopped being a gate.
 
 ---
 
 ## 10. Open items
 
-1. **Email provider** — Resend is simpler; Azure Communication Services keeps everything in one cloud. Either works.
-2. **Worker hosting** — Fly.io or Railway are the cheapest options for one container; any container host works now that no cloud is load-bearing.
-3. **Model choice per tier** — the defaults in `src/server/llm/client.ts` are placeholders. Selection should be made on the golden set, with max output tokens as the disqualifying criterion for Extract (~350 values from 14 pages).
-4. **Ontology design** — the largest single design task and the one to do first, since retrofitting `skill_aliases` after the record fills is expensive (PRD C3 risk assessment).
+1. **Tool-calling support per provider.** Anthropic and Gemini have mature native tool-use; the OpenAI-compatible adapter (openai/grok/kimi) needs its tool-call plumbing verified per provider before `LLM_CHAT_PROVIDER` can safely default to any of them.
+2. **Latency budget for inline plan regeneration.** `regenerate_plan` running inline (not queued) needs a real number from the golden set — if a reasoning-tier plan call routinely exceeds a few seconds, it needs the same placeholder-message treatment as report processing rather than blocking the chat response.
+3. **Rate limiting on direct-apply tools.** Removing the approval gate removes the one place that naturally throttled how fast findings/plans could change; §0's reversal makes this an explicit gap to close before this is production-facing with real families, not an MVP nice-to-have.
+4. **Legacy-page decommission timeline.** Not addressed here by directive — the pages stay as a secondary surface until a separate decision to retire them.
+5. Everything carried from Revision 1 §10 unchanged: email provider, worker hosting, per-tier model choice, ontology design.

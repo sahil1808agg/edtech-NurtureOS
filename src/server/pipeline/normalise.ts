@@ -25,7 +25,7 @@ const NormaliseOutputSchema = z.object({
 
 export type NormaliseInput = PromptInput;
 
-export async function runNormalise(input: NormaliseInput): Promise<StageResult<NormaliseOutput>> {
+export async function runNormalise(input: NormaliseInput, familyId?: string): Promise<StageResult<NormaliseOutput>> {
   const msg = buildNormaliseMessage(input);
-  return callModel('normalise', msg, NormaliseOutputSchema);
+  return callModel('normalise', msg, NormaliseOutputSchema, familyId);
 }

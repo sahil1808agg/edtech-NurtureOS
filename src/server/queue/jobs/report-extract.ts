@@ -33,7 +33,7 @@ export async function registerReportExtractWorker(boss: PgBoss): Promise<void> {
       const report = await getReport(reportId);
 
       const pdfBuffer = await downloadReportFile(report.storagePath);
-      const result = await runExtract({ reportId, pdfBuffer });
+      const result = await runExtract({ reportId, pdfBuffer }, report.familyId);
 
       if (!result.ok) {
         // Retry rules per LLD §3: PROVIDER_ERROR retries only when retryable;

@@ -1,6 +1,12 @@
--- NurtureOS — MVP schema
--- Postgres / Supabase. Run in the SQL editor.
+-- NurtureOS — schema, current state + chat pivot
+-- Postgres / Supabase. Run in the SQL editor on a fresh project.
 -- Every family-scoped table carries family_id and an RLS policy keyed to auth.uid().
+--
+-- This file is the merged result of the original MVP schema plus every migration
+-- applied since (0002-0007) plus the new tables for the chat-primary pivot
+-- (conversations, messages). It is meant to be pasted whole into a new project,
+-- not applied incrementally — for an already-running project, use
+-- supabase/migrations/ instead and add a new migration for the chat tables only.
 
 create extension if not exists "pgcrypto";
 
@@ -19,6 +25,9 @@ create type activity_kind   as enum ('home','resource','local');
 create type checkin_decision as enum ('hold','adjust','escalate','advance');
 create type review_artifact as enum ('finding_set','plan');
 create type resource_kind   as enum ('book','video','worksheet','game');
+-- NEW — chat pivot
+create type message_role    as enum ('user','assistant','system');
+create type message_status  as enum ('pending','complete');
 
 -- ============================================================
 -- IDENTITY, CONSENT, CONSTRAINTS
@@ -85,6 +94,74 @@ create table family_constraints (
 );
 
 -- ============================================================
+-- ACCOUNT / CONSENT RPCs (atomic, SECURITY DEFINER) — migration 0003
+-- ============================================================
+
+create or replace function create_family_account(
+  p_user_id   uuid,
+  p_full_name text default null
+) returns uuid
+language plpgsql security definer set search_path = public as $$
+declare
+  v_family uuid;
+begin
+  if not exists (select 1 from auth.users where id = p_user_id) then
+    raise exception 'no such auth user: %', p_user_id using errcode = 'foreign_key_violation';
+  end if;
+  if exists (select 1 from profiles where id = p_user_id) then
+    raise exception 'profile already exists for user %', p_user_id using errcode = 'unique_violation';
+  end if;
+
+  insert into families default values returning id into v_family;
+  insert into profiles (id, family_id, full_name) values (p_user_id, v_family, p_full_name);
+  insert into family_constraints (family_id) values (v_family);
+  return v_family;
+end;
+$$;
+
+create or replace function grant_child_consent(
+  p_child_id   uuid,
+  p_granted_by uuid,
+  p_method     text,
+  p_purposes   text[]
+) returns uuid
+language plpgsql security definer set search_path = public as $$
+declare
+  v_family  uuid;
+  v_consent uuid;
+begin
+  select family_id into v_family from children where id = p_child_id;
+  if v_family is null then
+    raise exception 'no such child: %', p_child_id using errcode = 'foreign_key_violation';
+  end if;
+  if not exists (select 1 from profiles where id = p_granted_by and family_id = v_family) then
+    raise exception 'granting user % is not in the child''s family', p_granted_by
+      using errcode = 'insufficient_privilege';
+  end if;
+  if array_length(p_purposes, 1) is null then
+    raise exception 'at least one purpose is required' using errcode = 'check_violation';
+  end if;
+
+  insert into consents (family_id, child_id, granted_by, method, purposes, verified_at)
+  values (v_family, p_child_id, p_granted_by, p_method, p_purposes, now())
+  returning id into v_consent;
+  return v_consent;
+end;
+$$;
+
+create or replace function revoke_child_consent(p_consent_id uuid)
+returns void language sql security definer set search_path = public as $$
+  update consents set revoked_at = now() where id = p_consent_id and revoked_at is null;
+$$;
+
+revoke all on function create_family_account(uuid, text) from public;
+revoke all on function grant_child_consent(uuid, uuid, text, text[]) from public;
+revoke all on function revoke_child_consent(uuid) from public;
+grant execute on function create_family_account(uuid, text) to service_role;
+grant execute on function grant_child_consent(uuid, uuid, text, text[]) to service_role;
+grant execute on function revoke_child_consent(uuid) to service_role;
+
+-- ============================================================
 -- SCALES — the normalisation layer
 -- ============================================================
 
@@ -103,9 +180,6 @@ create table scale_values (
   primary key (scale_id, raw_value)
 );
 
--- Cross-scale comparison is invalid. Trajectories are only computed within a
--- single scale_id; a scale change is recorded and excluded from delta claims.
-
 -- ============================================================
 -- ONTOLOGY
 -- ============================================================
@@ -120,7 +194,6 @@ create table skills (
   age_max     int
 );
 
--- The cross-board mapping layer. Retrofitting this is expensive — build it first.
 create table skill_aliases (
   id          uuid primary key default gen_random_uuid(),
   skill_id    uuid not null references skills(id) on delete cascade,
@@ -154,9 +227,9 @@ create table reports (
   family_id                 uuid not null references families(id) on delete cascade,
   child_id                  uuid not null references children(id) on delete cascade,
   template_id               uuid references report_templates(id),
-  term_label                text,                    -- 'T3'
-  term_index                int,                     -- 3
-  academic_year             text,                    -- '2025-26'
+  term_label                text,
+  term_index                int,
+  academic_year             text,
   source_type               source_type not null,
   storage_path              text not null,
   page_count                int,
@@ -177,17 +250,18 @@ create table report_pages (
   unique (report_id, page_no)
 );
 
+-- migration 0004: extract now runs once per whole report, not once per page.
 create table extractions (
   id                uuid primary key default gen_random_uuid(),
   report_id         uuid not null references reports(id) on delete cascade,
-  page_no           int  not null,
+  page_no           int,                        -- nullable: one row per report now
   raw_json          jsonb not null,
   min_confidence    numeric(4,3),
   model_deployment  text not null,
   prompt_version    text not null,
   latency_ms        int,
   created_at        timestamptz not null default now(),
-  unique (report_id, page_no)
+  constraint extractions_report_id_key unique (report_id)
 );
 
 -- ============================================================
@@ -205,7 +279,7 @@ create table observations (
   term_index   int  not null,
   raw_value    text,
   normalised   numeric(4,3),
-  is_ambiguous boolean not null default false,   -- dash / blank / not assessed
+  is_ambiguous boolean not null default false,
   confidence   numeric(4,3) not null default 1.0,
   source_ref   jsonb not null,                   -- {page, table, row, cell}
   created_at   timestamptz not null default now()
@@ -242,18 +316,30 @@ create table finding_sets (
 );
 create index on finding_sets(child_id, created_at desc);
 
+-- migration 0006: a parent can reword or drop a finding before it's acted on.
+-- original_statement preserves the model's wording when edited — the
+-- strongest evaluation signal this product produces, so it is never overwritten.
 create table findings (
   id                   uuid primary key default gen_random_uuid(),
   finding_set_id       uuid not null references finding_sets(id) on delete cascade,
   family_id            uuid not null references families(id) on delete cascade,
   kind                 finding_kind not null,
   statement            text not null,
+  original_statement   text,
   corroboration_status corroboration not null,
   corroboration_quote  text,
   position             int not null,
+  excluded             boolean not null default false,
+  edited_at            timestamptz,
+  edited_by            uuid references profiles(id),
   created_at           timestamptz not null default now()
 );
 create index on findings(finding_set_id);
+
+comment on column findings.original_statement is
+  'What the model wrote, kept when a parent or chat edits the statement. Null means unedited.';
+comment on column findings.excluded is
+  'Dropped from the active set: not shown after publishing, and never used to build a plan.';
 
 -- The groundedness join. A finding with no resolvable citation never renders.
 create table finding_citations (
@@ -278,16 +364,33 @@ create table parent_finding_responses (
 -- REFERENCE DATA — no model involved
 -- ============================================================
 
+-- migration 0005: curriculum_topics holds two shapes — framework rows
+-- (phase/strand, no month/grade) and school-calendar rows (month/grade, no
+-- phase/strand) — because the IB PYP scope-and-sequence source is organised
+-- by developmental phase and strand, not by calendar month.
 create table curriculum_topics (
   id         uuid primary key default gen_random_uuid(),
   board      text not null,
   programme  text,
-  grade      text not null,
-  month      int  not null check (month between 1 and 12),
+  grade      text,
+  month      int check (month between 1 and 12),
   topic      text not null,
   unit_title text,
-  unique (board, programme, grade, month, topic)
+  phase      int check (phase between 1 and 4),
+  strand     text,
+  stage      text,  -- 'conceptual_understandings' | 'constructing_meaning' | 'transferring_meaning_into_symbols' | 'applying_with_understanding'
+  source     text,
+  constraint curriculum_topics_shape_check check (
+    (phase is not null and strand is not null and month is null)
+    or (month is not null and phase is null)
+  )
 );
+
+create unique index curriculum_topics_unique_idx
+  on curriculum_topics (
+    board, coalesce(programme, ''), coalesce(grade, ''), coalesce(month, 0),
+    coalesce(phase, 0), coalesce(strand, ''), coalesce(stage, ''), topic
+  );
 
 create table resources (
   id                uuid primary key default gen_random_uuid(),
@@ -321,38 +424,78 @@ create table plans (
   unique (child_id, cycle_no)
 );
 
+-- migration 0007: activity count follows the findings, not a fixed "exactly 3".
 create table plan_activities (
-  id                  uuid primary key default gen_random_uuid(),
-  plan_id             uuid not null references plans(id) on delete cascade,
-  position            int  not null check (position >= 1),
-  kind                activity_kind not null,
-  title               text not null,
-  instructions        text not null,
+  id                   uuid primary key default gen_random_uuid(),
+  plan_id              uuid not null references plans(id) on delete cascade,
+  position             int  not null,
+  kind                 activity_kind not null,
+  title                text not null,
+  instructions         text not null,
   addresses_finding_id uuid not null references findings(id),
-  resource_id         uuid references resources(id),
-  declined            boolean not null default false,
-  unique (plan_id, position)
+  resource_id          uuid references resources(id),
+  declined             boolean not null default false,
+  unique (plan_id, position),
+  constraint plan_activities_position_check check (position >= 1)
 );
 
 create table checkins (
-  id           uuid primary key default gen_random_uuid(),
-  family_id    uuid not null references families(id) on delete cascade,
-  plan_id      uuid not null references plans(id) on delete cascade,
-  token_hash   text not null unique,
-  sent_at      timestamptz,
-  responded_at timestamptz,
+  id              uuid primary key default gen_random_uuid(),
+  family_id       uuid not null references families(id) on delete cascade,
+  plan_id         uuid not null references plans(id) on delete cascade,
+  token_hash      text not null unique,
+  sent_at         timestamptz,
+  responded_at    timestamptz,
   activities_done int,
   response_note   text,
   concern_raised  boolean not null default false,
-  decision     checkin_decision,
-  expires_at   timestamptz not null
+  decision        checkin_decision,
+  expires_at      timestamptz not null
 );
 create index on checkins(plan_id);
+
+-- ============================================================
+-- CHAT — NEW for the chat-primary pivot
+-- ============================================================
+
+-- One conversation per child. The parent's primary surface; legacy pages
+-- (upload/reports/plans/findings) remain functional but are not chat-driven.
+create table conversations (
+  id          uuid primary key default gen_random_uuid(),
+  family_id   uuid not null references families(id) on delete cascade,
+  child_id    uuid not null references children(id) on delete cascade,
+  created_at  timestamptz not null default now(),
+  unique (child_id)
+);
+
+-- status='pending' is a placeholder row (e.g. "processing your report...")
+-- updated in place by the worker when the underlying job completes.
+-- attachment_report_id links a chat-attached file to the reports row it
+-- created via the same ingestReport() path the legacy upload route uses.
+create table messages (
+  id                    uuid primary key default gen_random_uuid(),
+  conversation_id       uuid not null references conversations(id) on delete cascade,
+  family_id             uuid not null references families(id) on delete cascade,
+  role                  message_role not null,
+  content               text not null default '',
+  tool_calls            jsonb,
+  tool_results           jsonb,
+  attachment_report_id  uuid references reports(id),
+  status                message_status not null default 'complete',
+  route_classification  text,            -- 'grounded' | 'general' | 'mixed' — debugging/audit only
+  prompt_version        text,
+  model_deployment       text,
+  created_at            timestamptz not null default now()
+);
+create index on messages(conversation_id, created_at);
+create index on messages(status) where status = 'pending';
 
 -- ============================================================
 -- OPS AND EVALUATION
 -- ============================================================
 
+-- Legacy approval workflow — still functional for the legacy page surface.
+-- Chat-originated writes do NOT insert here; they write audit_log instead (below).
 create table review_queue (
   id            uuid primary key default gen_random_uuid(),
   artifact_type review_artifact not null,
@@ -370,7 +513,7 @@ create index on review_queue(status, created_at);
 create table golden_reports (
   id           uuid primary key default gen_random_uuid(),
   origin       text not null,         -- 'real' | 'adversarial'
-  case_label   text,                  -- 'thin_report' | 'conflicting_narrative' | ...
+  case_label   text,
   storage_path text not null,
   notes        text
 );
@@ -385,15 +528,18 @@ create table golden_labels (
 );
 
 create table eval_runs (
-  id               uuid primary key default gen_random_uuid(),
-  git_sha          text,
-  prompt_versions  jsonb not null,
+  id                uuid primary key default gen_random_uuid(),
+  git_sha           text,
+  prompt_versions   jsonb not null,
   model_deployments jsonb not null,
-  results          jsonb not null,
-  passed           boolean not null,
-  created_at       timestamptz not null default now()
+  results           jsonb not null,
+  passed            boolean not null,
+  created_at        timestamptz not null default now()
 );
 
+-- The audit trail. For the chat pivot this is load-bearing, not supplementary:
+-- it is what replaces the pre-publication approval gate for chat-originated
+-- writes (see docs/engineering/engineering-doc.md §7).
 create table audit_log (
   id         bigserial primary key,
   actor      uuid,
@@ -404,6 +550,34 @@ create table audit_log (
   created_at timestamptz not null default now()
 );
 create index on audit_log(entity, entity_id);
+create index on audit_log(created_at desc);
+
+-- Observability: one row per model call (every PromptKey stage, including
+-- chat/chatroute), written by callModel()/callChatModel() themselves. See
+-- docs/specs/07-observability-dashboard.md.
+create table llm_request_log (
+  id             bigint generated always as identity primary key,
+  stage          text not null,
+  provider       text not null,
+  model          text not null,
+  prompt_version text,
+  family_id      uuid references families(id) on delete set null,
+  status         text not null,
+  error_code     text,
+  input_tokens   int,
+  output_tokens  int,
+  cost_usd       numeric(12,6),
+  latency_ms     int not null,
+  -- What was actually sent/returned, for the per-call detail view. Ops-only,
+  -- same as every other column here. logLlmRequest() clamps length before
+  -- insert — see src/server/db/llm-request-log.ts.
+  request_text   text,
+  response_text  text,
+  created_at     timestamptz not null default now()
+);
+create index on llm_request_log(created_at desc);
+create index on llm_request_log(stage, created_at desc);
+create index on llm_request_log(family_id) where family_id is not null;
 
 -- ============================================================
 -- ROW LEVEL SECURITY
@@ -424,7 +598,8 @@ declare t text;
 begin
   foreach t in array array[
     'children','consents','family_constraints','reports','observations','narratives',
-    'finding_sets','findings','parent_finding_responses','plans','checkins'
+    'finding_sets','findings','parent_finding_responses','plans','checkins',
+    'conversations','messages'
   ] loop
     execute format('alter table %I enable row level security', t);
     execute format($f$
@@ -439,7 +614,6 @@ begin
   end loop;
 end $$;
 
--- family_constraints is keyed on family_id directly
 alter table family_constraints enable row level security;
 
 -- Child tables inherit isolation through their parent's family_id.
@@ -497,6 +671,18 @@ create policy families_read on families for select
 -- Ops-only tables
 alter table review_queue enable row level security;
 create policy ops_only on review_queue for all using (is_ops()) with check (is_ops());
+
+-- NEW — audit_log is ops-readable only. Writers are always the service role
+-- (worker, chat tool dispatch), which bypasses RLS, so no write policy is
+-- needed for authenticated users.
+alter table audit_log enable row level security;
+create policy ops_read on audit_log for select using (is_ops());
+
+-- NEW — llm_request_log is ops-readable only, same reasoning as audit_log:
+-- callModel()/callChatModel() run server-side with the service client, which
+-- bypasses RLS, so no write policy is needed for authenticated users.
+alter table llm_request_log enable row level security;
+create policy ops_read on llm_request_log for select using (is_ops());
 
 -- ============================================================
 -- SEED — IB EYP four-point scale
