@@ -1,0 +1,62 @@
+[
+  {
+    "id": "generic-001",
+    "input": "My 4-year-old refuses to nap in the afternoon anymore. Is that normal?",
+    "expectedAgent": "generic_agent"
+  },
+  {
+    "id": "generic-002",
+    "input": "What's a reasonable bedtime routine for a 6 year old?",
+    "expectedAgent": "generic_agent"
+  },
+  {
+    "id": "generic-003",
+    "input": "How much screen time is okay for a toddler on weekends?",
+    "expectedAgent": "generic_agent"
+  },
+  {
+    "id": "generic-004",
+    "input": "He keeps throwing tantrums at daycare drop-off, any general tips?",
+    "expectedAgent": "generic_agent"
+  },
+  {
+    "id": "report-001",
+    "input": "What did the latest report say his strengths were?",
+    "expectedAgent": "report_analysis_agent"
+  },
+  {
+    "id": "report-002",
+    "input": "I don't think that reading gap finding is accurate, can you exclude it?",
+    "expectedAgent": "report_analysis_agent"
+  },
+  {
+    "id": "report-003",
+    "input": "Can you reword the finding about his handwriting to sound less negative?",
+    "expectedAgent": "report_analysis_agent"
+  },
+  {
+    "id": "report-004",
+    "input": "The teacher sent a corrected report card, can you re-run the analysis on it?",
+    "expectedAgent": "report_analysis_agent"
+  },
+  {
+    "id": "planning-001",
+    "input": "Can you regenerate his home activity plan for this week?",
+    "expectedAgent": "planning_agent"
+  },
+  {
+    "id": "planning-002",
+    "input": "Find me some swimming classes near us.",
+    "expectedAgent": "planning_agent"
+  },
+  {
+    "id": "planning-003",
+    "input": "Mark the reading activity as declined, he really hates it.",
+    "expectedAgent": "planning_agent"
+  },
+  {
+    "id": "planning-004",
+    "input": "Is there a library storytime close to our house?",
+    "expectedAgent": "planning_agent"
+  }
+]
