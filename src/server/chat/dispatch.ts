@@ -24,6 +24,7 @@ import {
   approvePlanDirectly,
 } from '../db/plans.js';
 import { runPlan } from '../pipeline/plan.js';
+import { resolveLocalActivities } from '../pipeline/resolve-local-activities.js';
 import { enqueue } from '../queue/enqueue.js';
 import { searchNearbyPlaces } from '../places/google-places.js';
 
@@ -45,6 +46,8 @@ export interface ToolDispatchContext {
   actorProfileId: string;
   /** Which agent made this call — prefixes the audit_log action, e.g. "report_agent.edit_finding_statement". */
   agentName: 'report_agent' | 'planning_agent';
+  /** The chat turn's correlation id — carried onto any model call a tool makes (e.g. regenerate_plan's runPlan) so it groups with the turn that triggered it. See migration 0014. */
+  requestId?: string;
 }
 
 export interface ToolDispatchResult {
@@ -117,6 +120,7 @@ async function regeneratePlan(ctx: ToolDispatchContext): Promise<ToolDispatchRes
     getResourceCandidates(),
     getNextCycleNo(ctx.childId),
   ]);
+  const hasLocation = (child.lat != null && child.lng != null) || !!(child.city || child.pincode);
 
   const result = await runPlan({
     childAgeMonths: ageMonthsFromDob(child.dob),
@@ -125,11 +129,14 @@ async function regeneratePlan(ctx: ToolDispatchContext): Promise<ToolDispatchRes
     topicContext: null,
     resourceCandidates,
     priorFailures: [],
-  });
+    hasLocation,
+  }, ctx.familyId, ctx.requestId);
 
   if (!result.ok) {
     return { ok: false, summary: '', error: { code: 'PLAN_GENERATION_FAILED', message: JSON.stringify(result.error) } };
   }
+
+  const activities = await resolveLocalActivities(result.value.activities, child);
 
   const planId = await createPlan({
     familyId: ctx.familyId,
@@ -140,14 +147,19 @@ async function regeneratePlan(ctx: ToolDispatchContext): Promise<ToolDispatchRes
     promptVersion: result.meta.promptVersion,
   });
 
-  await savePlanActivities(planId, result.value.activities);
+  await savePlanActivities(planId, activities);
   await approvePlanDirectly(planId);
 
-  const after = { planId, cycleNo, activities: result.value.activities };
+  const after = { planId, cycleNo, activities };
   await writeAudit(ctx, 'regenerate_plan', 'plan', planId, null, after);
 
-  const lines = result.value.activities.map(a => `- ${a.title}`);
-  return { ok: true, summary: `Put together an updated plan:\n${lines.join('\n')}`, after };
+  const home = activities.filter(a => a.kind !== 'local').map(a => `- ${a.title}`);
+  const outside = activities.filter(a => a.kind === 'local').map(a => `- ${a.title}`);
+  const sections = [
+    ...(home.length ? [`At home:`, ...home] : []),
+    ...(outside.length ? [`Outside:`, ...outside] : []),
+  ];
+  return { ok: true, summary: `Put together an updated plan:\n${sections.join('\n')}`, after };
 }
 
 async function editFindingStatement(args: { findingId: string; newStatement: string }, ctx: ToolDispatchContext): Promise<ToolDispatchResult> {
@@ -224,16 +236,23 @@ async function requestReportReanalysis(args: { reportId: string }, ctx: ToolDisp
  */
 async function findNearbyResources(args: { query: string }, ctx: ToolDispatchContext): Promise<ToolDispatchResult> {
   const child = await getChild(ctx.childId);
-  if (!child.city && !child.pincode) {
-    return { ok: true, summary: "There's no city or pincode on file for this child, so nearby options aren't available right now — home activities still work." };
+  const geo = child.lat != null && child.lng != null ? { lat: child.lat, lng: child.lng } : null;
+  const cityPincode = [child.city, child.pincode].filter(Boolean).join(' ') || null;
+  if (!geo && !cityPincode) {
+    return { ok: true, summary: "There's no location on file for this child, so nearby options aren't available right now — home activities still work." };
   }
 
   try {
-    const places = await searchNearbyPlaces(args.query, child.city, child.pincode);
+    const places = (await searchNearbyPlaces(args.query, geo, cityPincode)).slice(0, 3);
     if (places.length === 0) {
       return { ok: true, summary: `Didn't find any "${args.query}" nearby.` };
     }
-    const lines = places.map(p => `- ${p.name}${p.rating ? ` (${p.rating}★)` : ''} — ${p.address}${p.googleMapsUrl ? ` (${p.googleMapsUrl})` : ''}`);
+    const lines = places.map(p => {
+      const details = [p.rating ? `${p.rating}★` : null, p.distanceKm != null ? `${p.distanceKm.toFixed(1)} km` : null]
+        .filter(Boolean)
+        .join(', ');
+      return `- ${p.name}${details ? ` (${details})` : ''} — ${p.address}${p.googleMapsUrl ? ` (${p.googleMapsUrl})` : ''}`;
+    });
     return { ok: true, summary: `Found a few nearby options:\n${lines.join('\n')}` };
   } catch {
     return { ok: true, summary: "Couldn't look up nearby places right now — falling back to a home activity instead." };
