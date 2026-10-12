@@ -137,6 +137,20 @@ export async function createFindingSet(input: CreateFindingSetInput): Promise<st
   return data.id;
 }
 
+/**
+ * Publishes a finding set straight away — no parent/ops review step.
+ * Review was removed as a gate entirely (not just defaulted off); this is
+ * the only path a finding set reaches 'published' now.
+ */
+export async function publishFindingSet(findingSetId: string): Promise<void> {
+  const { error } = await serviceClient()
+    .from('finding_sets')
+    .update({ status: 'published', published_at: new Date().toISOString() })
+    .eq('id', findingSetId);
+
+  if (error) throw new Error(`publishing finding_set ${findingSetId}: ${error.message}`);
+}
+
 export interface SaveFindingInput {
   findingSetId: string;
   familyId: string;

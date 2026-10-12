@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { routeClient, currentUser } from '../../../../../lib/db/server';
 import { serviceClient } from '../../../../../lib/db/clients';
 import { enqueue } from '../../../../../server/queue/enqueue';
+import { maybeQueuePlanGeneration } from '../../../../../server/db/plans';
 
 export const runtime = 'nodejs';
 
@@ -101,17 +102,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   if (publishing) {
     try {
-      const { data: pendingPlan } = await admin
-        .from('plans')
-        .select('id')
-        .eq('child_id', set.child_id)
-        .in('status', ['draft', 'in_review'])
-        .maybeSingle();
-
-      if (!pendingPlan) {
-        await enqueue('plan.generate', { childId: set.child_id }, { singletonKey: `plan:${set.child_id}` });
-        planQueued = true;
-      }
+      planQueued = await maybeQueuePlanGeneration(set.child_id, crypto.randomUUID(), enqueue);
     } catch (err) {
       planError = err instanceof Error ? err.message : 'could not start the plan';
       console.error('[review:decision] approved but plan not queued', err);

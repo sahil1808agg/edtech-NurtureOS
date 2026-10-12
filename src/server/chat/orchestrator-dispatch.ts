@@ -26,6 +26,8 @@ export interface AgentDispatchContext {
   messageId: string;
   actorProfileId: string;
   childContext: ChildContext;
+  /** The chat turn's correlation id — see migration 0014 and ToolDispatchContext.requestId. */
+  requestId?: string;
 }
 
 export interface AgentDispatchResult {
@@ -48,7 +50,7 @@ export async function dispatchAgent(agentName: AgentName, question: string, ctx:
 
 async function runGenericAgent(question: string, ctx: AgentDispatchContext): Promise<AgentDispatchResult> {
   const system = buildGenericAgentSystemPrompt(ctx.childContext);
-  const turn = await callChatModel('chat_generic_agent', system, [{ role: 'user', content: question }], undefined, ctx.familyId);
+  const turn = await callChatModel('chat_generic_agent', system, [{ role: 'user', content: question }], undefined, ctx.familyId, ctx.requestId);
   return { text: turn.message.content, toolCalls: [] };
 }
 
@@ -73,6 +75,7 @@ async function runReportAgent(question: string, ctx: AgentDispatchContext): Prom
     REPORT_AGENT_TOOL_DEFINITIONS_FOR_MODEL,
     { ...toolDispatchContext(ctx), agentName: 'report_agent' },
     ctx.familyId,
+    ctx.requestId,
   );
 
   return { text, toolCalls: [...toolCalls, ...loopToolCalls] };
@@ -87,6 +90,7 @@ async function runPlanningAgent(question: string, ctx: AgentDispatchContext): Pr
     PLANNING_AGENT_TOOL_DEFINITIONS_FOR_MODEL,
     { ...toolDispatchContext(ctx), agentName: 'planning_agent' },
     ctx.familyId,
+    ctx.requestId,
   );
   return { text, toolCalls };
 }
@@ -98,6 +102,7 @@ function toolDispatchContext(ctx: AgentDispatchContext): Omit<ToolDispatchContex
     conversationId: ctx.conversationId,
     messageId: ctx.messageId,
     actorProfileId: ctx.actorProfileId,
+    requestId: ctx.requestId,
   };
 }
 
@@ -108,11 +113,12 @@ async function runAgentToolLoop(
   tools: ToolDefinitionForModel[],
   dispatchCtx: ToolDispatchContext,
   familyId: string,
+  requestId?: string,
 ): Promise<{ text: string; toolCalls: { call: ChatToolCall; result: ToolDispatchResult }[] }> {
   const history: ChatTurnMessage[] = [{ role: 'user', content: question }];
   const toolCalls: { call: ChatToolCall; result: ToolDispatchResult }[] = [];
 
-  let turn = await callChatModel(stage, system, history, tools, familyId);
+  let turn = await callChatModel(stage, system, history, tools, familyId, requestId);
   let iterations = 0;
 
   while (turn.message.toolCalls?.length && iterations < MAX_AGENT_TOOL_ITERATIONS) {
@@ -127,11 +133,12 @@ async function runAgentToolLoop(
       history.push({
         role: 'tool',
         toolCallId: call.id,
+        toolName: call.name,
         content: result.ok ? result.summary : `Error: ${result.error?.message ?? 'tool failed'}`,
       });
     }
 
-    turn = await callChatModel(stage, system, history, tools, familyId);
+    turn = await callChatModel(stage, system, history, tools, familyId, requestId);
   }
 
   return { text: turn.message.content, toolCalls };

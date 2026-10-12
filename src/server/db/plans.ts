@@ -7,15 +7,31 @@ export interface ChildRow {
   familyId: string;
   dob: string;
   firstName: string;
-  /** For the planning agent's find_nearby_resources tool (docs/specs/08-orchestrator-chat.md). Either may be unset. */
+  /**
+   * For the planning agent's find_nearby_resources tool
+   * (docs/specs/08-orchestrator-chat.md). lat/lng come from the autocomplete
+   * pin and are preferred; city/pincode are the legacy text fallback. All
+   * may be unset.
+   */
+  lat: number | null;
+  lng: number | null;
   city: string | null;
   pincode: string | null;
 }
 
 export async function getChild(childId: string): Promise<ChildRow> {
-  const { data, error } = await serviceClient().from('children').select('id, family_id, dob, first_name, city, pincode').eq('id', childId).single();
+  const { data, error } = await serviceClient().from('children').select('id, family_id, dob, first_name, lat, lng, city, pincode').eq('id', childId).single();
   if (error || !data) throw new Error(`child ${childId} not found: ${error?.message ?? 'no row'}`);
-  return { id: data.id, familyId: data.family_id, dob: data.dob, firstName: data.first_name, city: data.city ?? null, pincode: data.pincode ?? null };
+  return {
+    id: data.id,
+    familyId: data.family_id,
+    dob: data.dob,
+    firstName: data.first_name,
+    lat: data.lat ?? null,
+    lng: data.lng ?? null,
+    city: data.city ?? null,
+    pincode: data.pincode ?? null,
+  };
 }
 
 export function ageMonthsFromDob(dob: string): number {
@@ -129,6 +145,37 @@ export async function getCurrentPlan(childId: string): Promise<CurrentPlan | nul
   if (error) throw new Error(`fetching activities for plan ${plan.id}: ${error.message}`);
 
   return { planId: plan.id, cycleNo: plan.cycle_no, activities: activities ?? [] };
+}
+
+/**
+ * Starts plan.generate for a child, unless one is already draft/in_review —
+ * one plan in flight per child (the singletonKey only collapses jobs still
+ * queued, not a plan already produced and sitting unreviewed). Shared by
+ * the finding-set publish path (report-analyse.ts) and the legacy manual
+ * decision route (api/review/[id]/decision), which both start a plan the
+ * moment findings become usable.
+ *
+ * `send` is injected rather than imported here: the web process and the
+ * worker process each hold their own pg-boss client/pool (see
+ * queue/enqueue.ts's note on the connection pooler), and this function is
+ * called from both — it must never open a pool of its own.
+ */
+export async function maybeQueuePlanGeneration(
+  childId: string,
+  requestId: string | undefined,
+  send: (queue: string, data: object, options?: { singletonKey?: string }) => Promise<string | null>,
+): Promise<boolean> {
+  const { data: pendingPlan } = await serviceClient()
+    .from('plans')
+    .select('id')
+    .eq('child_id', childId)
+    .in('status', ['draft', 'in_review'])
+    .maybeSingle();
+
+  if (pendingPlan) return false;
+
+  await send('plan.generate', { childId, requestId }, { singletonKey: `plan:${childId}` });
+  return true;
 }
 
 /** Empty until the resource library (PRD: "the moat") is actually curated. */

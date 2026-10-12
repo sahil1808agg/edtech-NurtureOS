@@ -81,7 +81,11 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
   // The check above cannot catch a double click: between enqueueing and the
   // worker inserting the plan row there is no row to find. The singleton key
   // closes that window at the queue, where the race actually is.
-  const jobId = await enqueue('plan.generate', { childId }, { singletonKey: `plan:${childId}` });
+  const jobId = await enqueue(
+    'plan.generate',
+    { childId, requestId: crypto.randomUUID() },
+    { singletonKey: `plan:${childId}` },
+  );
 
   if (!jobId) {
     return NextResponse.json({ error: 'A plan for this child is already being prepared.' }, { status: 409 });

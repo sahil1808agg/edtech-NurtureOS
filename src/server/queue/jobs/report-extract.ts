@@ -22,6 +22,8 @@ export async function createReportExtractQueue(boss: PgBoss): Promise<void> {
 
 export interface ReportExtractJobData {
   reportId: string;
+  /** Carried from ingest.ts through every stage of this report's pipeline — see migration 0014. */
+  requestId?: string;
 }
 
 export async function registerReportExtractWorker(boss: PgBoss): Promise<void> {
@@ -29,11 +31,11 @@ export async function registerReportExtractWorker(boss: PgBoss): Promise<void> {
     QUEUE,
     { localConcurrency: 2 },
     async ([job]) => {
-      const { reportId } = job.data;
+      const { reportId, requestId } = job.data;
       const report = await getReport(reportId);
 
       const pdfBuffer = await downloadReportFile(report.storagePath);
-      const result = await runExtract({ reportId, pdfBuffer }, report.familyId);
+      const result = await runExtract({ reportId, pdfBuffer }, report.familyId, requestId);
 
       if (!result.ok) {
         // Retry rules per LLD §3: PROVIDER_ERROR retries only when retryable;
@@ -55,7 +57,7 @@ export async function registerReportExtractWorker(boss: PgBoss): Promise<void> {
 
       // Advance the pipeline. Enqueued after the write commits, so a normalise
       // that starts immediately always sees this extraction.
-      await (await getBoss()).send(NORMALISE_QUEUE, { reportId });
+      await (await getBoss()).send(NORMALISE_QUEUE, { reportId, requestId });
     },
   );
 }

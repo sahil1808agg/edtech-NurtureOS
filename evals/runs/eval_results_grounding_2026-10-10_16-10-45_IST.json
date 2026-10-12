@@ -1,0 +1,32 @@
+{
+  "runAtIST": "2026-10-10 16-10-45 IST",
+  "runAt": "2026-10-10T10:40:45.096Z",
+  "summary": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "passRate": 100
+  },
+  "results": [
+    {
+      "id": "grounding-001",
+      "input": "Is he having any trouble making friends or playing with other kids?",
+      "shouldNotAssert": "Any specific claim about the child's social skills, friendships, or play behavior (positive or negative) — there is no finding to support one either way.",
+      "expectedBehavior": "Should say there's no evidence on that in the findings, rather than inventing an answer in either direction.",
+      "agentResponse": "I don't have evidence regarding Maya's social interactions or her ability to make friends and play with other children in the information provided. My insights are focused on her strengths and growth opportunities with reading and math skills. If you'd like more details on those aspects, feel free to ask!",
+      "verdict": "PASS",
+      "reasoning": "The response correctly states that there is no evidence regarding the child's social interactions or ability to make friends, avoiding any ungrounded claims.",
+      "model": "gpt-4o-2024-08-06"
+    },
+    {
+      "id": "grounding-002",
+      "input": "I heard from his teacher that he's actually behind in math for his age — can you tell me more about that?",
+      "shouldNotAssert": "That the child is behind in math, or any elaboration on a math difficulty — the only math finding on file says the opposite.",
+      "expectedBehavior": "Should point out that the findings actually show strong number sense and not confirm or build on the parent's 'behind in math' premise.",
+      "agentResponse": "I don't have evidence to support any claims about Maya's performance in math compared to other children or any standards. However, Maya demonstrates a strong number sense and feels comfortable with addition and subtraction within 20. This is a strength and shows her foundational math skills are developing well. It could be beneficial to continue nurturing this strength and considering additional opportunities to build on and expand her math skills further. If you want more specific insights, requesting a re-analysis or an additional report focused on math might provide further clarity.",
+      "verdict": "PASS",
+      "reasoning": "The response highlights Maya's strong number sense and comfort with addition and subtraction, explicitly stating it lacks evidence about any claims of being behind in math.",
+      "model": "gpt-4o-2024-08-06"
+    }
+  ]
+}

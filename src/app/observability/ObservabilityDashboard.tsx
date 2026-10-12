@@ -50,6 +50,8 @@ interface LlmRequestLogEntry {
   costUsd: number | null;
   latencyMs: number;
   createdAt: string;
+  /** Correlates calls from the same report pipeline run or chat turn — see migration 0014. */
+  requestId: string | null;
 }
 interface CallsPage {
   entries: LlmRequestLogEntry[];
@@ -147,6 +149,7 @@ export function ObservabilityDashboard({
   }
 
   const providers = [...new Set(calls.map(c => c.provider))];
+  const workflows = groupIntoWorkflows(calls);
 
   return (
     <main>
@@ -243,46 +246,19 @@ export function ObservabilityDashboard({
         </table>
       </div>
 
-      <h2 className="mt-10 text-sm font-semibold">Recent calls</h2>
-      <p className="mt-1 text-xs text-[var(--muted)]">Click a row to see the full request/response.</p>
-      <div className="mt-3 overflow-x-auto">
-        <table className="w-full text-left text-xs">
-          <thead className="text-[var(--muted)]">
-            <tr>
-              <th className="pb-2 pr-4 font-medium">Time</th>
-              <th className="pb-2 pr-4 font-medium">Stage</th>
-              <th className="pb-2 pr-4 font-medium">Model</th>
-              <th className="pb-2 pr-4 font-medium">Tokens</th>
-              <th className="pb-2 pr-4 font-medium">Cost</th>
-              <th className="pb-2 pr-4 font-medium">Latency</th>
-              <th className="pb-2 pr-4 font-medium">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {calls.map(c => (
-              <tr
-                key={c.id}
-                onClick={() => setSelectedCallId(c.id)}
-                className="cursor-pointer border-t border-[var(--border)] hover:bg-[var(--border)]/40"
-              >
-                <td className="py-2 pr-4 text-[var(--muted)]">{new Date(c.createdAt).toLocaleString()}</td>
-                <td className="py-2 pr-4">{c.stage}</td>
-                <td className="py-2 pr-4">{c.provider}/{c.model}</td>
-                <td className="py-2 pr-4">{c.inputTokens ?? '—'} / {c.outputTokens ?? '—'}</td>
-                <td className="py-2 pr-4">{c.costUsd === null ? '—' : `$${c.costUsd.toFixed(5)}`}</td>
-                <td className="py-2 pr-4">{c.latencyMs.toLocaleString()} ms</td>
-                <td className="py-2 pr-4">
-                  {c.status === 'ok'
-                    ? <span className="text-[var(--accent)]">ok</span>
-                    : <span className="text-red-600">{c.errorCode ?? 'error'}</span>}
-                </td>
-              </tr>
-            ))}
-            {calls.length === 0 && (
-              <tr><td colSpan={7} className="py-4 text-[var(--muted)]">No calls in this range.</td></tr>
-            )}
-          </tbody>
-        </table>
+      <h2 className="mt-10 text-sm font-semibold">Workflows</h2>
+      <p className="mt-1 text-xs text-[var(--muted)]">
+        Calls that belong to one request — a report pipeline run, or a chat turn and whatever it
+        triggered — grouped together. Click a workflow to see its calls in order; click a call for
+        the full request/response.
+      </p>
+      <div className="mt-3 space-y-2">
+        {workflows.map(wf => (
+          <WorkflowRow key={wf.key} workflow={wf} onSelectCall={setSelectedCallId} />
+        ))}
+        {workflows.length === 0 && (
+          <p className="py-4 text-xs text-[var(--muted)]">No calls in this range.</p>
+        )}
       </div>
 
       {cursor && (
@@ -306,6 +282,114 @@ function StatTile({ label, value }: { label: string; value: string }) {
     <div className="rounded-lg border border-[var(--border)] p-3">
       <p className="text-[11px] uppercase tracking-wide text-[var(--muted)]">{label}</p>
       <p className="mt-1 text-lg font-semibold" style={{ fontVariantNumeric: 'tabular-nums' }}>{value}</p>
+    </div>
+  );
+}
+
+interface Workflow {
+  /** React key — the shared requestId, or a synthetic one for a call with none. */
+  key: string;
+  /** Ascending by id (= chronological, since calls in one workflow are always logged in causal order). */
+  calls: LlmRequestLogEntry[];
+  startMs: number;
+  spanMs: number;
+  totalCostUsd: number;
+  hasError: boolean;
+}
+
+/**
+ * Calls with no requestId (older rows from before migration 0014, or any
+ * call path not yet threaded through) each become their own single-call
+ * workflow rather than being silently dropped or lumped together.
+ */
+function groupIntoWorkflows(calls: LlmRequestLogEntry[]): Workflow[] {
+  const groups = new Map<string, LlmRequestLogEntry[]>();
+  for (const c of calls) {
+    const key = c.requestId ?? `single:${c.id}`;
+    const list = groups.get(key);
+    if (list) list.push(c);
+    else groups.set(key, [c]);
+  }
+
+  const workflows: Workflow[] = [...groups.entries()].map(([key, group]) => {
+    const ordered = [...group].sort((a, b) => a.id - b.id);
+    const starts = ordered.map(c => new Date(c.createdAt).getTime());
+    const endMs = Math.max(...ordered.map((c, i) => starts[i] + c.latencyMs));
+    const startMs = Math.min(...starts);
+    return {
+      key,
+      calls: ordered,
+      startMs,
+      spanMs: Math.max(endMs - startMs, 1),
+      totalCostUsd: ordered.reduce((sum, c) => sum + (c.costUsd ?? 0), 0),
+      hasError: ordered.some(c => c.status === 'error'),
+    };
+  });
+
+  // Newest first, by the most recent call in each workflow.
+  workflows.sort((a, b) => b.calls[b.calls.length - 1].id - a.calls[a.calls.length - 1].id);
+  return workflows;
+}
+
+function WorkflowRow({ workflow, onSelectCall }: { workflow: Workflow; onSelectCall: (id: number) => void }) {
+  const [open, setOpen] = useState(false);
+  const { calls, hasError, totalCostUsd, spanMs } = workflow;
+  const first = calls[0];
+  const isSingle = calls.length === 1;
+  const stageLabel = [...new Set(calls.map(c => c.stage))].join(' → ');
+
+  return (
+    <div className="rounded-lg border border-[var(--border)]">
+      <div
+        onClick={() => (isSingle ? onSelectCall(first.id) : setOpen(o => !o))}
+        className="flex cursor-pointer items-center justify-between gap-3 px-3 py-2 hover:bg-[var(--border)]/40"
+      >
+        <div className="flex min-w-0 items-center gap-2">
+          <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${hasError ? 'bg-red-600' : 'bg-[var(--accent)]'}`} />
+          <span className="truncate text-xs font-medium">{stageLabel}</span>
+          {!isSingle && (
+            <span className="shrink-0 rounded bg-[var(--border)] px-1.5 py-0.5 text-[10px] text-[var(--muted)]">
+              {calls.length} calls
+            </span>
+          )}
+        </div>
+        <div className="flex shrink-0 items-center gap-4 text-xs text-[var(--muted)]">
+          <span>{new Date(first.createdAt).toLocaleString()}</span>
+          <span style={{ fontVariantNumeric: 'tabular-nums' }}>${totalCostUsd.toFixed(5)}</span>
+          <span style={{ fontVariantNumeric: 'tabular-nums' }}>{spanMs.toLocaleString()} ms</span>
+        </div>
+      </div>
+
+      {!isSingle && open && (
+        <div className="space-y-1.5 border-t border-[var(--border)] p-3">
+          {calls.map(c => {
+            const offsetMs = new Date(c.createdAt).getTime() - workflow.startMs;
+            const leftPct = (offsetMs / spanMs) * 100;
+            const widthPct = Math.max((c.latencyMs / spanMs) * 100, 1.5);
+            return (
+              <div
+                key={c.id}
+                onClick={e => { e.stopPropagation(); onSelectCall(c.id); }}
+                className="flex cursor-pointer items-center gap-3 rounded px-1 py-1 hover:bg-[var(--border)]/40"
+              >
+                <span className="w-36 shrink-0 truncate text-[11px] text-[var(--muted)]">{c.stage}</span>
+                <div className="relative h-4 flex-1 rounded bg-[var(--border)]/50">
+                  <div
+                    className={`absolute h-4 rounded ${c.status === 'error' ? 'bg-red-600' : 'bg-[var(--accent)]'}`}
+                    style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
+                  />
+                </div>
+                <span className="w-16 shrink-0 text-right text-[11px] text-[var(--muted)]" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                  {c.latencyMs.toLocaleString()}ms
+                </span>
+                <span className="w-16 shrink-0 text-right text-[11px] text-[var(--muted)]" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                  {c.costUsd === null ? '—' : `$${c.costUsd.toFixed(5)}`}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

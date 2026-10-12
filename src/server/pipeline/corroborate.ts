@@ -11,9 +11,9 @@ const CorroborateOutputSchema = z.object({
 
 export type CorroborateInput = PromptInput;
 
-export async function runCorroborate(input: CorroborateInput, familyId?: string): Promise<StageResult<CorroborationResult>> {
+export async function runCorroborate(input: CorroborateInput, familyId?: string, requestId?: string): Promise<StageResult<CorroborationResult>> {
   const msg = buildCorroborateMessage(input);
-  const result = await callModel('corroborate', msg, CorroborateOutputSchema, familyId);
+  const result = await callModel('corroborate', msg, CorroborateOutputSchema, familyId, requestId);
 
   if (!result.ok) return result;
 

@@ -8,6 +8,8 @@ export interface LogLlmRequestInput {
   model: string;
   promptVersion: string | null;
   familyId?: string | null;
+  /** Correlates this call with every other call in the same workflow — see migration 0014. */
+  requestId?: string | null;
   status: 'ok' | 'error';
   errorCode?: string | null;
   inputTokens?: number | null;
@@ -45,6 +47,7 @@ export async function logLlmRequest(input: LogLlmRequestInput): Promise<void> {
       model: input.model,
       prompt_version: input.promptVersion,
       family_id: input.familyId ?? null,
+      request_id: input.requestId ?? null,
       status: input.status,
       error_code: input.errorCode ?? null,
       input_tokens: input.inputTokens ?? null,
@@ -67,6 +70,7 @@ export interface LlmRequestLogEntry {
   model: string;
   promptVersion: string | null;
   familyId: string | null;
+  requestId: string | null;
   status: 'ok' | 'error';
   errorCode: string | null;
   inputTokens: number | null;
@@ -91,7 +95,7 @@ export interface LlmRequestLogFilters {
 }
 
 const SELECT_COLUMNS =
-  'id, stage, provider, model, prompt_version, family_id, status, error_code, input_tokens, output_tokens, cost_usd, latency_ms, created_at';
+  'id, stage, provider, model, prompt_version, family_id, request_id, status, error_code, input_tokens, output_tokens, cost_usd, latency_ms, created_at';
 
 function toEntry(row: Record<string, unknown>): LlmRequestLogEntry {
   return {
@@ -101,6 +105,7 @@ function toEntry(row: Record<string, unknown>): LlmRequestLogEntry {
     model: row.model as string,
     promptVersion: (row.prompt_version as string | null) ?? null,
     familyId: (row.family_id as string | null) ?? null,
+    requestId: (row.request_id as string | null) ?? null,
     status: row.status as 'ok' | 'error',
     errorCode: (row.error_code as string | null) ?? null,
     inputTokens: (row.input_tokens as number | null) ?? null,

@@ -24,7 +24,15 @@ export async function POST(request: Request) {
   const firstName = typeof body?.firstName === 'string' ? body.firstName.trim() : '';
   const dob = typeof body?.dob === 'string' ? body.dob : '';
   const grade = typeof body?.grade === 'string' ? body.grade.trim() : '';
+  const address = typeof body?.address === 'string' && body.address.trim() ? body.address.trim() : null;
+  const lat = typeof body?.lat === 'number' ? body.lat : null;
+  const lng = typeof body?.lng === 'number' ? body.lng : null;
+  const placeId = typeof body?.placeId === 'string' && body.placeId.trim() ? body.placeId.trim() : null;
   const consentGiven = body?.consent === true;
+
+  if (address && (lat == null || lng == null)) {
+    return NextResponse.json({ error: 'That location could not be resolved — pick it from the dropdown again.' }, { status: 400 });
+  }
 
   if (!firstName) return NextResponse.json({ error: 'Your child’s first name is required.' }, { status: 400 });
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dob)) {
@@ -45,7 +53,7 @@ export async function POST(request: Request) {
 
   const { data: child, error: childError } = await admin
     .from('children')
-    .insert({ family_id: user.familyId, first_name: firstName, dob, grade })
+    .insert({ family_id: user.familyId, first_name: firstName, dob, grade, address, lat, lng, place_id: placeId })
     .select('id')
     .single();
 

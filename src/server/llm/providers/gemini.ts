@@ -48,9 +48,11 @@ export async function callGemini(model: string, msg: LlmMessage, thinkingLevel?:
 // type wants its own uppercase Type enum and only a subset of keywords.
 // Best-effort conversion, covering what tools.ts actually produces (object/
 // string/boolean, properties/required/enum) — not a general JSON-Schema
-// translator. UNVERIFIED against a live Gemini account; see
-// docs/engineering/engineering-doc.md §10 open item 1 before defaulting
-// LLM_CHAT_PROVIDER here.
+// translator. Verified live against LLM_CHAT_PLANNING_AGENT_PROVIDER=gemini:
+// a zero-arg tool (regenerate_plan) and a tool with a required uuid-format
+// string plus an optional boolean (edit_plan_activity) both round-tripped
+// correctly. array/enum/number are still unverified — no current tool in
+// tools.ts exercises them.
 function toGeminiSchema(schema: unknown): Schema {
   const s = schema as Record<string, unknown>;
   const typeMap: Record<string, Type> = {
@@ -83,13 +85,16 @@ function toGeminiContents(history: ChatTurnMessage[]): Content[] {
     if (m.role === 'tool') {
       contents.push({
         role: 'user',
-        parts: [{ functionResponse: { id: m.toolCallId, name: m.toolCallId, response: { output: m.content } } }],
+        parts: [{ functionResponse: { id: m.toolCallId, name: m.toolName ?? m.toolCallId, response: { output: m.content } } }],
       });
     } else if (m.role === 'assistant' && m.toolCalls?.length) {
       const parts: Part[] = [];
       if (m.content) parts.push({ text: m.content });
       for (const call of m.toolCalls) {
-        parts.push({ functionCall: { id: call.id, name: call.name, args: call.args as Record<string, unknown> } });
+        parts.push({
+          functionCall: { id: call.id, name: call.name, args: call.args as Record<string, unknown> },
+          thoughtSignature: call.thoughtSignature,
+        });
       }
       contents.push({ role: 'model', parts });
     } else {
@@ -101,13 +106,10 @@ function toGeminiContents(history: ChatTurnMessage[]): Content[] {
 }
 
 /**
- * Multi-turn chat with tool use via Gemini's function-calling API.
- * UNVERIFIED against a live account — see
- * docs/engineering/engineering-doc.md §10 open item 1 before defaulting
- * LLM_CHAT_PROVIDER to gemini. In particular, toGeminiSchema above matches
- * function responses to calls by `id`, which the functionResponse type
- * accepts per the SDK's own types, but behavior against the real API should
- * be confirmed on the golden set before relying on it.
+ * Multi-turn chat with tool use via Gemini's function-calling API. Verified
+ * live for planning_agent and generic_agent (see toGeminiSchema above for
+ * what's covered) — see docs/engineering/engineering-doc.md §10 open item 1
+ * for the OpenAI-compatible adapter, which is the one still unverified.
  */
 export async function callGeminiChat(
   model: string,
@@ -125,7 +127,12 @@ export async function callGeminiChat(
   const parts = response.candidates?.[0]?.content?.parts ?? [];
   const toolCalls = parts
     .filter((p): p is Part & { functionCall: NonNullable<Part['functionCall']> } => !!p.functionCall)
-    .map((p, i) => ({ id: p.functionCall.id ?? `call_${i}`, name: p.functionCall.name ?? '', args: p.functionCall.args ?? {} }));
+    .map((p, i) => ({
+      id: p.functionCall.id ?? `call_${i}`,
+      name: p.functionCall.name ?? '',
+      args: p.functionCall.args ?? {},
+      thoughtSignature: p.thoughtSignature,
+    }));
 
   const text = parts.filter(p => p.text).map(p => p.text).join('');
 

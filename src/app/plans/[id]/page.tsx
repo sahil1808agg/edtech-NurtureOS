@@ -53,13 +53,18 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
     );
   }
 
-  const { data: activities } = await db
+  const { data: activitiesRaw } = await db
     .from('plan_activities')
     .select('id, position, kind, title, instructions, addresses_finding_id, resource_id')
     .eq('plan_id', id)
     .order('position');
 
-  const findingIds = [...new Set((activities ?? []).map((a) => a.addresses_finding_id))];
+  const activities = activitiesRaw ?? [];
+  const homeActivities = activities.filter((a) => a.kind !== 'local');
+  const outsideActivities = activities.filter((a) => a.kind === 'local');
+  type Activity = (typeof activities)[number];
+
+  const findingIds = [...new Set(activities.map((a) => a.addresses_finding_id))];
   const { data: findings } = findingIds.length
     ? await db.from('findings').select('id, kind, statement, finding_set_id').in('id', findingIds)
     : { data: [] };
@@ -81,7 +86,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
     (sets ?? []).filter((s) => s.status === 'published').map((s) => [s.id, s.report_id]),
   );
 
-  const resourceIds = (activities ?? []).map((a) => a.resource_id).filter(Boolean) as string[];
+  const resourceIds = activities.map((a) => a.resource_id).filter(Boolean) as string[];
   const { data: resources } = resourceIds.length
     ? await db.from('resources').select('id, title, url').in('id', resourceIds)
     : { data: [] };
@@ -89,8 +94,43 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
 
   // Plans are no longer a fixed three: the count follows the domain areas the
   // findings cover, so the copy has to count rather than assert.
-  const activityCount = (activities ?? []).length;
+  const activityCount = activities.length;
   const things = activityCount === 1 ? 'One thing' : `${activityCount} things`;
+
+  function renderActivity(a: Activity) {
+    const finding = findingById.get(a.addresses_finding_id);
+    const resource = a.resource_id ? resourceById.get(a.resource_id) : null;
+    return (
+      <li key={a.id} className="rounded-lg border border-[var(--border)] p-5">
+        <div className="flex items-baseline gap-2">
+          <span className="text-xs text-[var(--muted)]">{a.position}</span>
+          <h2 className="text-sm font-medium">{a.title}</h2>
+        </div>
+
+        <p className="mt-2 whitespace-pre-line text-sm">{a.instructions}</p>
+
+        {resource && (
+          <p className="mt-3 text-xs">
+            <a href={resource.url ?? '#'} target="_blank" rel="noreferrer" className="underline">
+              {resource.title}
+            </a>
+          </p>
+        )}
+
+        {finding && (
+          <p className="mt-3 border-t border-[var(--border)] pt-3 text-xs text-[var(--muted)]">
+            Why this:{' '}
+            <Link href={`/findings/${finding.id}`} className="underline decoration-dotted">
+              {finding.statement}
+            </Link>
+            {reportBySetId.has(finding.finding_set_id) ? null : (
+              <span className="ml-1 italic">(from an earlier analysis)</span>
+            )}
+          </p>
+        )}
+      </li>
+    );
+  }
 
   return (
     <main>
@@ -128,42 +168,19 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
         <p className="mt-2 text-xs text-[var(--muted)]">Linked to class topic: {plan.topic_context}</p>
       )}
 
-      <ol className="mt-6 space-y-4">
-        {(activities ?? []).map((a) => {
-          const finding = findingById.get(a.addresses_finding_id);
-          const resource = a.resource_id ? resourceById.get(a.resource_id) : null;
-          return (
-            <li key={a.id} className="rounded-lg border border-[var(--border)] p-5">
-              <div className="flex items-baseline gap-2">
-                <span className="text-xs text-[var(--muted)]">{a.position}</span>
-                <h2 className="text-sm font-medium">{a.title}</h2>
-              </div>
+      {homeActivities.length > 0 && (
+        <section className="mt-6">
+          <h2 className="text-sm font-medium uppercase tracking-wide text-[var(--muted)]">At home</h2>
+          <ol className="mt-3 space-y-4">{homeActivities.map(renderActivity)}</ol>
+        </section>
+      )}
 
-              <p className="mt-2 text-sm">{a.instructions}</p>
-
-              {resource && (
-                <p className="mt-3 text-xs">
-                  <a href={resource.url ?? '#'} target="_blank" rel="noreferrer" className="underline">
-                    {resource.title}
-                  </a>
-                </p>
-              )}
-
-              {finding && (
-                <p className="mt-3 border-t border-[var(--border)] pt-3 text-xs text-[var(--muted)]">
-                  Why this:{' '}
-                  <Link href={`/findings/${finding.id}`} className="underline decoration-dotted">
-                    {finding.statement}
-                  </Link>
-                  {reportBySetId.has(finding.finding_set_id) ? null : (
-                    <span className="ml-1 italic">(from an earlier analysis)</span>
-                  )}
-                </p>
-              )}
-            </li>
-          );
-        })}
-      </ol>
+      {outsideActivities.length > 0 && (
+        <section className="mt-8">
+          <h2 className="text-sm font-medium uppercase tracking-wide text-[var(--muted)]">Outside</h2>
+          <ol className="mt-3 space-y-4">{outsideActivities.map(renderActivity)}</ol>
+        </section>
+      )}
 
       {canReview && <PlanReviewActions planId={plan.id} asParent={ownsPlan} />}
 

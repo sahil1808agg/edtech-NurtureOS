@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { LocationAutocomplete, type PickedLocation } from './LocationAutocomplete';
 
 export default function NewChildPage() {
   const router = useRouter();
   const [firstName, setFirstName] = useState('');
   const [dob, setDob] = useState('');
   const [grade, setGrade] = useState('');
+  const [location, setLocation] = useState<PickedLocation | null>(null);
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -20,7 +22,13 @@ export default function NewChildPage() {
     const res = await fetch('/api/children', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ firstName, dob, grade, consent }),
+      body: JSON.stringify({
+        firstName, dob, grade, consent,
+        address: location?.address ?? null,
+        lat: location?.lat ?? null,
+        lng: location?.lng ?? null,
+        placeId: location?.placeId ?? null,
+      }),
     });
 
     const body = await res.json().catch(() => ({}));
@@ -69,6 +77,14 @@ export default function NewChildPage() {
             onChange={(e) => setGrade(e.target.value)}
             className="mt-1 w-full rounded border border-[var(--border)] bg-transparent px-3 py-2 text-sm"
           />
+        </div>
+
+        <div>
+          <LocationAutocomplete onChange={setLocation} />
+          <p className="mt-1.5 text-xs text-[var(--muted)]">
+            Optional — pick the exact address or area so we can suggest real nearby classes and
+            activities. Skip it and home activities still work.
+          </p>
         </div>
 
         <div className="rounded-lg border border-[var(--border)] p-4">

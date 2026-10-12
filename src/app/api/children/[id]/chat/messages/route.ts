@@ -65,12 +65,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const system = buildOrchestratorSystemPrompt(childContext);
   const history: ChatTurnMessage[] = [...toChatHistory(priorMessages), { role: 'user', content }];
 
+  // One id for this whole turn — the orchestrator call, every agent it hands
+  // off to, and any tool-triggered model call (e.g. regenerate_plan) all log
+  // under it, so the observability dashboard can show them as one workflow.
+  // See migration 0014.
+  const requestId = crypto.randomUUID();
+
   const collectedToolResults: unknown[] = [];
   let turn;
   let iterations = 0;
 
   try {
-    turn = await callChatModel('chat_orchestrator', system, history, AGENT_TOOL_DEFINITIONS_FOR_MODEL, child.family_id);
+    turn = await callChatModel('chat_orchestrator', system, history, AGENT_TOOL_DEFINITIONS_FOR_MODEL, child.family_id, requestId);
 
     while (turn.message.toolCalls?.length && iterations < MAX_AGENT_ITERATIONS) {
       iterations += 1;
@@ -92,6 +98,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             messageId: userMessage.id,
             actorProfileId: user.id,
             childContext,
+            requestId,
           });
         }),
       );
@@ -102,12 +109,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
       history.push(turn.message);
       for (const [i, call] of calls.entries()) {
-        history.push({ role: 'tool', toolCallId: call.id, content: results[i].text });
+        history.push({ role: 'tool', toolCallId: call.id, toolName: call.name, content: results[i].text });
       }
 
-      turn = await callChatModel('chat_orchestrator', system, history, AGENT_TOOL_DEFINITIONS_FOR_MODEL, child.family_id);
+      turn = await callChatModel('chat_orchestrator', system, history, AGENT_TOOL_DEFINITIONS_FOR_MODEL, child.family_id, requestId);
     }
   } catch (err) {
+    console.error('[chat/messages] turn failed:', err);
     return NextResponse.json(
       { userMessage, error: err instanceof Error ? err.message : 'Chat model call failed' },
       { status: 502 },

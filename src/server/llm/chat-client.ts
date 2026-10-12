@@ -59,6 +59,7 @@ export async function callChatModel(
   history: ChatTurnMessage[],
   tools?: ToolDefinitionForModel[],
   familyId?: string,
+  requestId?: string,
 ): Promise<ChatCallResult> {
   const provider = resolveProvider(stage);
   const model = resolveModel(stage, provider);
@@ -76,7 +77,7 @@ export async function callChatModel(
         : await callOpenAICompatChat(provider as CompatProvider, model, system, history, tools);
 
     await logLlmRequest({
-      stage, provider, model: result.model, promptVersion: versionTag(stage), familyId,
+      stage, provider, model: result.model, promptVersion: versionTag(stage), familyId, requestId,
       status: 'ok', inputTokens: result.inputTokens, outputTokens: result.outputTokens,
       latencyMs: Date.now() - started,
       requestText, responseText: JSON.stringify({ content: result.message.content, toolCalls: result.message.toolCalls }),
@@ -85,7 +86,7 @@ export async function callChatModel(
   } catch (err: unknown) {
     const status = (err as { status?: number }).status;
     await logLlmRequest({
-      stage, provider, model, promptVersion: versionTag(stage), familyId,
+      stage, provider, model, promptVersion: versionTag(stage), familyId, requestId,
       status: 'error', errorCode: status ? `PROVIDER_ERROR_${status}` : 'PROVIDER_ERROR',
       latencyMs: Date.now() - started,
       requestText, responseText: err instanceof Error ? err.message : String(err),

@@ -25,11 +25,12 @@ export async function createReportNormaliseQueue(boss: PgBoss): Promise<void> {
 
 export interface ReportNormaliseJobData {
   reportId: string;
+  requestId?: string;
 }
 
 export async function registerReportNormaliseWorker(boss: PgBoss): Promise<void> {
   await boss.work<ReportNormaliseJobData>(QUEUE, { localConcurrency: 2 }, async ([job]) => {
-    const { reportId } = job.data;
+    const { reportId, requestId } = job.data;
     const report = await getReport(reportId);
     const extraction = await getExtractionOutput(reportId);
 
@@ -48,7 +49,7 @@ export async function registerReportNormaliseWorker(boss: PgBoss): Promise<void>
     const candidates = await getSkillCandidates(board);
     const rawLabels = [...new Set(extraction.cells.map(c => c.rawLabel))];
 
-    const result = await runNormalise({ board, programme: null, scaleId, candidates, rawLabels }, report.familyId);
+    const result = await runNormalise({ board, programme: null, scaleId, candidates, rawLabels }, report.familyId, requestId);
 
     if (!result.ok) {
       if (result.error.code === 'PROVIDER_ERROR' && result.error.retryable) {
@@ -98,6 +99,6 @@ export async function registerReportNormaliseWorker(boss: PgBoss): Promise<void>
 
     // Analyse is the last automatic stage: it ends at 'in_review', where a
     // human takes over. Nothing downstream of that is ever auto-enqueued.
-    await (await getBoss()).send(ANALYSE_QUEUE, { reportId });
+    await (await getBoss()).send(ANALYSE_QUEUE, { reportId, requestId });
   });
 }

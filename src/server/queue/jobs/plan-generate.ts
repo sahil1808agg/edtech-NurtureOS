@@ -1,5 +1,6 @@
 import type { PgBoss } from 'pg-boss';
 import { runPlan } from '../../pipeline/plan.js';
+import { resolveLocalActivities } from '../../pipeline/resolve-local-activities.js';
 import {
   getChild,
   ageMonthsFromDob,
@@ -9,8 +10,8 @@ import {
   getNextCycleNo,
   createPlan,
   savePlanActivities,
+  approvePlanDirectly,
 } from '../../db/plans.js';
-import { enqueueForReview } from '../../db/review.js';
 import { getConversationByChild } from '../../db/conversations.js';
 import { appendMessage } from '../../db/messages.js';
 import { buildPlanSummaryForChat } from '../../chat/summarize.js';
@@ -28,6 +29,7 @@ export async function createPlanGenerateQueue(boss: PgBoss): Promise<void> {
 export interface PlanGenerateJobData {
   childId: string;
   topicContext?: string | null;
+  requestId?: string;
 }
 
 // Triggered per child, not per report — there's no review console / publish
@@ -36,7 +38,7 @@ export interface PlanGenerateJobData {
 // [] here since nothing yet records check-in outcomes back onto plan_activities.
 export async function registerPlanGenerateWorker(boss: PgBoss): Promise<void> {
   await boss.work<PlanGenerateJobData>(QUEUE, { localConcurrency: 2 }, async ([job]) => {
-    const { childId, topicContext = null } = job.data;
+    const { childId, topicContext = null, requestId } = job.data;
 
     const child = await getChild(childId);
     const targetFindings = await getTargetFindings(childId);
@@ -48,6 +50,7 @@ export async function registerPlanGenerateWorker(boss: PgBoss): Promise<void> {
     const constraints = await getFamilyConstraints(child.familyId);
     const resourceCandidates = await getResourceCandidates();
     const cycleNo = await getNextCycleNo(childId);
+    const hasLocation = (child.lat != null && child.lng != null) || !!(child.city || child.pincode);
 
     const result = await runPlan({
       childAgeMonths: ageMonthsFromDob(child.dob),
@@ -56,7 +59,8 @@ export async function registerPlanGenerateWorker(boss: PgBoss): Promise<void> {
       topicContext,
       resourceCandidates,
       priorFailures: [],
-    }, child.familyId);
+      hasLocation,
+    }, child.familyId, requestId);
 
     if (!result.ok) {
       if (result.error.code === 'PROVIDER_ERROR' && result.error.retryable) {
@@ -64,6 +68,8 @@ export async function registerPlanGenerateWorker(boss: PgBoss): Promise<void> {
       }
       throw new Error(`plan generation failed for child ${childId}: ${JSON.stringify(result.error)}`);
     }
+
+    const activities = await resolveLocalActivities(result.value.activities, child);
 
     const planId = await createPlan({
       familyId: child.familyId,
@@ -74,11 +80,11 @@ export async function registerPlanGenerateWorker(boss: PgBoss): Promise<void> {
       promptVersion: result.meta.promptVersion,
     });
 
-    await savePlanActivities(planId, result.value.activities);
+    await savePlanActivities(planId, activities);
 
-    // A plan is parent-facing text naming a child, so it goes through the same
-    // human gate as findings. It stays 'draft' until a reviewer approves it.
-    await enqueueForReview('plan', planId);
+    // No review gate: approves immediately, same as chat's regenerate_plan
+    // (dispatch.ts) already does for the direct-apply path.
+    await approvePlanDirectly(planId);
 
     // This job is only ever queued from the legacy RequestPlan.tsx flow —
     // chat's regenerate_plan tool runs inline, not through this queue (see
@@ -90,7 +96,7 @@ export async function registerPlanGenerateWorker(boss: PgBoss): Promise<void> {
         conversationId: conversation.id,
         familyId: child.familyId,
         role: 'assistant',
-        content: buildPlanSummaryForChat(result.value.activities),
+        content: buildPlanSummaryForChat(activities, new Map(resourceCandidates.map(r => [r.id, r.title]))),
         status: 'complete',
       });
     }

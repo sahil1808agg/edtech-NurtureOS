@@ -26,13 +26,14 @@ export async function registerCheckinProcessWorker(boss: PgBoss): Promise<void> 
     const { checkinId } = job.data;
     const checkin = await getCheckin(checkinId);
     const totalActivities = await countPlanActivities(checkin.planId);
+    const requestId = crypto.randomUUID();
 
     const result = await runCheckin({
       activitiesDone: checkin.activitiesDone,
       totalActivities,
       note: checkin.note,
       concernRaised: checkin.concernRaised,
-    });
+    }, undefined, requestId);
 
     if (!result.ok) {
       if (result.error.code === 'PROVIDER_ERROR' && result.error.retryable) {

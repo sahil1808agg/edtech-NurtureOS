@@ -1,10 +1,8 @@
 /**
  * Formats pipeline output into a chat message. Pure formatting — no model
- * call. Describes current state plainly; does not claim something is final
- * when it is still sitting at in_review/draft, since this revision does not
- * change when/whether pipeline-produced findings and plans are published —
- * see docs/engineering/engineering-doc.md §4 and §7. (Chat's own direct-apply
- * tools are a separate, already-implemented path — see dispatch.ts.)
+ * call. Findings publish immediately now (no parent/ops review gate), so
+ * this describes them as final, not pending — see
+ * src/server/queue/jobs/report-analyse.ts.
  */
 
 export function buildFindingsSummaryForChat(
@@ -20,7 +18,7 @@ export function buildFindingsSummaryForChat(
     `I've been through that report — here's what stood out:`,
     ...lines,
     '',
-    "These are still waiting on your review before they're final — you can look them over on the report page, or ask me about any of them here.",
+    "I'm putting together a home-activity plan from these now — you can see the report in full, or ask me about any of them here.",
   ].join('\n');
 }
 
@@ -30,8 +28,21 @@ export function buildFailureMessageForChat(status: 'held' | 'failed'): string {
     : 'Something went wrong processing that report. Mind trying the upload again?';
 }
 
-export function buildPlanSummaryForChat(activities: { title: string; instructions: string }[]): string {
+export function buildPlanSummaryForChat(
+  activities: { title: string; instructions: string; kind: string; resourceId: string | null }[],
+  resourceTitleById: Map<string, string> = new Map(),
+): string {
   if (activities.length === 0) return "I put together a plan, but it came out empty — let me know if you'd like me to try again.";
-  const lines = activities.map(a => `- ${a.title}: ${a.instructions}`);
-  return ['Here\'s an updated plan:', ...lines, '', "Still waiting on your review before it's final."].join('\n');
+
+  const home = activities.filter(a => a.kind !== 'local');
+  const outside = activities.filter(a => a.kind === 'local');
+  const describe = (a: (typeof activities)[number]) => {
+    const resourceTitle = a.resourceId ? resourceTitleById.get(a.resourceId) : null;
+    const label = resourceTitle ? `${a.title} — ${resourceTitle}` : a.title;
+    return `- ${label}: ${a.instructions}`;
+  };
+  const section = (label: string, list: typeof activities) =>
+    list.length ? [`${label}:`, ...list.map(describe)] : [];
+
+  return ["Here's an updated plan:", ...section('At home', home), ...section('Outside', outside)].join('\n');
 }

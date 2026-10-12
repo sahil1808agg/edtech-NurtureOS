@@ -18,7 +18,9 @@
     "worker:stop": "node scripts/stop-workers.mjs",
     "enqueue": "node scripts/enqueue.mjs",
     "make:ops": "node scripts/make-ops-user.mjs",
-    "test:integration": "vitest run --config vitest.integration.config.ts"
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "eval:routing": "tsx evals/run_evals.ts",
+    "eval:grounding": "tsx evals/run_grounding_eval.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",
@@ -31,6 +33,7 @@
     "pg-boss": "^12.28.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-markdown": "^10.1.0",
     "recharts": "^2.15.4",
     "zod": "^3.23.8",
     "zod-to-json-schema": "^3.23.5"

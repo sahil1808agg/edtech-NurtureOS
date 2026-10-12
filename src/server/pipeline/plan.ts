@@ -4,11 +4,13 @@ import { buildPlanMessage, type PlanInput as PromptInput } from '../prompts/plan
 import type { StageResult } from './types.js';
 
 export interface PlanActivity {
-  kind: 'home' | 'resource';
+  kind: 'home' | 'resource' | 'local';
   title: string;
   instructions: string;
   addressesFindingId: string;
   resourceId: string | null;
+  /** Only for kind 'local' — what to search for nearby; resolved to a real place before saving (see resolve-local-activities.ts). */
+  localQuery: string | null;
 }
 
 export interface PlanOutput {
@@ -16,11 +18,12 @@ export interface PlanOutput {
 }
 
 const ActivitySchema = z.object({
-  kind: z.enum(['home', 'resource']),
+  kind: z.enum(['home', 'resource', 'local']),
   title: z.string(),
   instructions: z.string(),
   addressesFindingId: z.string(),
   resourceId: z.string().nullable(),
+  localQuery: z.string().nullable(),
 });
 
 // No upper bound for now. The plan is meant to reach every domain area the
@@ -32,7 +35,7 @@ const PlanOutputSchema = z.object({
 
 export type PlanInput = PromptInput;
 
-export async function runPlan(input: PlanInput, familyId?: string): Promise<StageResult<PlanOutput>> {
+export async function runPlan(input: PlanInput, familyId?: string, requestId?: string): Promise<StageResult<PlanOutput>> {
   const msg = buildPlanMessage(input);
-  return callModel('plan', msg, PlanOutputSchema, familyId);
+  return callModel('plan', msg, PlanOutputSchema, familyId, requestId);
 }

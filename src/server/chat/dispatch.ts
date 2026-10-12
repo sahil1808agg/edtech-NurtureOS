@@ -27,6 +27,7 @@ import { runPlan } from '../pipeline/plan.js';
 import { resolveLocalActivities } from '../pipeline/resolve-local-activities.js';
 import { enqueue } from '../queue/enqueue.js';
 import { searchNearbyPlaces } from '../places/google-places.js';
+import { buildPlanSummaryForChat } from './summarize.js';
 
 /**
  * Executes one tool call an agent made, auditing it, and never trusting the
@@ -153,13 +154,7 @@ async function regeneratePlan(ctx: ToolDispatchContext): Promise<ToolDispatchRes
   const after = { planId, cycleNo, activities };
   await writeAudit(ctx, 'regenerate_plan', 'plan', planId, null, after);
 
-  const home = activities.filter(a => a.kind !== 'local').map(a => `- ${a.title}`);
-  const outside = activities.filter(a => a.kind === 'local').map(a => `- ${a.title}`);
-  const sections = [
-    ...(home.length ? [`At home:`, ...home] : []),
-    ...(outside.length ? [`Outside:`, ...outside] : []),
-  ];
-  return { ok: true, summary: `Put together an updated plan:\n${sections.join('\n')}`, after };
+  return { ok: true, summary: buildPlanSummaryForChat(activities, new Map(resourceCandidates.map(r => [r.id, r.title]))), after };
 }
 
 async function editFindingStatement(args: { findingId: string; newStatement: string }, ctx: ToolDispatchContext): Promise<ToolDispatchResult> {

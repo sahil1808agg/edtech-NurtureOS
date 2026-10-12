@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { routeClient, currentUser } from '../../../lib/db/server';
 import { RequestPlan } from './RequestPlan';
+import { DeleteChildButton } from '../DeleteChildButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -107,8 +108,13 @@ export default async function ChildPage({ params }: { params: Promise<{ id: stri
     <main className="max-w-3xl">
       <Link href="/" className="text-xs underline text-[var(--muted)]">← All children</Link>
 
-      <h1 className="mt-3 text-2xl font-semibold tracking-tight">{child.first_name}</h1>
-      <p className="mt-1 text-sm text-[var(--muted)]">{child.grade} · {ageYears} years old</p>
+      <div className="mt-3 flex items-baseline justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">{child.first_name}</h1>
+          <p className="mt-1 text-sm text-[var(--muted)]">{child.grade} · {ageYears} years old</p>
+        </div>
+        <DeleteChildButton childId={child.id} name={child.first_name} redirectTo="/" />
+      </div>
 
       <section className="mt-8">
         <div className="flex items-baseline justify-between">

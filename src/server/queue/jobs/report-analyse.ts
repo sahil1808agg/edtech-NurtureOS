@@ -4,11 +4,13 @@ import { runCorroborate } from '../../pipeline/corroborate.js';
 import { citationGate } from '../../gates/citation.js';
 import { sufficiencyGate, type SufficiencyThresholds, DEFAULT_SUFFICIENCY } from '../../gates/sufficiency.js';
 import { getReport, updateReportStatus } from '../../db/reports.js';
-import { getObservations, getNarratives, createFindingSet, saveFinding } from '../../db/findings.js';
-import { enqueueForReview } from '../../db/review.js';
+import { getObservations, getNarratives, createFindingSet, publishFindingSet, saveFinding } from '../../db/findings.js';
+import { maybeQueuePlanGeneration } from '../../db/plans.js';
 import { getConversationByChild } from '../../db/conversations.js';
 import { getPendingMessageForReport, appendMessage, updateMessage } from '../../db/messages.js';
 import { buildFindingsSummaryForChat, buildFailureMessageForChat } from '../../chat/summarize.js';
+import { getBoss } from '../boss.js';
+import { QUEUE as PLAN_GENERATE_QUEUE } from './plan-generate.js';
 
 export const QUEUE = 'report.analyse';
 
@@ -22,6 +24,7 @@ export async function createReportAnalyseQueue(boss: PgBoss): Promise<void> {
 
 export interface ReportAnalyseJobData {
   reportId: string;
+  requestId?: string;
 }
 
 /**
@@ -61,7 +64,7 @@ function sufficiencyThresholdsFromEnv(): SufficiencyThresholds {
 // steps in sequence within one job instead: simpler, correct, not parallel.
 export async function registerReportAnalyseWorker(boss: PgBoss): Promise<void> {
   await boss.work<ReportAnalyseJobData>(QUEUE, { localConcurrency: 2 }, async ([job]) => {
-    const { reportId } = job.data;
+    const { reportId, requestId } = job.data;
     const report = await getReport(reportId);
     const observations = await getObservations(reportId);
     const narratives = await getNarratives(reportId);
@@ -78,14 +81,15 @@ export async function registerReportAnalyseWorker(boss: PgBoss): Promise<void> {
         modelDeployment: 'none — deterministic honesty path',
         promptVersion: 'none',
       });
-      // The honesty path is still parent-facing text, so it is reviewed too.
-      await enqueueForReview('finding_set', honestySetId);
-      await updateReportStatus(reportId, 'in_review');
+      // No review gate: the honesty path makes no claims about the child, so
+      // there's nothing for a parent to confirm — it publishes immediately.
+      await publishFindingSet(honestySetId);
+      await updateReportStatus(reportId, 'published');
       await postChatUpdate(reportId, report.familyId, report.childId, buildFindingsSummaryForChat([], true));
       return;
     }
 
-    const result = await runAnalyse({ childId: report.childId, reportId, observations }, report.familyId);
+    const result = await runAnalyse({ childId: report.childId, reportId, observations }, report.familyId, requestId);
 
     if (!result.ok) {
       if (result.error.code === 'PROVIDER_ERROR' && result.error.retryable) {
@@ -117,7 +121,7 @@ export async function registerReportAnalyseWorker(boss: PgBoss): Promise<void> {
       const corroboration = await runCorroborate({
         claimStatement: claim.statement,
         narratives: narratives.map(n => ({ id: n.id, subject: n.subject, text: n.text })),
-      }, report.familyId);
+      }, report.familyId, requestId);
 
       if (!corroboration.ok) {
         // A single claim failing to corroborate should not lose every other
@@ -135,12 +139,21 @@ export async function registerReportAnalyseWorker(boss: PgBoss): Promise<void> {
       saved.push({ kind: claim.kind, statement: claim.statement });
     }
 
-    // Gates passed, but nothing reaches a parent until a human approves it:
-    // the set stays 'draft' and the report sits at 'in_review' until the
-    // review console publishes it. REVIEW_REQUIRED is not read here — MVP has
-    // no path that skips review at all.
-    await enqueueForReview('finding_set', findingSetId);
-    await updateReportStatus(reportId, 'in_review');
+    // No review gate: gates (sufficiency/citation/corroboration) passed, so
+    // the set publishes immediately rather than waiting on a parent/ops
+    // decision. A plan starts right behind it, same as the old manual
+    // "approve" used to trigger — unless there's nothing usable to plan from
+    // (honesty path, or every candidate claim failed corroboration).
+    await publishFindingSet(findingSetId);
+    await updateReportStatus(reportId, 'published');
+
+    if (saved.length > 0) {
+      await maybeQueuePlanGeneration(report.childId, requestId, async (queue, data, options) => {
+        const boss = await getBoss();
+        return boss.send(queue, data, options);
+      });
+    }
+
     await postChatUpdate(reportId, report.familyId, report.childId, buildFindingsSummaryForChat(saved, honestyPath));
   });
 }

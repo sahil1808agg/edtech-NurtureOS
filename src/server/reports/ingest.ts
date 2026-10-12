@@ -83,7 +83,12 @@ export async function ingestReport(input: IngestReportInput): Promise<IngestRepo
   }
 
   await admin.from('reports').update({ storage_path: storagePath }).eq('id', report.id);
-  await enqueue('report.extract', { reportId: report.id });
+  // Generated once here, at the start of the whole pipeline, and carried
+  // through every job's payload (extract -> normalise -> analyse ->
+  // plan.generate) so every model call that report triggers shares one id —
+  // see migration 0014 and the observability dashboard's workflow view.
+  const requestId = crypto.randomUUID();
+  await enqueue('report.extract', { reportId: report.id, requestId });
 
   return { reportId: report.id, status: 'uploaded' };
 }

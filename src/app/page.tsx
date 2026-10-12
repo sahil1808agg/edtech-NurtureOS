@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { routeClient, currentUser } from '../lib/db/server';
 import { serviceClient } from '../lib/db/clients';
+import { DeleteChildButton } from './children/DeleteChildButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -128,6 +129,9 @@ export default async function Home() {
                       ? ` · latest: ${latest.term_label ?? 'report'} — ${STAGE_LABEL[latest.status] ?? latest.status}`
                       : ' · no reports yet'}
                   </p>
+                  <div className="mt-3 flex justify-end">
+                    <DeleteChildButton childId={c.id} name={c.first_name} />
+                  </div>
                 </li>
               );
             })}

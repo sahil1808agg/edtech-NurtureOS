@@ -7,7 +7,7 @@ export const PROMPT_VERSIONS = {
   normalise:   process.env.PROMPT_VERSION_NORMALISE   ?? '1',
   analyse:     process.env.PROMPT_VERSION_ANALYSE     ?? '2',
   corroborate: process.env.PROMPT_VERSION_CORROBORATE ?? '1',
-  plan:        process.env.PROMPT_VERSION_PLAN        ?? '2',
+  plan:        process.env.PROMPT_VERSION_PLAN        ?? '3',
   checkin:     process.env.PROMPT_VERSION_CHECKIN     ?? '2',
   // chatroute/chat are retired — replaced by the orchestrator + 3 agents
   // below. See docs/specs/08-orchestrator-chat.md.

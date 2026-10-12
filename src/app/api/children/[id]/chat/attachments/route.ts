@@ -32,6 +32,20 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const { reportId } = await ingestReport({ childId, familyId: child.family_id, file });
 
     const conversation = await getOrCreateConversation(childId, child.family_id);
+
+    // Represents what the parent actually uploaded in the thread — without
+    // this, only the assistant's "Looking at this now…" placeholder ever
+    // showed up, with no trace of the file itself. file.name is the only
+    // filename we have (reports stores a storage_path, not an original
+    // name), so it's carried on this message rather than looked up later.
+    const userMessage = await appendMessage({
+      conversationId: conversation.id,
+      familyId: child.family_id,
+      role: 'user',
+      content: file.name,
+      attachmentReportId: reportId,
+    });
+
     const pendingMessage = await appendMessage({
       conversationId: conversation.id,
       familyId: child.family_id,
@@ -41,7 +55,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       attachmentReportId: reportId,
     });
 
-    return NextResponse.json({ reportId, pendingMessage }, { status: 202 });
+    return NextResponse.json({ reportId, userMessage, pendingMessage }, { status: 202 });
   } catch (err) {
     if (err instanceof IngestValidationError) {
       return NextResponse.json({ error: err.message }, { status: err.status });

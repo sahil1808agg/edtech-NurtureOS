@@ -1,11 +1,11 @@
 {
-  "runAtIST": "2026-10-06 08-31-32 IST",
-  "runAt": "2026-10-06T03:01:32.626Z",
+  "runAtIST": "2026-10-10 18-27-07 IST",
+  "runAt": "2026-10-10T12:57:07.011Z",
   "summary": {
     "total": 12,
-    "passed": 12,
-    "failed": 0,
-    "passRate": 100
+    "passed": 10,
+    "failed": 2,
+    "passRate": 83.33333333333334
   },
   "results": [
     {
@@ -56,11 +56,9 @@
       "id": "report-001",
       "input": "What did the latest report say his strengths were?",
       "expectedAgent": "report_analysis_agent",
-      "actualAgents": [
-        "report_analysis_agent"
-      ],
-      "verdict": "PASS",
-      "reasoning": "Correctly routed to 'report_analysis_agent'.",
+      "actualAgents": [],
+      "verdict": "FAIL",
+      "reasoning": "Expected 'report_analysis_agent' but the orchestrator called no agent at all.",
       "model": "gpt-4o-2024-08-06"
     },
     {
@@ -123,10 +121,11 @@
       "input": "Mark the reading activity as declined, he really hates it.",
       "expectedAgent": "planning_agent",
       "actualAgents": [
+        "report_analysis_agent",
         "planning_agent"
       ],
-      "verdict": "PASS",
-      "reasoning": "Correctly routed to 'planning_agent'.",
+      "verdict": "FAIL",
+      "reasoning": "Expected 'planning_agent', got [report_analysis_agent, planning_agent].",
       "model": "gpt-4o-2024-08-06"
     },
     {

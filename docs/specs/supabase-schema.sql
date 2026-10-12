@@ -65,6 +65,10 @@ create table children (
   school_id   uuid references schools(id),
   city        text,
   pincode     text,
+  address     text,
+  lat         double precision,
+  lng         double precision,
+  place_id    text,
   created_at  timestamptz not null default now()
 );
 create index on children(family_id);
@@ -480,7 +484,7 @@ create table messages (
   content               text not null default '',
   tool_calls            jsonb,
   tool_results           jsonb,
-  attachment_report_id  uuid references reports(id),
+  attachment_report_id  uuid references reports(id) on delete set null,
   status                message_status not null default 'complete',
   route_classification  text,            -- 'grounded' | 'general' | 'mixed' — debugging/audit only
   prompt_version        text,
@@ -573,11 +577,15 @@ create table llm_request_log (
   -- insert — see src/server/db/llm-request-log.ts.
   request_text   text,
   response_text  text,
+  -- Correlates every call in one workflow (a report pipeline run, or a chat
+  -- message and whatever it triggers) — see migration 0014.
+  request_id     uuid,
   created_at     timestamptz not null default now()
 );
 create index on llm_request_log(created_at desc);
 create index on llm_request_log(stage, created_at desc);
 create index on llm_request_log(family_id) where family_id is not null;
+create index on llm_request_log(request_id) where request_id is not null;
 
 -- ============================================================
 -- ROW LEVEL SECURITY

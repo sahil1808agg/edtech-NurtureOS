@@ -104,6 +104,7 @@ export async function callModel<T>(
   msg: LlmMessage,
   schema: ZodSchema<T>,
   familyId?: string,
+  requestId?: string,
 ): Promise<StageResult<T>> {
   const started = Date.now();
   // Resolved here too (dispatch() resolves them again internally) purely so
@@ -119,7 +120,7 @@ export async function callModel<T>(
   } catch (err: unknown) {
     const status = (err as { status?: number }).status ?? 500;
     await logLlmRequest({
-      stage, provider, model, promptVersion: versionTag(stage), familyId,
+      stage, provider, model, promptVersion: versionTag(stage), familyId, requestId,
       status: 'error', errorCode: 'PROVIDER_ERROR', latencyMs: Date.now() - started,
       requestText, responseText: err instanceof Error ? err.message : String(err),
     });
@@ -142,7 +143,7 @@ export async function callModel<T>(
     parsed = JSON.parse(response.content);
   } catch {
     await logLlmRequest({
-      stage, provider, model: response.model, promptVersion: meta.promptVersion, familyId,
+      stage, provider, model: response.model, promptVersion: meta.promptVersion, familyId, requestId,
       status: 'error', errorCode: 'SCHEMA_INVALID', inputTokens: meta.inputTokens, outputTokens: meta.outputTokens,
       latencyMs: meta.latencyMs, requestText, responseText: response.content,
     });
@@ -152,7 +153,7 @@ export async function callModel<T>(
   const result = schema.safeParse(parsed);
   if (!result.success) {
     await logLlmRequest({
-      stage, provider, model: response.model, promptVersion: meta.promptVersion, familyId,
+      stage, provider, model: response.model, promptVersion: meta.promptVersion, familyId, requestId,
       status: 'error', errorCode: 'SCHEMA_INVALID', inputTokens: meta.inputTokens, outputTokens: meta.outputTokens,
       latencyMs: meta.latencyMs, requestText, responseText: response.content,
     });
@@ -160,7 +161,7 @@ export async function callModel<T>(
   }
 
   await logLlmRequest({
-    stage, provider, model: response.model, promptVersion: meta.promptVersion, familyId,
+    stage, provider, model: response.model, promptVersion: meta.promptVersion, familyId, requestId,
     status: 'ok', inputTokens: meta.inputTokens, outputTokens: meta.outputTokens, latencyMs: meta.latencyMs,
     requestText, responseText: response.content,
   });

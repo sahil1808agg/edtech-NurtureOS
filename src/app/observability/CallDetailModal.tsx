@@ -11,6 +11,7 @@ interface LlmRequestLogDetail {
   model: string;
   promptVersion: string | null;
   familyId: string | null;
+  requestId: string | null;
   status: 'ok' | 'error';
   errorCode: string | null;
   inputTokens: number | null;
@@ -66,6 +67,7 @@ export function CallDetailModal({ callId, onClose }: { callId: number; onClose: 
               <Field label="Provider / model" value={`${detail.provider}/${detail.model}`} />
               <Field label="Prompt version" value={detail.promptVersion ?? '—'} />
               <Field label="Family" value={detail.familyId ?? '—'} />
+              <Field label="Workflow" value={detail.requestId ?? '—'} />
               <Field label="Status" value={detail.status === 'ok' ? 'ok' : (detail.errorCode ?? 'error')} />
               <Field label="Tokens (in/out)" value={`${detail.inputTokens ?? '—'} / ${detail.outputTokens ?? '—'}`} />
               <Field label="Cost" value={detail.costUsd === null ? '—' : `$${detail.costUsd.toFixed(5)}`} />

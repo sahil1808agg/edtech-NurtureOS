@@ -25,6 +25,13 @@ export interface ChatToolCall {
   id: string;
   name: string;
   args: unknown;
+  /**
+   * Gemini-only: an opaque signature Gemini attaches to a functionCall part,
+   * which must be echoed back verbatim on the next turn's history or the
+   * API 400s ("Function call is missing a thought_signature..."). Other
+   * providers never set this — see providers/gemini.ts.
+   */
+  thoughtSignature?: string;
 }
 
 export interface ChatTurnMessage {
@@ -33,6 +40,13 @@ export interface ChatTurnMessage {
   content: string;
   /** Present on a role: 'tool' message — which call this is the result of. */
   toolCallId?: string;
+  /**
+   * Present on a role: 'tool' message — the name of the tool/agent that was
+   * called. Gemini's functionResponse needs this to match the pending
+   * functionCall by name (id alone isn't enough there); other providers
+   * match by id and ignore it.
+   */
+  toolName?: string;
   /** Present on a role: 'assistant' message when the model is calling tools instead of replying. */
   toolCalls?: ChatToolCall[];
 }
