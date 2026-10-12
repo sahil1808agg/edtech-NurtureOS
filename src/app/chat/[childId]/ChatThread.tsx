@@ -238,12 +238,19 @@ export function ChatThread({
       </div>
 
       <div className="mt-6 flex items-end gap-2 border-t border-[var(--border)] pt-4">
-        <label className="shrink-0 cursor-pointer rounded border border-[var(--border)] px-3 py-2 text-sm hover:border-[var(--accent)]">
-          Attach
+        <label
+          className={
+            sending
+              ? 'shrink-0 cursor-not-allowed rounded border border-[var(--border)] px-3 py-2 text-sm opacity-50'
+              : 'shrink-0 cursor-pointer rounded border border-[var(--border)] px-3 py-2 text-sm hover:border-[var(--accent)]'
+          }
+        >
+          {sending ? 'Uploading…' : 'Attach'}
           <input
             type="file"
             accept="application/pdf,image/jpeg,image/png"
             className="hidden"
+            disabled={sending}
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) sendAttachment(file);

@@ -6,9 +6,8 @@ import { sufficiencyGate, type SufficiencyThresholds, DEFAULT_SUFFICIENCY } from
 import { getReport, updateReportStatus } from '../../db/reports.js';
 import { getObservations, getNarratives, createFindingSet, publishFindingSet, saveFinding } from '../../db/findings.js';
 import { maybeQueuePlanGeneration } from '../../db/plans.js';
-import { getConversationByChild } from '../../db/conversations.js';
-import { getPendingMessageForReport, appendMessage, updateMessage } from '../../db/messages.js';
 import { buildFindingsSummaryForChat, buildFailureMessageForChat } from '../../chat/summarize.js';
+import { postChatUpdate } from '../../chat/pipeline-updates.js';
 import { getBoss } from '../boss.js';
 import { QUEUE as PLAN_GENERATE_QUEUE } from './plan-generate.js';
 
@@ -25,27 +24,6 @@ export async function createReportAnalyseQueue(boss: PgBoss): Promise<void> {
 export interface ReportAnalyseJobData {
   reportId: string;
   requestId?: string;
-}
-
-/**
- * Surfaces pipeline completion in an already-open chat tab — updates the
- * attachment's pending placeholder if the report came in through chat
- * (docs/specs/02-report-attachment.md), or posts a fresh message if the
- * child has a conversation but this report came from the legacy upload
- * page. Does nothing if neither exists (no chat ever opened for this
- * child). See docs/specs/05-pipeline-live-updates.md.
- */
-async function postChatUpdate(reportId: string, familyId: string, childId: string, content: string): Promise<void> {
-  const pending = await getPendingMessageForReport(reportId);
-  if (pending) {
-    await updateMessage(pending.id, { content, status: 'complete' });
-    return;
-  }
-
-  const conversation = await getConversationByChild(childId);
-  if (conversation) {
-    await appendMessage({ conversationId: conversation.id, familyId, role: 'assistant', content, status: 'complete' });
-  }
 }
 
 function sufficiencyThresholdsFromEnv(): SufficiencyThresholds {

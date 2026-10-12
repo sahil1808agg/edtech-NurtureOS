@@ -3,6 +3,8 @@ import { runExtract } from '../../pipeline/extract.js';
 import { getReport, updateReportStatus } from '../../db/reports.js';
 import { downloadReportFile } from '../../storage/reports.js';
 import { saveExtraction } from '../../db/extractions.js';
+import { buildFailureMessageForChat } from '../../chat/summarize.js';
+import { postChatUpdate } from '../../chat/pipeline-updates.js';
 import { getBoss } from '../boss.js';
 import { QUEUE as NORMALISE_QUEUE } from './report-normalise.js';
 
@@ -49,11 +51,13 @@ export async function registerReportExtractWorker(boss: PgBoss): Promise<void> {
         }
 
         await updateReportStatus(reportId, 'failed', JSON.stringify(result.error));
+        await postChatUpdate(reportId, report.familyId, report.childId, buildFailureMessageForChat('failed'));
         return;
       }
 
       await saveExtraction(reportId, report.familyId, result.value, result.meta);
       await updateReportStatus(reportId, 'extracted');
+      await postChatUpdate(reportId, report.familyId, report.childId, 'Making sense of the scores…', 'pending');
 
       // Advance the pipeline. Enqueued after the write commits, so a normalise
       // that starts immediately always sees this extraction.

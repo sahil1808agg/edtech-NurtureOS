@@ -2,6 +2,8 @@ import type { PgBoss } from 'pg-boss';
 import { runNormalise } from '../../pipeline/normalise.js';
 import { normaliseValue } from '../../../lib/ontology/scales.js';
 import { getReport, updateReportStatus } from '../../db/reports.js';
+import { buildFailureMessageForChat } from '../../chat/summarize.js';
+import { postChatUpdate } from '../../chat/pipeline-updates.js';
 import { getBoss } from '../boss.js';
 import { QUEUE as ANALYSE_QUEUE } from './report-analyse.js';
 import {
@@ -37,12 +39,14 @@ export async function registerReportNormaliseWorker(boss: PgBoss): Promise<void>
     const scaleId = extraction.scaleHint;
     if (!scaleId) {
       await updateReportStatus(reportId, 'failed', 'UNKNOWN_SCALE: extraction produced no scaleHint');
+      await postChatUpdate(reportId, report.familyId, report.childId, buildFailureMessageForChat('failed'));
       return;
     }
 
     const board = await getScaleBoard(scaleId);
     if (!board) {
       await updateReportStatus(reportId, 'failed', `UNKNOWN_SCALE: no scales row for "${scaleId}"`);
+      await postChatUpdate(reportId, report.familyId, report.childId, buildFailureMessageForChat('failed'));
       return;
     }
 
@@ -56,6 +60,7 @@ export async function registerReportNormaliseWorker(boss: PgBoss): Promise<void>
         throw new Error(`provider error ${result.error.status}, retrying`);
       }
       await updateReportStatus(reportId, 'failed', JSON.stringify(result.error));
+      await postChatUpdate(reportId, report.familyId, report.childId, buildFailureMessageForChat('failed'));
       return;
     }
 
@@ -96,6 +101,7 @@ export async function registerReportNormaliseWorker(boss: PgBoss): Promise<void>
 
     await saveObservations(reportId, observations);
     await updateReportStatus(reportId, 'normalised');
+    await postChatUpdate(reportId, report.familyId, report.childId, 'Working out what this means for your child…', 'pending');
 
     // Analyse is the last automatic stage: it ends at 'in_review', where a
     // human takes over. Nothing downstream of that is ever auto-enqueued.
