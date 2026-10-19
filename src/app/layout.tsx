@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import './globals.css';
 import { routeClient, currentUser } from '../lib/db/server';
+import { AppShell } from './AppShell';
 
 export const metadata: Metadata = {
   title: 'NurtureOS',
@@ -44,11 +45,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         {/* Wide enough for the report-beside-findings split; text-only pages
-            constrain themselves with their own max-width. */}
-        <div className="mx-auto max-w-6xl px-6 py-10">
-          <Nav />
-          {children}
-        </div>
+            constrain themselves with their own max-width. The chat thread
+            page opts out of this shell entirely — see AppShell. */}
+        <AppShell nav={<Nav />}>{children}</AppShell>
       </body>
     </html>
   );

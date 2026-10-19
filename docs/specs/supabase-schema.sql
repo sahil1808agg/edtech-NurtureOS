@@ -69,6 +69,7 @@ create table children (
   lat         double precision,
   lng         double precision,
   place_id    text,
+  board       text check (board is null or board in ('IB', 'CBSE', 'CAIE', 'CISCE', 'STATE')),
   created_at  timestamptz not null default now()
 );
 create index on children(family_id);

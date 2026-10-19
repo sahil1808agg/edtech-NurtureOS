@@ -31,7 +31,7 @@ parent message
      │
      ▼
 ORCHESTRATOR (reasoning tier, callChatModel, tool-calling)
-  tools: report_analysis_agent, planning_agent, generic_agent
+  tools: report_analysis_agent, planning_agent, profile_agent, generic_agent
      │
      ├─ calls report_analysis_agent(question) ──► REPORT AGENT (own callChatModel)
      │                                              tools: edit_finding_statement,
@@ -44,6 +44,10 @@ ORCHESTRATOR (reasoning tier, callChatModel, tool-calling)
      │                                       regenerate_plan, find_nearby_resources
      │    ◄── structured result + draft text ──┘
      │
+     ├─ calls profile_agent(question) ──► PROFILE AGENT (own callChatModel)
+     │                                      tools: update_child_profile
+     │    ◄── structured result + draft text ──┘
+     │
      └─ calls generic_agent(question) ──► GENERIC AGENT (own callChatModel, no tools)
           ◄── draft text ──┘
      │
@@ -52,7 +56,7 @@ orchestrator composes the final reply from whichever agent(s) it called,
 loop continues (max iterations) if it chains a second agent, then persists
 ```
 
-One parent turn can therefore cost up to 4 model calls (orchestrator + up to 3
+One parent turn can therefore cost up to 5 model calls (orchestrator + up to 4
 agents, though normally just 1) versus today's 2 (`chatroute` + `chat`). This is the
 direct, accepted cost of the tool-calling design — flagged explicitly since it's a
 real latency/spend increase a parent waits through and the observability dashboard
@@ -69,6 +73,7 @@ through a `callChatModel`-style path (multi-turn, tool-capable) — **not**
 | `chat_orchestrator` | reasoning | the 3 agents, as callable tools |
 | `chat_report_agent` | reasoning | `edit_finding_statement`, `exclude_finding`, `restore_finding`, `request_report_reanalysis` |
 | `chat_planning_agent` | reasoning | `edit_plan_activity`, `regenerate_plan`, `find_nearby_resources` (new) |
+| `chat_profile_agent` | reasoning | `update_child_profile`, `add_child` |
 | `chat_generic_agent` | reasoning | none |
 
 Each gets its own `LLM_<STAGE>_PROVIDER`/`LLM_MODEL_<STAGE>` override, same
@@ -88,6 +93,20 @@ pattern) but each `parameters` is just `{ question: string }` — the sub-agent 
 the parent's intent in its own words plus the same `ChildContext` (findings/plan
 summary) already loaded once per turn and threaded to every agent, not reloaded per
 agent call.
+
+**The agent also always gets the parent's own latest message, verbatim** —
+`AgentDispatchContext.latestUserMessage` (`orchestrator-dispatch.ts`), appended to
+`question` by `agentTurnContent()` as `"(The parent's own latest message, verbatim:
+\"...\")"`before it's sent to the agent. `question` is a fresh one-line paraphrase the
+orchestrator writes from its full conversation view each turn — reliable for the
+original request, but observed dropping nuance from a few turns back on a follow-up
+turn (a parent's bare "yes" confirming something an agent asked, summarized away into
+a restatement of the original request with no mention of the reply). The verbatim copy
+is a deterministic backstop for exactly that case: added after `add_child`'s consent
+re-confirmation flow hit it in practice (the agent correctly refused to act without
+being told consent was given — HARD RULES 3/4 held — it just kept not being told).
+Applies to every agent, not just profile_agent, since any agent that asks a follow-up
+question is equally exposed.
 
 Dispatch: `src/server/chat/orchestrator-dispatch.ts` (new). When the orchestrator
 calls `report_analysis_agent`/`planning_agent`/`generic_agent`, this runs the matching
@@ -173,6 +192,73 @@ blocking on the external call.
 **No city/pincode on file**: the tool declines gracefully (returns a result saying
 so) rather than searching with a blank location — the planning agent then just
 doesn't offer nearby options for that turn, home activities still work.
+
+## Profile agent
+
+`src/server/prompts/chat-profile-agent.ts` (new). Lets a parent update the
+child's name, date of birth, grade/class, curriculum board, or home location
+without leaving chat. Grounded on the child's full current profile
+(`db/children.ts:getChildProfile`), not the shared `ChildContext` (which only
+carries findings/plan) — loaded separately by `orchestrator-dispatch.ts`'s
+`runProfileAgent`, same pattern as the report agent's extra `reportCtx`.
+
+### `update_child_profile` (new tool)
+
+```ts
+export const UpdateChildProfileArgs = z.object({
+  firstName: z.string().min(1).max(100).optional(),
+  dob: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  grade: z.string().min(1).max(50).optional(),
+  board: z.enum(['IB', 'CBSE', 'CAIE', 'CISCE', 'STATE']).optional(),
+  location: z.string().min(2).max(300).optional(),  // free text, geocoded server-side
+}).refine(a => Object.values(a).some(v => v !== undefined));
+```
+
+`location` is whatever the parent typed ("we moved to Bandra West, Mumbai") —
+the model never produces lat/lng itself. `dispatch.ts`'s `updateChildProfile`
+resolves it via `geocodeAddress` (`google-places.ts`, new: a 1-result Places
+Text Search, same endpoint `searchNearbyPlaces` already uses). Unlike
+`find_nearby_resources` (read-only, always `ok: true` with a graceful
+fallback), a geocoding failure here returns `ok: false` — the parent asked
+for a specific change, so a bad address surfaces as an explicit error
+("couldn't find that, try a more specific address") rather than a silent
+no-op. `board` adds a `children.board` column (migration 0015), same
+vocabulary as the pre-existing but unused `schools.board`.
+
+This is also the fix for a child added via `/children/new` with no address
+(optional there), or from before the location-aware plan feature shipped —
+previously a dead end with no edit path; now also fixable from chat, not just
+`EditLocation.tsx` on `/children/[id]`.
+
+### `add_child` (new tool)
+
+```ts
+export const AddChildArgs = z.object({
+  firstName: z.string().min(1).max(100),
+  dob: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  grade: z.string().min(1).max(50),
+  board: z.enum(['IB', 'CBSE', 'CAIE', 'CISCE', 'STATE']).optional(),
+  location: z.string().min(2).max(300).optional(),
+  consent: z.literal(true),
+});
+```
+
+Adds a sibling under the conversation's own `family_id` — not `ctx.childId`,
+which this never touches. Mirrors `POST /api/children` exactly (same insert
+shape, same `grant_child_consent` RPC, same purposes), just reached from chat
+instead of `/children/new`.
+
+`consent` is `z.literal(true)`, not `z.boolean()` — passing `false` or
+omitting it both fail Zod validation before dispatch ever runs, the same hard
+gate the web form's checkbox enforces ("a child with no consent row is a
+child nothing can be done with"). The schema can enforce that `true` was
+*passed*; it cannot verify the `true` reflects a real yes from the parent
+rather than the model being too eager. That's enforced by
+`chat-profile-agent.md`'s system prompt instead: the agent must paraphrase
+the same consent language `/children/new` shows and get an explicit
+affirmative in the conversation before calling the tool with `consent: true`
+— this is a prompt-level control, not a code-level one, same trust boundary
+every other direct-apply tool in this spec already operates under.
 
 ## Generic agent
 

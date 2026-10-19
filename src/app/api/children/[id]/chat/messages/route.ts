@@ -98,6 +98,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             messageId: userMessage.id,
             actorProfileId: user.id,
             childContext,
+            latestUserMessage: content,
             requestId,
           });
         }),

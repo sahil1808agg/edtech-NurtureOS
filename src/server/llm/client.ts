@@ -25,6 +25,7 @@ const STAGE_TIER: Record<PromptKey, ModelTier> = {
   chat_orchestrator: 'reasoning',
   chat_report_agent: 'reasoning',
   chat_planning_agent: 'reasoning',
+  chat_profile_agent: 'reasoning',
   chat_generic_agent: 'reasoning',
 };
 

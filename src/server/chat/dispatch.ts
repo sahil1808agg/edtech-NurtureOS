@@ -9,6 +9,8 @@ import {
   UpdateFamilyInterestsArgs,
   RequestReportReanalysisArgs,
   FindNearbyResourcesArgs,
+  UpdateChildProfileArgs,
+  AddChildArgs,
 } from './tools.js';
 import { getFindingForEdit, updateFinding } from '../db/findings.js';
 import {
@@ -25,10 +27,11 @@ import {
   savePlanActivities,
   approvePlanDirectly,
 } from '../db/plans.js';
+import { getChildProfile, updateChildProfile as saveChildProfile } from '../db/children.js';
 import { runPlan } from '../pipeline/plan.js';
 import { resolveLocalActivities } from '../pipeline/resolve-local-activities.js';
 import { enqueue } from '../queue/enqueue.js';
-import { searchNearbyPlaces } from '../places/google-places.js';
+import { searchNearbyPlaces, geocodeAddress } from '../places/google-places.js';
 import { buildPlanSummaryForChat } from './summarize.js';
 
 /**
@@ -48,7 +51,7 @@ export interface ToolDispatchContext {
   messageId: string;
   actorProfileId: string;
   /** Which agent made this call — prefixes the audit_log action, e.g. "report_agent.edit_finding_statement". */
-  agentName: 'report_agent' | 'planning_agent';
+  agentName: 'report_agent' | 'planning_agent' | 'profile_agent';
   /** The chat turn's correlation id — carried onto any model call a tool makes (e.g. regenerate_plan's runPlan) so it groups with the turn that triggered it. See migration 0014. */
   requestId?: string;
 }
@@ -99,6 +102,10 @@ export async function dispatchTool(name: string, rawArgs: unknown, ctx: ToolDisp
       return updateFamilyInterests(parsed.data as ReturnType<(typeof UpdateFamilyInterestsArgs)['parse']>, ctx);
     case 'find_nearby_resources':
       return findNearbyResources(parsed.data as ReturnType<(typeof FindNearbyResourcesArgs)['parse']>, ctx);
+    case 'update_child_profile':
+      return updateChildProfile(parsed.data as ReturnType<(typeof UpdateChildProfileArgs)['parse']>, ctx);
+    case 'add_child':
+      return addChild(parsed.data as ReturnType<(typeof AddChildArgs)['parse']>, ctx);
   }
 }
 
@@ -270,4 +277,148 @@ async function findNearbyResources(args: { query: string }, ctx: ToolDispatchCon
   } catch {
     return { ok: true, summary: "Couldn't look up nearby places right now — falling back to a home activity instead." };
   }
+}
+
+/**
+ * `args.location` is free text the parent typed in chat, not a pre-resolved
+ * placeId (unlike EditLocation.tsx's picker) — it has to be geocoded before
+ * it's trustworthy enough to write, since find_nearby_resources and
+ * resolve-local-activities.ts both depend on lat/lng being real. Unlike
+ * findNearbyResources (read-only, always returns ok:true with a graceful
+ * fallback), a geocoding failure here must not silently write nothing while
+ * claiming success — the parent asked for a change, so a bad address comes
+ * back as an explicit error the agent can ask them to clarify.
+ */
+async function updateChildProfile(
+  args: { firstName?: string; dob?: string; grade?: string; board?: string; location?: string },
+  ctx: ToolDispatchContext,
+): Promise<ToolDispatchResult> {
+  if (args.dob && new Date(args.dob) > new Date()) {
+    return { ok: false, summary: '', error: { code: 'INVALID_DOB', message: 'that date of birth is in the future' } };
+  }
+
+  const before = await getChildProfile(ctx.childId);
+
+  let location: { address: string; lat: number; lng: number; placeId: string } | null = null;
+  if (args.location) {
+    try {
+      location = await geocodeAddress(args.location);
+    } catch {
+      return { ok: false, summary: '', error: { code: 'PLACES_ERROR', message: "couldn't look up that location right now" } };
+    }
+    if (!location) {
+      return { ok: false, summary: '', error: { code: 'LOCATION_NOT_FOUND', message: `couldn't find "${args.location}" — try a more specific address or area` } };
+    }
+  }
+
+  await saveChildProfile(ctx.childId, {
+    firstName: args.firstName,
+    dob: args.dob,
+    grade: args.grade,
+    board: args.board,
+    ...(location && { address: location.address, lat: location.lat, lng: location.lng, placeId: location.placeId }),
+  });
+
+  const after = {
+    firstName: args.firstName ?? before.firstName,
+    dob: args.dob ?? before.dob,
+    grade: args.grade ?? before.grade,
+    board: args.board ?? before.board,
+    address: location?.address ?? before.address,
+  };
+
+  const changes: string[] = [];
+  if (args.firstName) changes.push(`name to ${after.firstName}`);
+  if (args.dob) changes.push(`date of birth to ${after.dob}`);
+  if (args.grade) changes.push(`grade to ${after.grade}`);
+  if (args.board) changes.push(`board to ${after.board}`);
+  if (location) changes.push(`location to ${location.address}`);
+
+  await writeAudit(ctx, 'update_child_profile', 'child', ctx.childId, before, after);
+  return { ok: true, summary: `Updated ${changes.join(', ')}.`, before, after };
+}
+
+/**
+ * Creates a sibling under the same family as the conversation's own child —
+ * not ctx.childId, which this never touches. Mirrors POST /api/children
+ * exactly (same insert shape, same grant_child_consent RPC and
+ * purposes/method), just reached from chat instead of /children/new. The
+ * method string differs ('parent_chat' vs 'parent_web_form') so consent
+ * provenance stays accurate in the audit trail.
+ *
+ * args.consent is typed z.literal(true) by AddChildArgs — there is no
+ * "false" or "missing" case to handle here, a validation failure before this
+ * function is ever called. What this function cannot verify is whether that
+ * `true` reflects a real yes from the parent or the model being too eager;
+ * that's enforced by the agent's own system prompt, not by this code.
+ */
+async function addChild(
+  args: { firstName: string; dob: string; grade: string; board?: string; location?: string; consent: true },
+  ctx: ToolDispatchContext,
+): Promise<ToolDispatchResult> {
+  if (new Date(args.dob) > new Date()) {
+    return { ok: false, summary: '', error: { code: 'INVALID_DOB', message: 'that date of birth is in the future' } };
+  }
+
+  let location: { address: string; lat: number; lng: number; placeId: string } | null = null;
+  if (args.location) {
+    try {
+      location = await geocodeAddress(args.location);
+    } catch {
+      return { ok: false, summary: '', error: { code: 'PLACES_ERROR', message: "couldn't look up that location right now" } };
+    }
+    if (!location) {
+      return { ok: false, summary: '', error: { code: 'LOCATION_NOT_FOUND', message: `couldn't find "${args.location}" — try a more specific address or area` } };
+    }
+  }
+
+  const admin = serviceClient();
+  const { data: child, error: childError } = await admin
+    .from('children')
+    .insert({
+      family_id: ctx.familyId,
+      first_name: args.firstName,
+      dob: args.dob,
+      grade: args.grade,
+      board: args.board ?? null,
+      address: location?.address ?? null,
+      lat: location?.lat ?? null,
+      lng: location?.lng ?? null,
+      place_id: location?.placeId ?? null,
+    })
+    .select('id')
+    .single();
+
+  if (childError || !child) {
+    return { ok: false, summary: '', error: { code: 'DB_ERROR', message: `could not add the child: ${childError?.message}` } };
+  }
+
+  const { error: consentError } = await admin.rpc('grant_child_consent', {
+    p_child_id: child.id,
+    p_granted_by: ctx.actorProfileId,
+    p_method: 'parent_chat',
+    p_purposes: ['report_analysis', 'plan_generation'],
+  });
+
+  if (consentError) {
+    // A child we cannot act on is worse than no child — do not leave one behind.
+    await admin.from('children').delete().eq('id', child.id);
+    return { ok: false, summary: '', error: { code: 'CONSENT_ERROR', message: `could not record consent: ${consentError.message}` } };
+  }
+
+  const after = {
+    childId: child.id,
+    firstName: args.firstName,
+    dob: args.dob,
+    grade: args.grade,
+    board: args.board ?? null,
+    address: location?.address ?? null,
+  };
+
+  await writeAudit(ctx, 'add_child', 'child', child.id, null, after);
+  return {
+    ok: true,
+    summary: `Added ${args.firstName} (${args.grade})${location ? `, near ${location.address}` : ''} — consent recorded.`,
+    after,
+  };
 }

@@ -73,7 +73,7 @@ interface Filters {
 // current window (a stage with zero calls should still be selectable).
 const STAGES = [
   'extract', 'normalise', 'analyse', 'corroborate', 'plan', 'checkin',
-  'chat_orchestrator', 'chat_report_agent', 'chat_planning_agent', 'chat_generic_agent',
+  'chat_orchestrator', 'chat_report_agent', 'chat_planning_agent', 'chat_profile_agent', 'chat_generic_agent',
 ] as const;
 
 const RANGE_MS: Record<RangePreset, number> = {

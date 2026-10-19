@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { routeClient, currentUser } from '../../../lib/db/server';
 import { RequestPlan } from './RequestPlan';
 import { DeleteChildButton } from '../DeleteChildButton';
+import { EditLocation } from './EditLocation';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,7 +27,7 @@ export default async function ChildPage({ params }: { params: Promise<{ id: stri
 
   const { data: child } = await db
     .from('children')
-    .select('id, first_name, dob, grade')
+    .select('id, first_name, dob, grade, address')
     .eq('id', id)
     .eq('family_id', user.familyId)
     .maybeSingle();
@@ -112,6 +113,7 @@ export default async function ChildPage({ params }: { params: Promise<{ id: stri
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{child.first_name}</h1>
           <p className="mt-1 text-sm text-[var(--muted)]">{child.grade} · {ageYears} years old</p>
+          <EditLocation childId={child.id} address={child.address} />
         </div>
         <DeleteChildButton childId={child.id} name={child.first_name} redirectTo="/" />
       </div>

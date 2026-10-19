@@ -181,7 +181,7 @@ function AttachmentChip({ reportId, fileName }: { reportId: string; fileName: st
   return (
     <Link
       href={`/reports/${reportId}`}
-      className="ml-auto flex max-w-[80%] items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--foreground)] hover:border-[var(--accent)]"
+      className="ml-auto flex max-w-2xl items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm text-[var(--foreground)] hover:border-[var(--accent)]"
     >
       <PaperclipIcon />
       <span className="truncate">{fileName}</span>
@@ -311,7 +311,7 @@ function MessageBubble({ message, onViewEvidence }: { message: ChatMessage; onVi
 
   if (message.role === 'user') {
     return (
-      <div className="ml-auto max-w-[80%] rounded-2xl bg-[var(--accent)] px-4 py-2.5 text-sm text-white whitespace-pre-wrap">
+      <div className="ml-auto max-w-2xl rounded-2xl bg-[var(--accent)] px-4 py-2.5 text-sm text-white whitespace-pre-wrap">
         {message.content}
       </div>
     );
@@ -324,8 +324,8 @@ function MessageBubble({ message, onViewEvidence }: { message: ChatMessage; onVi
     <div
       className={
         isPending
-          ? 'max-w-[80%] rounded-2xl border border-dashed border-[var(--border)] px-4 py-2.5 text-sm text-[var(--muted)]'
-          : 'max-w-[80%] rounded-2xl border border-[var(--border)] px-4 py-2.5 text-sm'
+          ? 'max-w-2xl rounded-2xl border border-dashed border-[var(--border)] px-4 py-2.5 text-sm text-[var(--muted)]'
+          : 'max-w-2xl rounded-2xl border border-[var(--border)] px-4 py-2.5 text-sm'
       }
     >
       {isPending ? (
@@ -508,7 +508,7 @@ export function ChatThread({
 
   return (
     <div className={evidenceReport ? 'mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start' : 'mt-6'}>
-      <div className={evidenceReport ? undefined : 'max-w-2xl'}>
+      <div>
         {error && <p className="mb-3 text-sm text-red-600" role="alert">{error}</p>}
 
         <div className="space-y-3">

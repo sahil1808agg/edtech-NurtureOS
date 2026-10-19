@@ -65,7 +65,14 @@ export async function registerReportAnalyseWorker(boss: PgBoss): Promise<void> {
       // there's nothing for a parent to confirm — it publishes immediately.
       await publishFindingSet(honestySetId);
       await updateReportStatus(reportId, 'published');
-      await postChatUpdate(reportId, report.familyId, report.childId, buildFindingsSummaryForChat([], true));
+      await postChatUpdate(
+        reportId,
+        report.familyId,
+        report.childId,
+        buildFindingsSummaryForChat([], true),
+        'complete',
+        { report: { id: reportId, sourceType: report.sourceType } },
+      );
       return;
     }
 
@@ -143,6 +150,13 @@ export async function registerReportAnalyseWorker(boss: PgBoss): Promise<void> {
       });
     }
 
-    await postChatUpdate(reportId, report.familyId, report.childId, buildFindingsSummaryForChat(saved, honestyPath));
+    await postChatUpdate(
+      reportId,
+      report.familyId,
+      report.childId,
+      buildFindingsSummaryForChat(saved, honestyPath),
+      'complete',
+      { report: { id: reportId, sourceType: report.sourceType } },
+    );
   });
 }

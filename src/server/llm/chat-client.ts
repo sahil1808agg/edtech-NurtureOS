@@ -12,7 +12,7 @@ type CompatProvider = 'openai' | 'grok' | 'kimi';
  * the orchestrator and the three agents it can hand a turn to. Replaces
  * 'chatroute'/'chat'. See docs/specs/08-orchestrator-chat.md.
  */
-export type ChatStage = 'chat_orchestrator' | 'chat_report_agent' | 'chat_planning_agent' | 'chat_generic_agent';
+export type ChatStage = 'chat_orchestrator' | 'chat_report_agent' | 'chat_planning_agent' | 'chat_profile_agent' | 'chat_generic_agent';
 
 // None of these stages go through callModel()/STAGE_TIER in client.ts — they
 // are multi-turn, tool-capable calls, routed through this file instead. Only

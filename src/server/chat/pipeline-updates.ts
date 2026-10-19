@@ -13,6 +13,12 @@ import { getPendingMessageForReport, appendMessage, updateMessage } from '../db/
  * parent watching the thread sees it actually moving rather than a single
  * unchanging "thinking" bubble for the full couple of minutes the pipeline
  * can take. Pass 'complete' (the default) for the terminal outcome.
+ *
+ * `toolResults` carries the report reference (`{ report: { id, sourceType } }`,
+ * matching the orchestrator's own shape — see chat-orchestrator.ts) on the
+ * terminal success update, which is what ChatThread's findReportEvidence
+ * reads to show "View evidence" / the citations panel. Omit it on failure
+ * and intermediate updates — there's nothing to show evidence for yet.
  * See docs/specs/05-pipeline-live-updates.md.
  */
 export async function postChatUpdate(
@@ -21,10 +27,11 @@ export async function postChatUpdate(
   childId: string,
   content: string,
   status: 'pending' | 'complete' = 'complete',
+  toolResults?: unknown,
 ): Promise<void> {
   const pending = await getPendingMessageForReport(reportId);
   if (pending) {
-    await updateMessage(pending.id, { content, status });
+    await updateMessage(pending.id, { content, status, ...(toolResults !== undefined ? { toolResults } : {}) });
     return;
   }
 
@@ -34,6 +41,13 @@ export async function postChatUpdate(
 
   const conversation = await getConversationByChild(childId);
   if (conversation) {
-    await appendMessage({ conversationId: conversation.id, familyId, role: 'assistant', content, status: 'complete' });
+    await appendMessage({
+      conversationId: conversation.id,
+      familyId,
+      role: 'assistant',
+      content,
+      status: 'complete',
+      ...(toolResults !== undefined ? { toolResults } : {}),
+    });
   }
 }

@@ -95,3 +95,54 @@ export async function searchNearbyPlaces(
         : null,
   }));
 }
+
+export interface GeocodedLocation {
+  address: string;
+  lat: number;
+  lng: number;
+  placeId: string;
+}
+
+/**
+ * Resolves free text (an address, area, or landmark) to one best-match real
+ * place — for the profile agent's update_child_profile tool, where the
+ * parent describes a new location in chat rather than picking a suggestion
+ * from LocationAutocomplete's dropdown (the model can only pass text, not a
+ * placeId). Returns null rather than throwing when nothing matches — that's
+ * an ordinary "try a more specific address" outcome, not an API failure.
+ *
+ * @throws if GOOGLE_PLACES_API_KEY is unset or the API call itself fails —
+ * callers must catch this, same as searchNearbyPlaces.
+ */
+export async function geocodeAddress(query: string): Promise<GeocodedLocation | null> {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+  if (!apiKey) throw new Error('GOOGLE_PLACES_API_KEY is not set');
+
+  const res = await fetch(PLACES_TEXT_SEARCH_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': apiKey,
+      'X-Goog-FieldMask': 'places.id,places.formattedAddress,places.location',
+    },
+    body: JSON.stringify({ textQuery: query, maxResultCount: 1 }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new Error(`Places API error ${res.status}: ${body.slice(0, 500)}`);
+  }
+
+  const data = (await res.json()) as {
+    places?: { id?: string; formattedAddress?: string; location?: { latitude?: number; longitude?: number } }[];
+  };
+  const place = data.places?.[0];
+  if (!place?.id || place.location?.latitude == null || place.location?.longitude == null) return null;
+
+  return {
+    address: place.formattedAddress ?? query,
+    lat: place.location.latitude,
+    lng: place.location.longitude,
+    placeId: place.id,
+  };
+}
