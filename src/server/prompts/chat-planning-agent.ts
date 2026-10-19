@@ -17,5 +17,6 @@ export function buildPlanningAgentSystemPrompt(ctx: ChildContext): string {
     childName: ctx.childName,
     activeFindingsSummary: ctx.activeFindingsSummary,
     currentPlanSummary: ctx.currentPlanSummary,
+    standingPreferences: ctx.standingPreferences,
   });
 }

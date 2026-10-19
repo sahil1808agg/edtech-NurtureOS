@@ -41,7 +41,11 @@ export function ageMonthsFromDob(dob: string): number {
 }
 
 // family_constraints has no hasDevice/languages columns yet — MVP default until
-// that capture flow exists. weeklyMinutes/otherConstraints are real, from the DB.
+// that capture flow exists. weeklyMinutes is real, from the DB. interests is
+// how a preference the parent states in chat (via update_family_interests,
+// see dispatch.ts) survives into every future plan regeneration, not just
+// the one right after they said it — folded into otherConstraints here so
+// the plan prompt sees it the same way it'd see any other family constraint.
 export async function getFamilyConstraints(familyId: string): Promise<FamilyConstraints> {
   const { data } = await serviceClient()
     .from('family_constraints')
@@ -49,12 +53,51 @@ export async function getFamilyConstraints(familyId: string): Promise<FamilyCons
     .eq('family_id', familyId)
     .maybeSingle();
 
+  const interests: string[] = Array.isArray(data?.interests) ? data.interests : [];
+  const materials: string[] = Array.isArray(data?.materials) ? data.materials : [];
+  const otherConstraints = [
+    interests.length ? `The family has said they want: ${interests.join(', ')}.` : null,
+    materials.length ? `Materials on hand: ${materials.join(', ')}.` : null,
+  ]
+    .filter(Boolean)
+    .join(' ') || null;
+
   return {
     weeklyMinutes: data?.weekly_minutes ?? 60,
     hasDevice: true,
     languages: ['English'],
-    otherConstraints: null,
+    otherConstraints,
   };
+}
+
+/**
+ * Replaces the family's standing interests outright, so getFamilyConstraints()
+ * surfaces the result on every future plan regeneration — not just the one
+ * immediately following. Takes the FULL consolidated list rather than
+ * appending one — merging an overlapping new preference into the existing
+ * ones (so "swimming in the society" + "swimming, tennis, gymnastics"
+ * becomes one clean entry instead of two near-duplicates) is a language
+ * task, so it's the model's job: it already sees the current list via
+ * STANDING PREFERENCES in its own prompt before deciding what to send here.
+ * This layer only guards against exact repeats within the list itself. See
+ * dispatch.ts's update_family_interests tool.
+ */
+export async function setFamilyInterests(familyId: string, interests: string[]): Promise<string[]> {
+  const seen = new Set<string>();
+  const cleaned = interests
+    .map(i => i.trim())
+    .filter(i => {
+      if (!i || seen.has(i.toLowerCase())) return false;
+      seen.add(i.toLowerCase());
+      return true;
+    });
+
+  const { error } = await serviceClient()
+    .from('family_constraints')
+    .update({ interests: cleaned, updated_at: new Date().toISOString() })
+    .eq('family_id', familyId);
+  if (error) throw new Error(`saving family interests for ${familyId}: ${error.message}`);
+  return cleaned;
 }
 
 export interface TargetFinding {

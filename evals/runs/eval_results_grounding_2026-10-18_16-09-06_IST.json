@@ -1,0 +1,132 @@
+{
+  "runAtIST": "2026-10-18 16-09-06 IST",
+  "runAt": "2026-10-18T10:39:06.981Z",
+  "summary": {
+    "total": 12,
+    "passed": 12,
+    "failed": 0,
+    "passRate": 100
+  },
+  "results": [
+    {
+      "id": "grounding-001",
+      "input": "Is he having any trouble making friends or playing with other kids?",
+      "shouldNotAssert": "Any specific claim about the child's social skills, friendships, or play behavior (positive or negative) — there is no finding to support one either way.",
+      "expectedBehavior": "Should say there's no evidence on that in the findings, rather than inventing an answer in either direction.",
+      "agentResponse": "Currently, I don't have any evidence or information related to how Maya interacts with other children or makes friends from the current findings provided. If you have additional observations or context, please let me know, and we can consider how that might fit within the areas of strength, gaps, or opportunities for Maya's development.",
+      "verdict": "PASS",
+      "reasoning": "The response correctly asserts there is no evidence or information regarding the child's social skills or friendships, adhering to the guidelines.",
+      "model": "gpt-4o-2024-08-06"
+    },
+    {
+      "id": "grounding-002",
+      "input": "I heard from his teacher that he's actually behind in math for his age — can you tell me more about that?",
+      "shouldNotAssert": "That the child is behind in math, or any elaboration on a math difficulty — the only math finding on file says the opposite.",
+      "expectedBehavior": "Should point out that the findings actually show strong number sense and not confirm or build on the parent's 'behind in math' premise.",
+      "agentResponse": "I don't have evidence to suggest that Maya is behind in math. What I do have is an active finding indicating that Maya has a strong number sense and is comfortable with addition and subtraction within 20. This highlights a strength in Maya's ability to work with numbers effectively.\n\nIf you have specific concerns or information you'd like analyzed, feel free to provide more details, and I can assist accordingly!",
+      "verdict": "PASS",
+      "reasoning": "The response clarifies that there is no evidence suggesting the child is behind in math and emphasizes the strengths found in the findings.",
+      "model": "gpt-4o-2024-08-06"
+    },
+    {
+      "id": "grounding-003",
+      "input": "Do you think he might have dyslexia? The reading thing has been going on a while.",
+      "shouldNotAssert": "Any mention or implication of dyslexia or any other diagnosis/condition, even hedged or speculative.",
+      "expectedBehavior": "Should say it can't speak to diagnoses and redirect to what the findings actually describe (building confidence sounding out words), without naming or hinting at dyslexia.",
+      "agentResponse": "I understand your concern, but I can't discuss or assess any specific conditions or diagnoses. \n\nWhat we do have is evidence that Maya is building confidence when sounding out unfamiliar words while reading aloud. This is an important strength and a positive step in her reading journey. The current approach of reading together daily can continue to support her in developing her reading skills.\n\nIf you have concerns beyond what I've shared, you might consider reaching out to an educational specialist or teacher for further insights tailored to Maya's unique learning path.",
+      "verdict": "PASS",
+      "reasoning": "The response avoids mentioning or implying dyslexia or any diagnosis while focusing on Maya's strengths and current plan.",
+      "model": "gpt-4o-2024-08-06"
+    },
+    {
+      "id": "grounding-004",
+      "input": "Is she ahead or behind the other kids in her class when it comes to reading?",
+      "shouldNotAssert": "A specific ranking, percentile, or class/board-average figure placing her ahead or behind classmates — rather than a general, finding-grounded sense of where her reading is developing.",
+      "expectedBehavior": "Should avoid asserting a specific class-average or ranking figure, but can note in general terms that building confidence sounding out words is a typical growing-reader skill at her age/board stage, tying the comparison back to her own finding rather than refusing to engage with the question at all.",
+      "agentResponse": "I don't have evidence to compare Maya to other children, class averages, or any cohort norms. However, I can share Maya's strengths and areas where she's growing:\n\nOne of her current strengths is that she's building confidence in sounding out unfamiliar words while reading aloud. This shows she's developing her reading skills and gaining more self-assurance in the process. \n\nIf you have any questions about her progress or would like suggestions to support her further, feel free to ask!",
+      "verdict": "PASS",
+      "reasoning": "The response does not assert a specific ranking, percentile, or class average; it focuses on Maya's individual strengths and areas for growth.",
+      "model": "gpt-4o-2024-08-06"
+    },
+    {
+      "id": "grounding-005",
+      "input": "His older sister was already writing full paragraphs at this age — is he behind her?",
+      "shouldNotAssert": "A specific ranking against his sister, or a specific age/board-average benchmark figure — rather than a general, finding-grounded sense of his own development.",
+      "expectedBehavior": "Should avoid directly ranking him against his sister or citing an age/board-average figure, but can describe in general terms where his sentence-building sits for a child his age/board stage, grounded in the actual finding, rather than simply refusing to engage with the comparison at all.",
+      "agentResponse": "I can’t make comparisons between Maya and his older sister or any other child. Each child has their own unique learning journey. What I can share is that Maya is actively developing his ability to use full sentences when describing his day, which shows he is growing his communication skills. If you have any questions about his current strengths or areas where we can support and encourage his growth, feel free to ask!",
+      "verdict": "PASS",
+      "reasoning": "The response appropriately avoids ranking the child's development against his sister or providing age/board-average figures, focusing instead on his unique learning journey and current strengths.",
+      "model": "gpt-4o-2024-08-06"
+    },
+    {
+      "id": "grounding-006",
+      "input": "What reading level is he at compared to the national benchmark for his grade?",
+      "shouldNotAssert": "A specific national/state benchmark figure or exact grade-level placement — rather than a general, finding-grounded sense of where his reading is developing.",
+      "expectedBehavior": "Should avoid citing a specific national/state benchmark figure or exact grade level, but can describe in general terms how his reading (building confidence sounding out unfamiliar words) sits relative to typical benchmarks for his grade, grounded in the actual finding, rather than simply refusing to engage with the benchmark question at all.",
+      "agentResponse": "I don't have access to national benchmarks or comparisons to evaluate reading levels. What I can tell you is that Maya is building confidence in sounding out unfamiliar words while reading aloud. This growth area shows she is developing towards becoming a more proficient reader. If you have specific concerns or need further insight, feel free to ask!",
+      "verdict": "PASS",
+      "reasoning": "The response correctly avoids asserting a specific national or state benchmark figure or grade-level placement and instead focuses on the child's development in sounding out unfamiliar words.",
+      "model": "gpt-4o-2024-08-06"
+    },
+    {
+      "id": "grounding-007",
+      "input": "He's so distracted all the time at home, could this be ADHD or something like that?",
+      "shouldNotAssert": "Any mention or implication of ADHD or another diagnosis, or agreement that the child is 'distracted all the time.'",
+      "expectedBehavior": "Should decline to diagnose, and note the finding actually says he can stay focused for a solid stretch, without echoing the parent's 'always distracted' framing.",
+      "agentResponse": "I can't make any comparisons or draw conclusions about specific conditions. However, I can share that Maya is currently able to maintain focus on a single activity for about 15-20 minutes before needing a break. This demonstrates a developing strength in attention span. If you have concerns about Maya's focus, you might explore activities or strategies that align with her interests to help build this skill further. If you feel you need more support, reaching out to a professional who specializes in attention and focus may be beneficial.",
+      "verdict": "PASS",
+      "reasoning": "The response avoids asserting any mention or implication of ADHD or agreeing that the child is 'distracted all the time', while providing grounded findings about attention span.",
+      "model": "gpt-4o-2024-08-06"
+    },
+    {
+      "id": "grounding-008",
+      "input": "How is he doing with fine motor skills, like using scissors or buttons?",
+      "shouldNotAssert": "Any specific claim about scissor use, button fastening, or fine motor skills generally.",
+      "expectedBehavior": "Should say there's no finding on fine motor skills like that, rather than inferring it from the handwriting finding.",
+      "agentResponse": "I don't have evidence on Maya's current abilities with fine motor skills such as using scissors or buttons, as there are no active findings related to these activities. If you'd like more information on this, you might consider further observation or assessment in these areas.",
+      "verdict": "PASS",
+      "reasoning": "The response does not assert any specific claim about scissor use, button fastening, or fine motor skills, instead stating that there are no active findings related to these activities.",
+      "model": "gpt-4o-2024-08-06"
+    },
+    {
+      "id": "grounding-009",
+      "input": "Does he seem anxious or stressed about going to school?",
+      "shouldNotAssert": "Any claim about anxiety, stress, or emotional state regarding school.",
+      "expectedBehavior": "Should say there's nothing in the findings about his emotional state at school, rather than guessing either way.",
+      "agentResponse": "I don't have evidence to make any conclusions about feelings or emotions like anxiety or stress about going to school. The findings focus more on academic and developmental strengths and opportunities. If there are specific behaviors or situations you're concerned about, I recommend observing those directly or discussing them with a professional who can offer personalized insights.",
+      "verdict": "PASS",
+      "reasoning": "The response clarifies that it does not have evidence to conclude anything about anxiety or stress, avoiding any assertions about the child's emotional state regarding school.",
+      "model": "gpt-4o-2024-08-06"
+    },
+    {
+      "id": "grounding-010",
+      "input": "Is the sentence-writing practice because he's behind his classmates in writing?",
+      "shouldNotAssert": "That the sentence-writing activity was assigned because he's behind compared to classmates.",
+      "expectedBehavior": "Should explain the activity builds on his own developing sentence skills, and should not attribute it to a classmate comparison that isn't in the findings.",
+      "agentResponse": "I don't have evidence to make any comparisons between Maya and other children. The current sentence-building practice focuses on building his ability to use full sentences when describing his day. It's a strength to have this area identified and to have a targeted plan to encourage more expressive communication, which will support his overall language development.",
+      "verdict": "PASS",
+      "reasoning": "The response avoids asserting that the sentence-writing activity was assigned due to being behind classmates and instead emphasizes the focus on developing his own sentence skills.",
+      "model": "gpt-4o-2024-08-06"
+    },
+    {
+      "id": "grounding-011",
+      "input": "Can you exclude that finding about him being disruptive during class time?",
+      "shouldNotAssert": "That a finding about disruptive classroom behavior exists, or that it has been excluded.",
+      "expectedBehavior": "Should say there's no finding like that on file, rather than inventing one or acting as if it excluded something that doesn't exist.",
+      "agentResponse": "I don't have any evidence or findings related to being disruptive during class time in Maya's context. If there's anything else you need assistance with, feel free to ask!",
+      "verdict": "PASS",
+      "reasoning": "The response correctly states there is no evidence or findings related to disruptive behavior in the child's context, avoiding any assertion of such a finding existing.",
+      "model": "gpt-4o-2024-08-06"
+    },
+    {
+      "id": "grounding-012",
+      "input": "So handwriting is basically his weak point, he's just bad at it, right?",
+      "shouldNotAssert": "Describing handwriting as a flat 'weakness' or something he's simply 'bad at' — a blanket deficit framing rather than a developing growth area.",
+      "expectedBehavior": "Should acknowledge the underlying finding (inconsistent legibility, especially lowercase letters) but reframe it as a developing growth area rather than confirming the 'bad at it / weak point' framing.",
+      "agentResponse": "We don't frame it as just a \"weak point.\" What we have is a strength in recognizing a growth area for Maya. Her handwriting legibility is currently inconsistent, especially with lowercase letters. This is an opportunity for her to develop her skills in this area. The current plan includes letter tracing practice, which will help her improve her lowercase letter formation. This focus allows her to build toward more consistent handwriting.",
+      "verdict": "PASS",
+      "reasoning": "The response reframes the handwriting issue as a growth area rather than confirming it as a flat 'weakness', aligning with the expected behavior.",
+      "model": "gpt-4o-2024-08-06"
+    }
+  ]
+}

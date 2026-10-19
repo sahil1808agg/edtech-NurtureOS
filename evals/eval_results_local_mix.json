@@ -1,0 +1,148 @@
+{
+  "runAtIST": "2026-10-18 22-48-43 IST",
+  "runAt": "2026-10-18T17:18:43.495Z",
+  "summary": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0,
+    "passRate": 100
+  },
+  "results": [
+    {
+      "id": "local-mix-001",
+      "description": "Rich domain spread (literacy, math, physical, creative/music), no standing preference, location on file — should produce at least 2 'local' activities, per the prompt's own 'aim for 2-3 across domains' rule.",
+      "verdict": "PASS",
+      "reasoning": "Got 2 \"local\" activity(ies), within expected range [2, ∞].",
+      "localCount": 2,
+      "activities": [
+        {
+          "kind": "local",
+          "title": "Library Reading Expedition",
+          "instructions": "Visit a local library story session or explore the early reader section together. Pick out two or three illustrated books that match your child's interests. Encourage your child to point to unfamiliar words and break them down sound by sound, offering patient encouragement as they blend the sounds aloud. Celebrate each word they decode successfully.",
+          "addressesFindingId": "f1111111-1111-1111-1111-111111111111",
+          "resourceId": null,
+          "localQuery": "children's library storytime"
+        },
+        {
+          "kind": "home",
+          "title": "Two-Digit Strategy Showcase",
+          "instructions": "Write out a few two-digit addition and subtraction problems on paper slips (such as 42 + 25 or 58 - 23). Take turns choosing a slip and solving it. Ask your child to explain two different ways to find the answer, such as using an open number line, splitting numbers into tens and ones, or counting on. Discuss together which calculation method felt most comfortable for each problem.",
+          "addressesFindingId": "f2222222-2222-2222-2222-222222222222",
+          "resourceId": null,
+          "localQuery": null
+        },
+        {
+          "kind": "local",
+          "title": "Balance and Movement Circuit",
+          "instructions": "Attend a structured children's movement or beginner gymnastics session where balance beams, stepping mats, and soft obstacles are available. Guide your child to focus on deliberate, controlled movements, such as walking along a low balance line or holding a steady one-footed pose for five seconds. Encourage their steady posture and body awareness through each stage of the circuit.",
+          "addressesFindingId": "f3333333-3333-3333-3333-333333333333",
+          "resourceId": null,
+          "localQuery": "kids gymnastics class"
+        },
+        {
+          "kind": "home",
+          "title": "Three-Stage Postcard Collage",
+          "instructions": "Select a compact, bite-sized craft project, such as decorating a postcard-sized cardboard scene. Divide the craft into three distinct, manageable stages: sketching the simple shapes, cutting or tearing colored paper pieces, and gluing them down. Work side-by-side and celebrate completing each stage before moving to the next. Display the finished artwork proudly once completed.",
+          "addressesFindingId": "f4444444-4444-4444-4444-444444444444",
+          "resourceId": null,
+          "localQuery": null
+        }
+      ],
+      "model": "gemini-3.8-flash"
+    },
+    {
+      "id": "local-mix-002",
+      "description": "A general taste ('more outdoor activities') with no specific venue named — must not be treated as an owned-venue override; should still produce at least 1 'local' activity.",
+      "verdict": "PASS",
+      "reasoning": "Got 2 \"local\" activity(ies), within expected range [1, ∞].",
+      "localCount": 2,
+      "activities": [
+        {
+          "kind": "local",
+          "title": "Nature Trail Balance Challenge",
+          "instructions": "Visit a local park or trail and set up playful balance challenges along the path. Practice stepping carefully along fallen logs, hopping across stepping stones, or walking heel-to-toe along designated path borders. Model balance techniques like holding arms wide like airplane wings, keeping movement routines structured and short to build coordination.",
+          "addressesFindingId": "f5555555-5555-5555-5555-555555555555",
+          "resourceId": null,
+          "localQuery": "public park nature trail"
+        },
+        {
+          "kind": "home",
+          "title": "Two-Step Nature Collage",
+          "instructions": "Break craft time into two short, distinct stages so your child experiences the reward of a finished project. First, spend 10 minutes outside gathering 5 or 6 interesting leaves, seeds, or twigs. Next, bring them inside to paste onto paper to create a nature picture or creature. Keeping the task compact and defined helps sustain interest from start to finish.",
+          "addressesFindingId": "f6666666-6666-6666-6666-666666666666",
+          "resourceId": null,
+          "localQuery": null
+        },
+        {
+          "kind": "local",
+          "title": "Storytime and Outdoor Word Hunt",
+          "instructions": "Attend a community storytime session to hear stories read aloud in a lively setting. Afterwards, pick out a picture book about nature to read together. When you come across short, regular phonetic words (such as 'bug', 'tree', or 'sun'), encourage your child to sound them out with you, praising each sound they blend successfully.",
+          "addressesFindingId": "f7777777-7777-7777-7777-777777777777",
+          "resourceId": null,
+          "localQuery": "children's library storytime"
+        }
+      ],
+      "model": "gemini-3.8-flash"
+    },
+    {
+      "id": "local-mix-003",
+      "description": "Owned venue named for one domain only (swimming/society pool) alongside two other domains with no stated venue — the own-venue rule should apply only to the matching activity, not suppress 'local' plan-wide.",
+      "verdict": "PASS",
+      "reasoning": "Venue activity \"Society Pool Stroke and Kick Practice\" correctly \"home\"; \"Library Phonics and Story Exploration\" in another domain correctly \"local\" — own-venue rule scoped correctly.",
+      "localCount": 2,
+      "activities": [
+        {
+          "kind": "home",
+          "title": "Society Pool Stroke and Kick Practice",
+          "instructions": "Head down to your society pool for a focused swimming session. Practice sustained kicking using a kickboard across the shallow end, and guide your child through basic arm strokes like front crawl scoops. Break the time into gentle 5-minute swim intervals to build up continuous movement and stamina in the water.",
+          "addressesFindingId": "f8888888-8888-8888-8888-888888888888",
+          "resourceId": null,
+          "localQuery": null
+        },
+        {
+          "kind": "local",
+          "title": "Library Phonics and Story Exploration",
+          "instructions": "Visit a children's section to choose beginner reader books together. Sit in a cozy reading nook and encourage your child to read simple sentences aloud to you. When they come across an unfamiliar word, support them in sounding out the individual letter sounds slowly and blending them together.",
+          "addressesFindingId": "f9999999-9999-9999-9999-999999999999",
+          "resourceId": null,
+          "localQuery": "children's library storytime"
+        },
+        {
+          "kind": "local",
+          "title": "Drop-in Craft Workshop Creation",
+          "instructions": "Take your child to a workshop to select a single, manageable project such as painting a small pottery piece or assembling a simple craft. Break the project down into three clear stages (planning, creating, and finishing touches) to help them maintain focus on seeing one creation through to completion.",
+          "addressesFindingId": "faaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+          "resourceId": null,
+          "localQuery": "children's art studio"
+        }
+      ],
+      "model": "gemini-3.8-flash"
+    },
+    {
+      "id": "local-mix-004",
+      "description": "No location on file at all — negative control: must produce exactly 0 'local' activities, so a bug that always reports PASS (e.g. an inverted condition in the eval itself) would still be caught.",
+      "verdict": "PASS",
+      "reasoning": "Got 0 \"local\" activity(ies), within expected range [0, 0].",
+      "localCount": 0,
+      "activities": [
+        {
+          "kind": "home",
+          "title": "Sound Tap Story Time",
+          "instructions": "Choose a favorite book to read together. When coming across a challenging or unfamiliar word, invite your child to tap their finger for each individual letter sound before sliding their finger along the word to blend them smoothly. Offer warm encouragement after each attempt to reinforce their growing decoding skills.",
+          "addressesFindingId": "fbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+          "resourceId": null,
+          "localQuery": null
+        },
+        {
+          "kind": "home",
+          "title": "Living Room Balance Pathway",
+          "instructions": "Set up a straight path along the floor using a strip of masking tape, a piece of string, or the seam of floor tiles. Guide your child through a sequence of movements: walking heel-to-toe along the line, pausing to balance on one foot for three seconds, and gently hopping sideways from one side of the line to the other while maintaining their balance.",
+          "addressesFindingId": "fccccccc-cccc-cccc-cccc-cccccccccccc",
+          "resourceId": null,
+          "localQuery": null
+        }
+      ],
+      "model": "gemini-3.8-flash"
+    }
+  ]
+}

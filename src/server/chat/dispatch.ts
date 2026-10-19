@@ -6,6 +6,7 @@ import {
   ExcludeFindingArgs,
   RestoreFindingArgs,
   EditPlanActivityArgs,
+  UpdateFamilyInterestsArgs,
   RequestReportReanalysisArgs,
   FindNearbyResourcesArgs,
 } from './tools.js';
@@ -17,6 +18,7 @@ import {
   ageMonthsFromDob,
   getTargetFindings,
   getFamilyConstraints,
+  setFamilyInterests,
   getResourceCandidates,
   getNextCycleNo,
   createPlan,
@@ -93,6 +95,8 @@ export async function dispatchTool(name: string, rawArgs: unknown, ctx: ToolDisp
       return requestReportReanalysis(parsed.data as ReturnType<(typeof RequestReportReanalysisArgs)['parse']>, ctx);
     case 'regenerate_plan':
       return regeneratePlan(ctx);
+    case 'update_family_interests':
+      return updateFamilyInterests(parsed.data as ReturnType<(typeof UpdateFamilyInterestsArgs)['parse']>, ctx);
     case 'find_nearby_resources':
       return findNearbyResources(parsed.data as ReturnType<(typeof FindNearbyResourcesArgs)['parse']>, ctx);
   }
@@ -155,6 +159,20 @@ async function regeneratePlan(ctx: ToolDispatchContext): Promise<ToolDispatchRes
   await writeAudit(ctx, 'regenerate_plan', 'plan', planId, null, after);
 
   return { ok: true, summary: buildPlanSummaryForChat(activities, new Map(resourceCandidates.map(r => [r.id, r.title]))), after };
+}
+
+/**
+ * Replaces the family's standing interests with the full consolidated list
+ * the model sent, so getFamilyConstraints() surfaces it into every future
+ * plan regeneration — not just the one right after they said it. See docs
+ * on setFamilyInterests() in db/plans.ts for why consolidation happens in
+ * the model's own judgment rather than here.
+ */
+async function updateFamilyInterests(args: { interests: string[] }, ctx: ToolDispatchContext): Promise<ToolDispatchResult> {
+  const after = { interests: await setFamilyInterests(ctx.familyId, args.interests) };
+
+  await writeAudit(ctx, 'update_family_interests', 'family_constraints', ctx.familyId, null, after);
+  return { ok: true, summary: `Noted — I'll keep these in mind for future plans: ${after.interests.join(', ')}.`, after };
 }
 
 async function editFindingStatement(args: { findingId: string; newStatement: string }, ctx: ToolDispatchContext): Promise<ToolDispatchResult> {

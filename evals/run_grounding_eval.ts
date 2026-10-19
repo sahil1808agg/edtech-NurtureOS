@@ -55,6 +55,8 @@ async function getAgentResponse(testCase: TestCase): Promise<{ response: string;
       childName: 'Maya',
       activeFindingsSummary: testCase.activeFindingsSummary.join('\n'),
       currentPlanSummary: testCase.currentPlanSummary.join('\n'),
+      standingPreferences: '(none stated yet)',
+      report: null,
     },
     null,
   );

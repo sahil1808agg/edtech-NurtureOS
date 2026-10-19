@@ -18,14 +18,30 @@ export function SourceViewer({
   reportId,
   isPdf,
   initialPage = 1,
+  initialLabel,
+  onClose,
 }: {
   reportId: string;
   isPdf: boolean;
   initialPage?: number;
+  initialLabel?: string | null;
+  /** Shows a "Close" control next to the header — for callers that render this in a dismissible panel (e.g. the chat side panel) rather than a page-permanent pane. */
+  onClose?: () => void;
 }) {
   const [page, setPage] = useState(initialPage);
-  const [label, setLabel] = useState<string | null>(null);
+  const [label, setLabel] = useState<string | null>(initialLabel ?? null);
   const paneRef = useRef<HTMLDivElement>(null);
+
+  // The reports page sets initialPage once and never again (its own
+  // data-source-page clicks below move the pane instead). The chat side
+  // panel reuses this same mounted instance for every citation the parent
+  // clicks, though, passing a new initialPage/initialLabel each time — sync
+  // to those so a later citation click actually moves an already-open pane.
+  useEffect(() => {
+    setPage(initialPage);
+    setLabel(initialLabel ?? null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reportId, initialPage, initialLabel]);
 
   useEffect(() => {
     function onClick(event: MouseEvent) {
@@ -62,9 +78,16 @@ export function SourceViewer({
         <h2 className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
           The original report
         </h2>
-        <a href={src} target="_blank" rel="noreferrer" className="text-xs underline text-[var(--muted)]">
-          Open full size
-        </a>
+        <span className="flex items-center gap-3">
+          <a href={src} target="_blank" rel="noreferrer" className="text-xs underline text-[var(--muted)]">
+            Open full size
+          </a>
+          {onClose && (
+            <button type="button" onClick={onClose} className="text-xs underline text-[var(--muted)]">
+              Close
+            </button>
+          )}
+        </span>
       </div>
 
       <p className="mt-1 text-xs text-[var(--muted)]">

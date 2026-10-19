@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { routeClient, currentUser } from '../../../lib/db/server';
-import { SourceViewer } from '../../reports/[id]/SourceViewer';
+import { SourceViewer } from '../../../components/SourceViewer';
 import { FindingResponse } from './FindingResponse';
 
 export const dynamic = 'force-dynamic';

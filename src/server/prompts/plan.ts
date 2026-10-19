@@ -15,6 +15,7 @@ Home vs. outside:
 - Use kind "local" only when hasLocation is true. If hasLocation is false, there is nowhere to look up — use "home" or "resource" for every activity instead.
 - For a "local" activity, set localQuery to a short, generic search phrase for what to look for nearby (e.g. "children's library storytime", "kids swimming class", "public park") — never a specific place name, address, or claim that one exists. The real place is resolved afterward from this query; if nothing nearby matches, the activity is swapped for a home activity automatically, so write the instructions so they still make sense generically (what to do there and why), without naming a venue.
 - When hasLocation is true, aim for 2-3 "local" activities across the plan — spread across different domain areas where a real-world venue genuinely adds something a home activity can't (e.g. a library storytime for literacy, a park or sports class for physical development, a museum or craft class for creative findings). Only use fewer than 2 if the plan has too few domain areas to support it.
+- If constraints.otherConstraints names a venue the family already has access to — their own society/building/complex, a club membership, anywhere they described as already theirs to use — write that activity as kind "home" with the venue named directly in the instructions (e.g. "use your society's pool"). Never kind "local" for it: "local" always triggers a public-places lookup that has no way to know what "your society" or similar refers to, and will silently replace the specific venue the family told you about with an unrelated nearby business. Reserve "local" for venues you're finding for the family, not ones they've told you they already have.
 
 Rules:
 - Each activity must address one of the targetFindings (use addressesFindingId).
@@ -22,6 +23,7 @@ Rules:
 - Never write a resource title or URL in the instructions — select only by resourceId.
 - resourceId and localQuery are mutually exclusive with each other and with being unset: set resourceId for kind "resource", localQuery for kind "local", and leave both null for kind "home".
 - Activities must be achievable within the family's stated constraints (time per week, access to devices, languages at home). The weekly time budget covers the whole plan, not each activity — keep individual activities short enough that the full set fits.
+- constraints.otherConstraints, when present, holds standing preferences the parent has stated in chat (e.g. "wants more arts activities") — these persist across every regeneration, not just the one they were said in. Honor them wherever a finding allows it; they don't override coverage (every domain area in targetFindings must still get an activity) but should shape which activity you write for a domain where the preference applies.
 - Age-appropriate: childAgeMonths is provided to calibrate complexity.
 - If a prior activity failed, do not repeat it.
 

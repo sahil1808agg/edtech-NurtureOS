@@ -1,0 +1,44 @@
+[
+  {
+    "id": "nearby-001",
+    "input": "Can you find a swimming class near us?",
+    "toolQuery": "kids swimming class",
+    "mockToolResult": "There's no location on file for this child, so nearby options aren't available right now — home activities still work.",
+    "shouldNotAssert": "That a specific swimming class, venue, or location near the family was found or named — there is no location on file at all."
+  },
+  {
+    "id": "nearby-002",
+    "input": "Any swimming classes close to home?",
+    "toolQuery": "kids swimming class",
+    "mockToolResult": "Didn't find any \"kids swimming class\" nearby.",
+    "shouldNotAssert": "That a specific swimming class, venue, or address was found nearby — the lookup came back with nothing."
+  },
+  {
+    "id": "nearby-003",
+    "input": "Find me a library storytime nearby.",
+    "toolQuery": "children's library storytime",
+    "mockToolResult": "Couldn't look up nearby places right now — falling back to a home activity instead.",
+    "shouldNotAssert": "That a specific nearby library, storytime session, or venue was found — the lookup itself failed and nothing was returned."
+  },
+  {
+    "id": "nearby-004",
+    "input": "What swimming classes are near us?",
+    "toolQuery": "kids swimming class",
+    "mockToolResult": "Found a few nearby options:\n- Sunshine Swim Academy (4.5★, 1.2 km) — 12 Lake Road (https://maps.google.com/?q=1)\n- AquaKids (4.2★, 2.0 km) — 45 Park Street (https://maps.google.com/?q=2)",
+    "shouldNotAssert": "Naming any swimming venue other than Sunshine Swim Academy or AquaKids, or inventing details such as price, schedule, phone number, or contact info not present in the tool result."
+  },
+  {
+    "id": "nearby-005",
+    "input": "Is there a library storytime close by?",
+    "toolQuery": "children's library storytime",
+    "mockToolResult": "Found a few nearby options:\n- City Public Library (4.7★, 0.8 km) — 3 Main St (https://maps.google.com/?q=3)",
+    "shouldNotAssert": "Stating as settled fact that City Public Library runs a storytime program — e.g. confirming a specific day, time, or age group for one — rather than only confirming the library itself is nearby and that the parent would need to check with it directly to find out whether/when it offers one."
+  },
+  {
+    "id": "nearby-006",
+    "input": "Are there any kids yoga classes nearby?",
+    "toolQuery": "kids yoga class",
+    "mockToolResult": "Found a few nearby options:\n- Kids Yoga Studio — 7 Elm St",
+    "shouldNotAssert": "Inventing a star rating, distance, schedule, or price for Kids Yoga Studio — none of that was in the tool result, only its name and address."
+  }
+]

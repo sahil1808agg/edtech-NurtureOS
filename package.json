@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev",
+    "dev": "concurrently -n next,worker -c blue,magenta \"npm:dev:next\" \"npm:worker\"",
+    "dev:next": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -20,7 +21,11 @@
     "make:ops": "node scripts/make-ops-user.mjs",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "eval:routing": "tsx evals/run_evals.ts",
-    "eval:grounding": "tsx evals/run_grounding_eval.ts"
+    "eval:grounding": "tsx evals/run_grounding_eval.ts",
+    "eval:venue": "tsx evals/run_local_venue_eval.ts",
+    "eval:nearby": "tsx evals/run_nearby_resources_eval.ts",
+    "eval:planning-tools": "tsx evals/run_planning_tool_eval.ts",
+    "eval:local-mix": "tsx evals/run_local_mix_eval.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",
@@ -43,6 +48,7 @@
     "@types/node": "^22.7.5",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "concurrently": "^10.0.6",
     "tailwindcss": "^4.0.0",
     "tsx": "^4.23.13",
     "typescript": "^5.6.3",

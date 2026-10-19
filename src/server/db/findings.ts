@@ -82,6 +82,33 @@ export async function getFindingsForChat(childId: string): Promise<TargetFinding
     .map(f => ({ id: f.id, statement: f.statement }));
 }
 
+export interface ReportForChat {
+  id: string;
+  sourceType: 'pdf' | 'photo';
+}
+
+/**
+ * The report behind the child's most recent non-rejected finding set — lets
+ * a chat reply about current findings show its evidence in the chat side
+ * panel (reusing SourceViewer, the same citation-to-PDF-page viewer the
+ * /reports/[id] page uses). Mirrors the finding_sets lookup in
+ * getFindingsForChat above.
+ */
+export async function getLatestReportForChat(childId: string): Promise<ReportForChat | null> {
+  const { data } = await serviceClient()
+    .from('finding_sets')
+    .select('report_id, reports(source_type)')
+    .eq('child_id', childId)
+    .in('status', ['draft', 'in_review', 'published'])
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!data?.report_id) return null;
+  const report = Array.isArray(data.reports) ? data.reports[0] : data.reports;
+  return { id: data.report_id, sourceType: (report as { source_type: 'pdf' | 'photo' } | null)?.source_type ?? 'pdf' };
+}
+
 export interface CreateFindingSetInput {
   familyId: string;
   childId: string;

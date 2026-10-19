@@ -1,0 +1,148 @@
+{
+  "runAtIST": "2026-10-18 22-40-32 IST",
+  "runAt": "2026-10-18T17:10:32.109Z",
+  "summary": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0,
+    "passRate": 100
+  },
+  "results": [
+    {
+      "id": "local-mix-001",
+      "description": "Rich domain spread (literacy, math, physical, creative/music), no standing preference, location on file — should produce at least 2 'local' activities, per the prompt's own 'aim for 2-3 across domains' rule.",
+      "verdict": "PASS",
+      "reasoning": "Got 2 \"local\" activity(ies), within expected range [2, ∞].",
+      "localCount": 2,
+      "activities": [
+        {
+          "kind": "local",
+          "title": "Library Read-Aloud and Word Hunt",
+          "instructions": "Visit a local library storytime or explore the early readers section together. Choose a story with some unfamiliar words. As you read together, encourage sounding out new or tricky words syllable by syllable using phonetic clues, offering gentle guidance and celebrating successful attempts.",
+          "addressesFindingId": "f1111111-1111-1111-1111-111111111111",
+          "resourceId": null,
+          "localQuery": "children's library storytime"
+        },
+        {
+          "kind": "home",
+          "title": "Two-Digit Strategy Showcase",
+          "instructions": "Write out a few two-digit addition or subtraction problems on paper cards (such as 34 + 25 or 58 - 23). Invite your child to solve each one using a familiar method (like splitting by tens and ones), and then challenge them to try a second strategy (like drawing an open number line or counting on) to show how different approaches reach the same solution.",
+          "addressesFindingId": "f2222222-2222-2222-2222-222222222222",
+          "resourceId": null,
+          "localQuery": null
+        },
+        {
+          "kind": "local",
+          "title": "Balance and Movement Circuit",
+          "instructions": "Participate in a structured movement session focusing on gross motor coordination. Guide your child through sequential activities such as traversing low balance beams, jumping between markers, and controlled landing drills, focusing on smooth body alignment and steady balance throughout the routine.",
+          "addressesFindingId": "f3333333-3333-3333-3333-333333333333",
+          "resourceId": null,
+          "localQuery": "kids gymnastics class"
+        },
+        {
+          "kind": "home",
+          "title": "Step-by-Step Mini Craft Collage",
+          "instructions": "Design a small, structured craft project such as a paper plate mask or bookmark collage. Break the project into two distinct, quick stages (first stage: cut and paste base shapes for 5 minutes; second stage: add colour and details for 5 minutes), providing clear milestones so your child experiences the satisfaction of seeing a project through to the finish line.",
+          "addressesFindingId": "f4444444-4444-4444-4444-444444444444",
+          "resourceId": null,
+          "localQuery": null
+        }
+      ],
+      "model": "gemini-3.8-flash"
+    },
+    {
+      "id": "local-mix-002",
+      "description": "A general taste ('more outdoor activities') with no specific venue named — must not be treated as an owned-venue override; should still produce at least 1 'local' activity.",
+      "verdict": "PASS",
+      "reasoning": "Got 2 \"local\" activity(ies), within expected range [1, ∞].",
+      "localCount": 2,
+      "activities": [
+        {
+          "kind": "local",
+          "title": "Nature Park Balance and Agility Adventure",
+          "instructions": "Visit a local park and set up a playful, structured movement sequence using natural and park elements. Guide your child to walk heel-to-toe along a low log or curb, hop on one foot across three designated grass spots, and hold a balance pose on a low flat rock or step for five seconds. Repeat the circuit a few times together to build confidence and body control.",
+          "addressesFindingId": "f5555555-5555-5555-5555-555555555555",
+          "resourceId": null,
+          "localQuery": "public park"
+        },
+        {
+          "kind": "home",
+          "title": "Bite-Sized Nature Texture Rubbings",
+          "instructions": "Step outside into the yard or garden to collect 3 or 4 textured leaves and small pieces of flat bark. Place one item at a time under a small postcard-sized sheet of paper, and show your child how to rub the side of a crayon over it to reveal the pattern. Keeping the canvas small provides a clear, reachable goal so they can see their finished art piece from start to completion in a single session.",
+          "addressesFindingId": "f6666666-6666-6666-6666-666666666666",
+          "resourceId": null,
+          "localQuery": null
+        },
+        {
+          "kind": "local",
+          "title": "Library Sound-Out Story Hunt",
+          "instructions": "Visit a nearby children's library and select two short early-reader books together. Settle into a quiet reading area and invite your child to read aloud with you. When encountering an unfamiliar word, encourage them to identify each letter sound individually and slide their finger along underneath as they blend the sounds together, offering warm praise for their efforts.",
+          "addressesFindingId": "f7777777-7777-7777-7777-777777777777",
+          "resourceId": null,
+          "localQuery": "children's library"
+        }
+      ],
+      "model": "gemini-3.8-flash"
+    },
+    {
+      "id": "local-mix-003",
+      "description": "Owned venue named for one domain only (swimming/society pool) alongside two other domains with no stated venue — the own-venue rule should apply only to the matching activity, not suppress 'local' plan-wide.",
+      "verdict": "PASS",
+      "reasoning": "Venue activity \"Society Pool Kicking & Stroke Adventures\" correctly \"home\"; \"Library Story Corner Word Decoding\" in another domain correctly \"local\" — own-venue rule scoped correctly.",
+      "localCount": 2,
+      "activities": [
+        {
+          "kind": "home",
+          "title": "Society Pool Kicking & Stroke Adventures",
+          "instructions": "Head to your society's pool for fun, sustained water play. Practice kicking with a kickboard from one side of the shallow end to the other, pretending to be speedboats, and practice arm strokes with steady breathing breaks to build swimming stamina.",
+          "addressesFindingId": "f8888888-8888-8888-8888-888888888888",
+          "resourceId": null,
+          "localQuery": null
+        },
+        {
+          "kind": "local",
+          "title": "Library Story Corner Word Decoding",
+          "instructions": "Visit the children's section to choose an engaging early-reader picture book. Sit together and take turns reading aloud, encouraging sounding out unfamiliar words phoneme by phoneme and blending them smoothly to build reading confidence.",
+          "addressesFindingId": "f9999999-9999-9999-9999-999999999999",
+          "resourceId": null,
+          "localQuery": "children's library storytime"
+        },
+        {
+          "kind": "local",
+          "title": "Community Art & Craft Exploration",
+          "instructions": "Participate in a guided art or craft session for young children. Structured studio projects provide a clear sequence of steps from start to finish, helping maintain engagement until the project is proudly completed.",
+          "addressesFindingId": "faaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+          "resourceId": null,
+          "localQuery": "children's craft workshop"
+        }
+      ],
+      "model": "gemini-3.8-flash"
+    },
+    {
+      "id": "local-mix-004",
+      "description": "No location on file at all — negative control: must produce exactly 0 'local' activities, so a bug that always reports PASS (e.g. an inverted condition in the eval itself) would still be caught.",
+      "verdict": "PASS",
+      "reasoning": "Got 0 \"local\" activity(ies), within expected range [0, 0].",
+      "localCount": 0,
+      "activities": [
+        {
+          "kind": "home",
+          "title": "Robot Talk Decoding",
+          "instructions": "During shared reading time, pause together whenever you come across an unfamiliar or longer word. Take turns switching into a playful 'robot voice' to sound out each phoneme cleanly (e.g., 's-p-oo-n'), tapping fingers for each distinct sound. After breaking it down, blend the sounds back together in your regular voice to read the whole word smoothly, offering plenty of encouragement for trying new words.",
+          "addressesFindingId": "fbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+          "resourceId": null,
+          "localQuery": null
+        },
+        {
+          "kind": "home",
+          "title": "Living Room Balance Routine",
+          "instructions": "Create a clear, structured movement path on the floor using painter's tape or a line of cushions. Lead your child through a sequence: first, walk heel-to-toe along the line without stepping off; second, hold a one-legged 'stork' balance for a slow five count; third, make three slow, controlled two-footed hops forward, focusing on sticking a steady landing each time. Repeat the routine together several times to familiar music.",
+          "addressesFindingId": "fccccccc-cccc-cccc-cccc-cccccccccccc",
+          "resourceId": null,
+          "localQuery": null
+        }
+      ],
+      "model": "gemini-3.8-flash"
+    }
+  ]
+}

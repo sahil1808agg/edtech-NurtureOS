@@ -27,7 +27,10 @@ export default async function ChatPage({ params }: { params: Promise<{ childId: 
   const messages = await listMessages(conversation.id, {});
 
   return (
-    <main className="max-w-2xl">
+    // No max-width here (unlike most other pages) — ChatThread itself
+    // constrains the chat column to a reading width and only grows wider,
+    // via its own grid, when the evidence side panel is open.
+    <main>
       <Link href="/chat" className="text-xs underline text-[var(--muted)]">← Switch child</Link>
       <h1 className="mt-3 text-2xl font-semibold tracking-tight">{child.first_name}</h1>
 

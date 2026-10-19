@@ -54,6 +54,8 @@ const FIXTURE_CONTEXT: ChildContext = {
     '- [a1111111-1111-1111-1111-111111111111] Daily reading: Read 10 minutes aloud together, sounding out tricky words',
     '- [a2222222-2222-2222-2222-222222222222] Letter tracing: Practice lowercase letter formation 3x/week',
   ].join('\n'),
+  standingPreferences: '(none stated yet)',
+  report: null,
 };
 
 function isAgentName(name: string): name is AgentName {

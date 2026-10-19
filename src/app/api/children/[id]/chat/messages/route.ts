@@ -122,12 +122,22 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     );
   }
 
+  // The evidence report comes from childContext (the child's latest report),
+  // not from which agent handled this turn — the orchestrator doesn't always
+  // delegate to report_analysis_agent even for report questions (it may
+  // answer directly from the findings already in its own context), so gating
+  // the evidence panel on that delegation would miss those replies.
+  const toolResults =
+    collectedToolResults.length || childContext.report
+      ? { agentCalls: collectedToolResults, report: childContext.report }
+      : undefined;
+
   const assistantMessage = await appendMessage({
     conversationId: conversation.id,
     familyId: child.family_id,
     role: 'assistant',
     content: turn.message.content,
-    toolResults: collectedToolResults.length ? collectedToolResults : undefined,
+    toolResults,
     promptVersion: versionTag('chat_orchestrator'),
     modelDeployment: turn.model,
   });

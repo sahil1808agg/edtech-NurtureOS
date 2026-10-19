@@ -19,6 +19,10 @@ export interface ChildContext {
   activeFindingsSummary: string;
   /** Current plan activities, with ids. */
   currentPlanSummary: string;
+  /** Preferences the parent has stated in chat and asked to be saved (see update_family_interests), e.g. "wants more arts activities". */
+  standingPreferences: string;
+  /** The child's most recent report, if any — carried through to the chat UI so it can open the evidence side panel, independent of which agent (if any) the orchestrator delegated to. */
+  report: { id: string; sourceType: 'pdf' | 'photo' } | null;
 }
 
 export function buildOrchestratorSystemPrompt(ctx: ChildContext): string {

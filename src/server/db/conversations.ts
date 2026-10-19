@@ -27,6 +27,17 @@ export async function getOrCreateConversation(childId: string, familyId: string)
     .select('id, family_id, child_id, created_at')
     .single();
 
+  if (error?.code === '23505') {
+    // Lost the race to a concurrent call — the row now exists, fetch it.
+    const { data: raceWinner } = await serviceClient()
+      .from('conversations')
+      .select('id, family_id, child_id, created_at')
+      .eq('child_id', childId)
+      .single();
+
+    if (raceWinner) return fromRow(raceWinner);
+  }
+
   if (error || !created) throw new Error(`creating conversation for child ${childId}: ${error?.message}`);
   return fromRow(created);
 }

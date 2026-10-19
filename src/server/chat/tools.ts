@@ -37,6 +37,12 @@ export const EditPlanActivityArgs = z
 // just invites a hallucinated placeholder — this tool always targets
 // ToolDispatchContext.childId, the conversation's own child, instead.
 export const RegeneratePlanArgs = z.object({});
+// Takes the full consolidated list, not a single new entry to append — see
+// setFamilyInterests() in db/plans.ts for why consolidation has to happen
+// here, in the model's own judgment, rather than via string matching.
+export const UpdateFamilyInterestsArgs = z.object({
+  interests: z.array(z.string().min(1).max(200)).min(1).max(20),
+});
 export const RequestReportReanalysisArgs = z.object({ reportId: z.string().uuid() });
 export const FindNearbyResourcesArgs = z.object({
   query: z.string().min(1).max(200),
@@ -48,6 +54,7 @@ export const TOOL_SCHEMAS = {
   restore_finding: RestoreFindingArgs,
   edit_plan_activity: EditPlanActivityArgs,
   regenerate_plan: RegeneratePlanArgs,
+  update_family_interests: UpdateFamilyInterestsArgs,
   request_report_reanalysis: RequestReportReanalysisArgs,
   find_nearby_resources: FindNearbyResourcesArgs,
 } as const;
@@ -60,6 +67,8 @@ const TOOL_DESCRIPTIONS: Record<ToolName, string> = {
   restore_finding: 'Bring a previously excluded finding back into the active set.',
   edit_plan_activity: "Change an activity's title/instructions, or mark it declined.",
   regenerate_plan: "Re-run plan generation for the child's current active findings.",
+  update_family_interests:
+    "Replace the family's saved standing preferences with the FULL consolidated list — not just the newest one. Merge any preference that overlaps with an existing one into a single clean entry instead of listing near-duplicates side by side, carry forward every other preference that should still hold, and drop any the parent has since contradicted. Persists across every future plan regeneration. Call separately from regenerate_plan.",
   request_report_reanalysis: 'Re-run finding analysis for a report. Queues the work; does not block the reply.',
   find_nearby_resources:
     "Look up real nearby places/classes/activities (e.g. swimming classes, library storytime) near the child's home, via Google Places. Falls back gracefully if there's no location on file or the lookup fails.",
@@ -85,7 +94,12 @@ export const REPORT_AGENT_TOOLS: readonly ToolName[] = [
   'request_report_reanalysis',
 ];
 
-export const PLANNING_AGENT_TOOLS: readonly ToolName[] = ['edit_plan_activity', 'regenerate_plan', 'find_nearby_resources'];
+export const PLANNING_AGENT_TOOLS: readonly ToolName[] = [
+  'edit_plan_activity',
+  'regenerate_plan',
+  'update_family_interests',
+  'find_nearby_resources',
+];
 
 export const REPORT_AGENT_TOOL_DEFINITIONS_FOR_MODEL: ToolDefinitionForModel[] = toolDefinitionsFor(REPORT_AGENT_TOOLS);
 export const PLANNING_AGENT_TOOL_DEFINITIONS_FOR_MODEL: ToolDefinitionForModel[] = toolDefinitionsFor(PLANNING_AGENT_TOOLS);

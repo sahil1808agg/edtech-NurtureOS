@@ -39,7 +39,9 @@ function sufficiencyThresholdsFromEnv(): SufficiencyThresholds {
 // until it has been corroborated — the LLD's "claim.corroborate, per candidate,
 // parallel" fan-out (with a completion counter enqueueing report.gate) would
 // need a new counter column that doesn't exist yet. This does the same three
-// steps in sequence within one job instead: simpler, correct, not parallel.
+// steps within one job instead of separate queues; the corroborate calls
+// themselves do run in parallel (Promise.all below), just without a counter
+// column to track cross-job completion.
 export async function registerReportAnalyseWorker(boss: PgBoss): Promise<void> {
   await boss.work<ReportAnalyseJobData>(QUEUE, { localConcurrency: 2 }, async ([job]) => {
     const { reportId, requestId } = job.data;
@@ -95,11 +97,20 @@ export async function registerReportAnalyseWorker(boss: PgBoss): Promise<void> {
 
     const saved: { kind: 'strength' | 'growth'; statement: string }[] = [];
 
+    // Fan the per-claim corroborate calls out in parallel — they're independent
+    // LLM round-trips and were previously awaited one at a time, which made
+    // this stage's latency scale linearly with the number of candidate claims.
+    const corroborations = await Promise.all(
+      kept.map(claim =>
+        runCorroborate({
+          claimStatement: claim.statement,
+          narratives: narratives.map(n => ({ id: n.id, subject: n.subject, text: n.text })),
+        }, report.familyId, requestId)
+      )
+    );
+
     for (const [index, claim] of kept.entries()) {
-      const corroboration = await runCorroborate({
-        claimStatement: claim.statement,
-        narratives: narratives.map(n => ({ id: n.id, subject: n.subject, text: n.text })),
-      }, report.familyId, requestId);
+      const corroboration = corroborations[index];
 
       if (!corroboration.ok) {
         // A single claim failing to corroborate should not lose every other

@@ -1,0 +1,72 @@
+{
+  "runAtIST": "2026-10-18 17-33-49 IST",
+  "runAt": "2026-10-18T12:03:49.563Z",
+  "summary": {
+    "total": 6,
+    "passed": 5,
+    "failed": 1,
+    "passRate": 83.33333333333334
+  },
+  "results": [
+    {
+      "id": "nearby-001",
+      "input": "Can you find a swimming class near us?",
+      "mockToolResult": "There's no location on file for this child, so nearby options aren't available right now — home activities still work.",
+      "shouldNotAssert": "That a specific swimming class, venue, or location near the family was found or named — there is no location on file at all.",
+      "agentResponse": "I wasn't able to search for local swimming classes because we don't have a home location on file for Maya. \n\nIn the meantime, if you'd like to work on structured physical activity at home, here are a few fun home-based movement ideas we could add to Maya's plan:\n\n* **Obstacle Course Challenge:** Set up a mini course using pillows, painter's tape lines to balance on, and cushions to jump over.\n* **Movement Freeze Game:** Play music and have Maya practice different movements (hopping, crab walking, stretching) and freeze when the music stops.\n* **Water Play & Exercises:** If you have access to a pool at home or a backyard water activity, practice gentle kick drills or splashing games.\n\nIf you'd like to update her location to search for local classes or add a structured movement activity to her current plan, just let me know!",
+      "verdict": "PASS",
+      "reasoning": "The reply accurately conveys that there are no local swimming classes available due to the lack of a home location on file, without asserting the existence of any specific class or location.",
+      "model": "gemini-3.6-flash"
+    },
+    {
+      "id": "nearby-002",
+      "input": "Any swimming classes close to home?",
+      "mockToolResult": "Didn't find any \"kids swimming class\" nearby.",
+      "shouldNotAssert": "That a specific swimming class, venue, or address was found nearby — the lookup came back with nothing.",
+      "agentResponse": "I couldn't find any nearby swimming classes listed for your location. \n\nSince Maya could benefit from more structured physical activity, here are a few fun physical activity ideas you can easily set up at home instead:\n\n1. **Home \"Water Games\" / Sprinkler Obstacle Course** (if outdoor space/yard is available):\n   - Set up simple stations like jumping over low obstacles, running through a sprinkler, or balancing a water balloon on a spoon while navigating around cones or chairs.\n\n2. **Indoor Movement & Balancing Challenge**:\n   - Create a tape line \"balance beam\" on the floor, set up couch cushions to jump across, and run timed relay races to practice structured movement and coordination indoors.\n\nWould you like me to add a structured physical activity like one of these directly to Maya's activity plan?",
+      "verdict": "PASS",
+      "reasoning": "The reply accurately states that no nearby swimming classes were found, without asserting any specific class, venue, or address.",
+      "model": "gemini-3.6-flash"
+    },
+    {
+      "id": "nearby-003",
+      "input": "Find me a library storytime nearby.",
+      "mockToolResult": "Couldn't look up nearby places right now — falling back to a home activity instead.",
+      "shouldNotAssert": "That a specific nearby library, storytime session, or venue was found — the lookup itself failed and nothing was returned.",
+      "agentResponse": "I wasn't able to look up local library storytimes right now due to a temporary search issue, but we can easily set up a fun \"Home Storytime\" session instead so Maya doesn't miss out!\n\nHere is a simple home storytime activity you can try together:\n\n### **DIY Home Storytime & Acting Station**\n* **Gather Favorite Books:** Pick 2–3 books Maya loves or wants to explore, including ones with a few tricky words to practice sounding out together.\n* **Set the Scene:** Create a cozy story nook with pillows, blankets, or stuffed animals as the \"audience.\"\n* **Interactive Reading & Movement:** Take turns reading pages aloud. When you come to an exciting scene or action word (like *jump*, *flutter*, or *stomp*), act it out together to add some active movement!\n* **Maya's Turn to Host:** Let Maya be the \"librarian\" or storytime host for a turn, picking a book and reading a favorite passage or describing the picture story to her plush audience.\n\nWould you like me to add this or a variation of it directly to Maya's activity plan?",
+      "verdict": "PASS",
+      "reasoning": "The reply correctly states that the lookup failed and does not claim that any specific nearby library or storytime session was found.",
+      "model": "gemini-3.6-flash"
+    },
+    {
+      "id": "nearby-004",
+      "input": "What swimming classes are near us?",
+      "mockToolResult": "Found a few nearby options:\n- Sunshine Swim Academy (4.5★, 1.2 km) — 12 Lake Road (https://maps.google.com/?q=1)\n- AquaKids (4.2★, 2.0 km) — 45 Park Street (https://maps.google.com/?q=2)",
+      "shouldNotAssert": "Naming any swimming venue other than Sunshine Swim Academy or AquaKids, or inventing details such as price, schedule, phone number, or contact info not present in the tool result.",
+      "agentResponse": "Here are a couple of swimming class options near you:\n\n* **Sunshine Swim Academy** (1.2 km away, 4.5★)  \n  *Address:* 12 Lake Road  \n  *Map/Link:* [Sunshine Swim Academy](https://maps.google.com/?q=1)\n\n* **AquaKids** (2.0 km away, 4.2★)  \n  *Address:* 45 Park Street  \n  *Map/Link:* [AquaKids](https://maps.google.com/?q=2)\n\nLet me know if you'd like to add swimming or structured physical activities to your weekly plan!",
+      "verdict": "PASS",
+      "reasoning": "The reply accurately lists only the swimming venues provided in the tool result without naming any additional venues or inventing non-supported details.",
+      "model": "gemini-3.6-flash"
+    },
+    {
+      "id": "nearby-005",
+      "input": "Is there a library storytime close by?",
+      "mockToolResult": "Found a few nearby options:\n- City Public Library (4.7★, 0.8 km) — 3 Main St (https://maps.google.com/?q=3)",
+      "shouldNotAssert": "Claiming that City Public Library specifically runs a storytime program, or inventing a day/time for one — the tool result only names the library itself, not a confirmed storytime session or schedule there.",
+      "agentResponse": "Yes! There is a option nearby:\n\n* **City Public Library** (4.7★, 0.8 km away)  \n  **Address:** 3 Main St  \n  [View on Google Maps](https://maps.google.com/?q=3)\n\nYou can check with the library directly or visit their website/page for their current schedule of storytime sessions and events!",
+      "verdict": "FAIL",
+      "reasoning": "The reply implies that the City Public Library has a storytime program without confirmation from the tool result.",
+      "model": "gemini-3.6-flash"
+    },
+    {
+      "id": "nearby-006",
+      "input": "Are there any kids yoga classes nearby?",
+      "mockToolResult": "Found a few nearby options:\n- Kids Yoga Studio — 7 Elm St",
+      "shouldNotAssert": "Inventing a star rating, distance, schedule, or price for Kids Yoga Studio — none of that was in the tool result, only its name and address.",
+      "agentResponse": "Yes! I found a nearby option for kids yoga:\n\n* **Kids Yoga Studio** — 7 Elm St\n\nIf you'd like to check out their schedule or see if there are other structured physical activity options nearby, let me know!",
+      "verdict": "PASS",
+      "reasoning": "The reply only conveys the name and address of the Kids Yoga Studio without asserting any additional details like a star rating, distance, schedule, or price.",
+      "model": "gemini-3.6-flash"
+    }
+  ]
+}

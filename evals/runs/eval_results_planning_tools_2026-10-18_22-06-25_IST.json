@@ -1,0 +1,135 @@
+{
+  "runAtIST": "2026-10-18 22-06-25 IST",
+  "runAt": "2026-10-18T16:36:25.920Z",
+  "summary": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0,
+    "passRate": 100
+  },
+  "results": [
+    {
+      "id": "planning-tool-001",
+      "input": "He really hates the daily reading activity, can we drop it?",
+      "expectedTools": [
+        "edit_plan_activity"
+      ],
+      "actualTools": [
+        "edit_plan_activity"
+      ],
+      "verdict": "PASS",
+      "reasoning": "Correctly called edit_plan_activity on \"a1111111-1111-1111-1111-111111111111\" with declined=true.",
+      "model": "gemini-3.6-flash"
+    },
+    {
+      "id": "planning-tool-002",
+      "input": "He always refuses anything involving screens — please keep that in mind for every future plan.",
+      "expectedTools": [
+        "update_family_interests",
+        "regenerate_plan"
+      ],
+      "actualTools": [
+        "update_family_interests",
+        "regenerate_plan"
+      ],
+      "verdict": "PASS",
+      "reasoning": "Correctly called [update_family_interests, regenerate_plan].",
+      "model": "gemini-3.6-flash"
+    },
+    {
+      "id": "planning-tool-003",
+      "input": "Can you rename the letter tracing activity to something more fun, like 'Letter Detective'?",
+      "expectedTools": [
+        "edit_plan_activity"
+      ],
+      "actualTools": [
+        "edit_plan_activity"
+      ],
+      "verdict": "PASS",
+      "reasoning": "Correctly called edit_plan_activity on \"a2222222-2222-2222-2222-222222222222\" with declined=undefined.",
+      "model": "gemini-3.6-flash"
+    },
+    {
+      "id": "planning-tool-004",
+      "input": "Please regenerate his whole plan, I think it's gone stale.",
+      "expectedTools": [
+        "regenerate_plan"
+      ],
+      "actualTools": [
+        "regenerate_plan"
+      ],
+      "verdict": "PASS",
+      "reasoning": "Correctly called [regenerate_plan].",
+      "model": "gemini-3.6-flash"
+    },
+    {
+      "id": "planning-tool-005",
+      "input": "We'd love more outdoor, nature-based activities going forward.",
+      "expectedTools": [
+        "update_family_interests",
+        "regenerate_plan"
+      ],
+      "actualTools": [
+        "update_family_interests",
+        "regenerate_plan"
+      ],
+      "verdict": "PASS",
+      "reasoning": "Correctly called [update_family_interests, regenerate_plan].",
+      "model": "gemini-3.6-flash"
+    },
+    {
+      "id": "planning-tool-006",
+      "input": "Is there a kids' swimming class near our house?",
+      "expectedTools": [
+        "find_nearby_resources"
+      ],
+      "actualTools": [
+        "find_nearby_resources"
+      ],
+      "verdict": "PASS",
+      "reasoning": "Correctly called [find_nearby_resources].",
+      "model": "gemini-3.6-flash"
+    },
+    {
+      "id": "planning-tool-007",
+      "input": "Mark the letter tracing activity as declined since he's lost interest in it.",
+      "expectedTools": [
+        "edit_plan_activity"
+      ],
+      "actualTools": [
+        "edit_plan_activity"
+      ],
+      "verdict": "PASS",
+      "reasoning": "Correctly called edit_plan_activity on \"a2222222-2222-2222-2222-222222222222\" with declined=true.",
+      "model": "gemini-3.6-flash"
+    },
+    {
+      "id": "planning-tool-008",
+      "input": "Can you make the daily reading activity shorter today — 5 minutes instead of 10?",
+      "expectedTools": [
+        "edit_plan_activity"
+      ],
+      "actualTools": [
+        "edit_plan_activity"
+      ],
+      "verdict": "PASS",
+      "reasoning": "Correctly called edit_plan_activity on \"a1111111-1111-1111-1111-111111111111\" with declined=undefined.",
+      "model": "gemini-3.6-flash"
+    },
+    {
+      "id": "planning-tool-009",
+      "input": "Going forward, please avoid any activities that need us to buy new materials — we don't have the budget for that.",
+      "expectedTools": [
+        "update_family_interests",
+        "regenerate_plan"
+      ],
+      "actualTools": [
+        "update_family_interests",
+        "regenerate_plan"
+      ],
+      "verdict": "PASS",
+      "reasoning": "Correctly called [update_family_interests, regenerate_plan].",
+      "model": "gemini-3.6-flash"
+    }
+  ]
+}

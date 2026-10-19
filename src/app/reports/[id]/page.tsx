@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { routeClient, currentUser } from '../../../lib/db/server';
 import { HONESTY_PATH } from '../../../server/gates/sufficiency';
-import { SourceViewer } from './SourceViewer';
+import { SourceViewer } from '../../../components/SourceViewer';
 import { ReviewActions } from '../../review/[id]/ReviewActions';
 import { EditableFinding } from './EditableFinding';
 

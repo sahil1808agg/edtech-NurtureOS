@@ -1,0 +1,148 @@
+{
+  "runAtIST": "2026-10-18 22-37-48 IST",
+  "runAt": "2026-10-18T17:07:48.053Z",
+  "summary": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0,
+    "passRate": 100
+  },
+  "results": [
+    {
+      "id": "local-mix-001",
+      "description": "Rich domain spread (literacy, math, physical, creative/music), no standing preference, location on file — should produce at least 2 'local' activities, per the prompt's own 'aim for 2-3 across domains' rule.",
+      "verdict": "PASS",
+      "reasoning": "Got 2 \"local\" activity(ies), within expected range [2, ∞].",
+      "localCount": 2,
+      "activities": [
+        {
+          "kind": "local",
+          "title": "Library Word Explorer",
+          "instructions": "Visit the children's section at your local library and pick out two or three picture books together. Find a quiet reading nook and take turns reading aloud. When encountering an unfamiliar word, pause and sound it out together chunk by chunk or phoneme by phoneme, gently tapping under each sound before blending.",
+          "addressesFindingId": "f1111111-1111-1111-1111-111111111111",
+          "resourceId": null,
+          "localQuery": "children's library"
+        },
+        {
+          "kind": "home",
+          "title": "Strategy Swap Calculations",
+          "instructions": "Write down a two-digit addition or subtraction problem on paper, such as 45 + 23 or 56 - 19. Take turns solving the problem using two different approaches, such as partitioning into tens and ones or counting along an imaginary number line. Compare your steps together and talk about which method felt most comfortable for that problem.",
+          "addressesFindingId": "f2222222-2222-2222-2222-222222222222",
+          "resourceId": null,
+          "localQuery": null
+        },
+        {
+          "kind": "local",
+          "title": "Park Obstacle Circuit",
+          "instructions": "Head to a local park or playground with balance beams, stepping stones, or low borders. Create a simple three-step movement sequence together: walk along a balance line with arms spread wide, freeze in a one-legged balance for three seconds, and hop with two feet between markers. Repeat the sequence smoothly to practice body control and balance.",
+          "addressesFindingId": "f3333333-3333-3333-3333-333333333333",
+          "resourceId": null,
+          "localQuery": "public park playground"
+        },
+        {
+          "kind": "home",
+          "title": "Two-Stage Mini Postcard",
+          "instructions": "Cut a piece of paper into postcard size to keep the project bite-sized and achievable. Spend five to seven minutes sketching a picture of a favourite animal or scene in pencil. Take a short pause to admire the outline, then spend five minutes coloring and decorating the border to bring the artwork across the finish line.",
+          "addressesFindingId": "f4444444-4444-4444-4444-444444444444",
+          "resourceId": null,
+          "localQuery": null
+        }
+      ],
+      "model": "gemini-3.8-flash"
+    },
+    {
+      "id": "local-mix-002",
+      "description": "A general taste ('more outdoor activities') with no specific venue named — must not be treated as an owned-venue override; should still produce at least 1 'local' activity.",
+      "verdict": "PASS",
+      "reasoning": "Got 2 \"local\" activity(ies), within expected range [1, ∞].",
+      "localCount": 2,
+      "activities": [
+        {
+          "kind": "local",
+          "title": "Nature Trail Balance Walk",
+          "instructions": "Visit a local trail or park path for a balance adventure. Create mini movement routines along the way, such as balancing heel-to-toe along path edges, stepping carefully across stepping stones, or marching with high knees past benches. Keep each segment brief and playful to practice steady body control in a fun outdoor setting.",
+          "addressesFindingId": "f5555555-5555-5555-5555-555555555555",
+          "resourceId": null,
+          "localQuery": "nature trail park"
+        },
+        {
+          "kind": "home",
+          "title": "Mini Nature Leaf Print Postcards",
+          "instructions": "Step outside together to collect two or three small leaves. Using a small index card or folded piece of paper, help your child brush a light layer of washable paint on a leaf and press it firmly onto the card to create a complete print. Keeping the canvas small ensures the project can be happily started and finished within 10 to 15 minutes.",
+          "addressesFindingId": "f6666666-6666-6666-6666-666666666666",
+          "resourceId": null,
+          "localQuery": null
+        },
+        {
+          "kind": "local",
+          "title": "Library Nature Story Read-Aloud",
+          "instructions": "Visit a children's library and choose an engaging early-reader picture book about animals or outdoor habitats. In a quiet reading nook, take turns reading aloud; when coming across an unfamiliar word, encourage your child to isolate each letter sound slowly, then blend them together smoothly, celebrating each successful sound-out.",
+          "addressesFindingId": "f7777777-7777-7777-7777-777777777777",
+          "resourceId": null,
+          "localQuery": "children's library"
+        }
+      ],
+      "model": "gemini-3.8-flash"
+    },
+    {
+      "id": "local-mix-003",
+      "description": "Owned venue named for one domain only (swimming/society pool) alongside two other domains with no stated venue — the own-venue rule should apply only to the matching activity, not suppress 'local' plan-wide.",
+      "verdict": "PASS",
+      "reasoning": "Venue activity \"Society Pool Kicking and Gliding\" correctly \"home\"; \"Storytime Word Detective\" in another domain correctly \"local\" — own-venue rule scoped correctly.",
+      "localCount": 2,
+      "activities": [
+        {
+          "kind": "home",
+          "title": "Society Pool Kicking and Gliding",
+          "instructions": "Head down to your society's pool for about 25 to 30 minutes. Practice flutter kicks while holding onto the pool steps or edge, then support your child under their tummy as they practice gentle arm strokes and gliding through the water to build stamina and stroke coordination.",
+          "addressesFindingId": "f8888888-8888-8888-8888-888888888888",
+          "resourceId": null,
+          "localQuery": null
+        },
+        {
+          "kind": "local",
+          "title": "Storytime Word Detective",
+          "instructions": "Visit a library storytime session or browse the shelves together for a shared picture book. While reading, invite your child to be a 'word detective' by identifying unfamiliar words and gently sounding out each letter or phoneme before blending them together with positive encouragement.",
+          "addressesFindingId": "f9999999-9999-9999-9999-999999999999",
+          "resourceId": null,
+          "localQuery": "children's library storytime"
+        },
+        {
+          "kind": "local",
+          "title": "Three-Step Craft Project",
+          "instructions": "Attend a craft session or embark on a structured, bite-sized art project with a clear end goal, such as creating a paper animal mask. Break the creation into three defined milestones—drawing, cutting, and assembling—offering praise after completing each step to build momentum and pride in finishing the entire piece.",
+          "addressesFindingId": "faaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+          "resourceId": null,
+          "localQuery": "kids craft workshop"
+        }
+      ],
+      "model": "gemini-3.8-flash"
+    },
+    {
+      "id": "local-mix-004",
+      "description": "No location on file at all — negative control: must produce exactly 0 'local' activities, so a bug that always reports PASS (e.g. an inverted condition in the eval itself) would still be caught.",
+      "verdict": "PASS",
+      "reasoning": "Got 0 \"local\" activity(ies), within expected range [0, 0].",
+      "localCount": 0,
+      "activities": [
+        {
+          "kind": "home",
+          "title": "Sound Button Blending Quest",
+          "instructions": "Pick a storybook to read together. When coming across an unfamiliar word, draw imaginary or pencil 'sound buttons' (dots) under each distinct sound and an arrow underneath pointing left to right. Encourage your child to press each button to make the individual letter sound out loud, then slide their finger along the arrow to blend the sounds together into the complete word. Offer enthusiastic encouragement as they piece the sounds together.",
+          "addressesFindingId": "fbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+          "resourceId": null,
+          "localQuery": null
+        },
+        {
+          "kind": "home",
+          "title": "Freeze & Balance Movement Routine",
+          "instructions": "Design a fun three-step indoor movement routine using floor lines or masking tape. Have your child walk heel-to-toe along the line like a tightrope walker, switch to balancing on one foot like a flamingo for a count of five, and finish with controlled slow-motion side lunges. Repeat the sequence together, setting a steady rhythm to practice flowing smoothly from one balanced position to the next.",
+          "addressesFindingId": "fccccccc-cccc-cccc-cccc-cccccccccccc",
+          "resourceId": null,
+          "localQuery": null
+        }
+      ],
+      "model": "gemini-3.8-flash"
+    }
+  ]
+}

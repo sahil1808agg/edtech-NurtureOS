@@ -1,5 +1,5 @@
-import { getChild, getCurrentPlan } from '../db/plans.js';
-import { getFindingsForChat } from '../db/findings.js';
+import { getChild, getCurrentPlan, getFamilyConstraints } from '../db/plans.js';
+import { getFindingsForChat, getLatestReportForChat } from '../db/findings.js';
 import type { ChildContext } from '../prompts/chat-orchestrator.js';
 
 /**
@@ -11,10 +11,12 @@ import type { ChildContext } from '../prompts/chat-orchestrator.js';
  * docs/specs/04-grounded-general-routing.md's version of this file).
  */
 export async function loadChildContext(childId: string): Promise<ChildContext> {
-  const [child, findings, plan] = await Promise.all([
-    getChild(childId),
+  const child = await getChild(childId);
+  const [findings, plan, constraints, report] = await Promise.all([
     getFindingsForChat(childId),
     getCurrentPlan(childId),
+    getFamilyConstraints(child.familyId),
+    getLatestReportForChat(childId),
   ]);
 
   const activeFindingsSummary = findings.length
@@ -31,5 +33,7 @@ export async function loadChildContext(childId: string): Promise<ChildContext> {
     childName: child.firstName,
     activeFindingsSummary,
     currentPlanSummary,
+    standingPreferences: constraints.otherConstraints ?? '(none stated yet)',
+    report,
   };
 }
