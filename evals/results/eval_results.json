@@ -1,11 +1,11 @@
 {
-  "runAtIST": "2026-10-18 22-01-32 IST",
-  "runAt": "2026-10-18T16:31:32.866Z",
+  "runAtIST": "2026-10-20 11-56-07 IST",
+  "runAt": "2026-10-20T06:26:07.506Z",
   "summary": {
     "total": 12,
-    "passed": 11,
-    "failed": 1,
-    "passRate": 91.66666666666666
+    "passed": 10,
+    "failed": 2,
+    "passRate": 83.33333333333334
   },
   "results": [
     {
@@ -90,10 +90,11 @@
       "input": "The teacher sent a corrected report card, can you re-run the analysis on it?",
       "expectedAgent": "report_analysis_agent",
       "actualAgents": [
-        "report_analysis_agent"
+        "report_analysis_agent",
+        "planning_agent"
       ],
-      "verdict": "PASS",
-      "reasoning": "Correctly routed to 'report_analysis_agent'.",
+      "verdict": "FAIL",
+      "reasoning": "Expected 'report_analysis_agent', got [report_analysis_agent, planning_agent].",
       "model": "gpt-4o-2024-08-06"
     },
     {
@@ -123,11 +124,10 @@
       "input": "Mark the reading activity as declined, he really hates it.",
       "expectedAgent": "planning_agent",
       "actualAgents": [
-        "report_analysis_agent",
-        "planning_agent"
+        "report_analysis_agent"
       ],
       "verdict": "FAIL",
-      "reasoning": "Expected 'planning_agent', got [report_analysis_agent, planning_agent].",
+      "reasoning": "Expected 'planning_agent', got [report_analysis_agent].",
       "model": "gpt-4o-2024-08-06"
     },
     {

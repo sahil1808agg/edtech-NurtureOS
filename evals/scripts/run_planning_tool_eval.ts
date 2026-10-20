@@ -1,11 +1,11 @@
-import '../src/test/load-env.js';
+import '../../src/test/load-env.js';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildPlanningAgentSystemPrompt } from '../src/server/prompts/chat-planning-agent.js';
-import type { ChildContext } from '../src/server/prompts/chat-orchestrator.js';
-import { PLANNING_AGENT_TOOL_DEFINITIONS_FOR_MODEL, type ToolName } from '../src/server/chat/tools.js';
-import { callChatModel } from '../src/server/llm/chat-client.js';
+import { buildPlanningAgentSystemPrompt } from '../../src/server/prompts/chat-planning-agent.js';
+import type { ChildContext } from '../../src/server/prompts/chat-orchestrator.js';
+import { PLANNING_AGENT_TOOL_DEFINITIONS_FOR_MODEL, type ToolName } from '../../src/server/chat/tools.js';
+import { callChatModel } from '../../src/server/llm/chat-client.js';
 
 /**
  * Binary pass/fail tool-selection eval for the planning agent, same "dumbest
@@ -18,7 +18,7 @@ import { callChatModel } from '../src/server/llm/chat-client.js';
  * activity (edit_plan_activity/decline) vs. a lasting preference
  * (update_family_interests) — and the ambiguity that produced the
  * routing-eval miss on "mark the reading activity as declined" (see
- * evals/dataset.json planning-003). No judge needed: tool choice and args
+ * evals/datasets/dataset.json planning-003). No judge needed: tool choice and args
  * are exact-match checks on the model's own first tool-call turn, not a
  * semantic judgment about text it wrote.
  */
@@ -57,7 +57,7 @@ interface EvalResult {
   model: string;
 }
 
-// Same fixture ids as evals/dataset.json's FIXTURE_CONTEXT, so an activityId
+// Same fixture ids as evals/datasets/dataset.json's FIXTURE_CONTEXT, so an activityId
 // check here means something concrete: a1111111... is "Daily reading",
 // a2222222... is "Letter tracing".
 const FIXTURE_CONTEXT: ChildContext = {
@@ -127,7 +127,7 @@ async function evaluateCase(testCase: TestCase): Promise<EvalResult> {
 
 async function main() {
   const runAt = new Date();
-  const datasetPath = join(__dirname, 'planning-tool-selection-dataset.json');
+  const datasetPath = join(__dirname, '..', 'datasets', 'planning-tool-selection-dataset.json');
   const dataset: TestCase[] = JSON.parse(readFileSync(datasetPath, 'utf8'));
 
   console.log('\n' + '='.repeat(65));
@@ -168,12 +168,12 @@ async function main() {
     results,
   };
 
-  const runsDir = join(__dirname, 'runs');
+  const runsDir = join(__dirname, '..', 'runs');
   mkdirSync(runsDir, { recursive: true });
   const runPath = join(runsDir, `eval_results_planning_tools_${formatIST(runAt)}_IST.json`);
   writeFileSync(runPath, JSON.stringify(output, null, 2), 'utf8');
 
-  const latestPath = join(__dirname, 'eval_results_planning_tools.json');
+  const latestPath = join(__dirname, '..', 'results', 'eval_results_planning_tools.json');
   writeFileSync(latestPath, JSON.stringify(output, null, 2), 'utf8');
   console.log(`Detailed results logged to ${runPath}\n(also updated ${latestPath})\n`);
 

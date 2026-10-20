@@ -1,11 +1,11 @@
-import '../src/test/load-env.js';
+import '../../src/test/load-env.js';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildReportAgentSystemPrompt } from '../src/server/prompts/chat-report-agent.js';
-import { REPORT_AGENT_TOOL_DEFINITIONS_FOR_MODEL } from '../src/server/chat/tools.js';
-import { callChatModel } from '../src/server/llm/chat-client.js';
-import { callOpenAICompat } from '../src/server/llm/providers/openai-compat.js';
+import { buildReportAgentSystemPrompt } from '../../src/server/prompts/chat-report-agent.js';
+import { REPORT_AGENT_TOOL_DEFINITIONS_FOR_MODEL } from '../../src/server/chat/tools.js';
+import { callChatModel } from '../../src/server/llm/chat-client.js';
+import { callOpenAICompat } from '../../src/server/llm/providers/openai-compat.js';
 
 /**
  * Grounding eval for the report-analysis agent, per the same "dumbest
@@ -123,7 +123,7 @@ async function evaluateCase(testCase: TestCase): Promise<EvalResult> {
 
 async function main() {
   const runAt = new Date();
-  const datasetPath = join(__dirname, 'report-analysis-grounding-dataset.json');
+  const datasetPath = join(__dirname, '..', 'datasets', 'report-analysis-grounding-dataset.json');
   const dataset: TestCase[] = JSON.parse(readFileSync(datasetPath, 'utf8'));
 
   console.log('\n' + '='.repeat(65));
@@ -166,12 +166,12 @@ async function main() {
 
   // Timestamped copy under evals/runs/ so past runs stay around for
   // tracking regressions over time; eval_results_grounding.json is just the latest.
-  const runsDir = join(__dirname, 'runs');
+  const runsDir = join(__dirname, '..', 'runs');
   mkdirSync(runsDir, { recursive: true });
   const runPath = join(runsDir, `eval_results_grounding_${formatIST(runAt)}_IST.json`);
   writeFileSync(runPath, JSON.stringify(output, null, 2), 'utf8');
 
-  const latestPath = join(__dirname, 'eval_results_grounding.json');
+  const latestPath = join(__dirname, '..', 'results', 'eval_results_grounding.json');
   writeFileSync(latestPath, JSON.stringify(output, null, 2), 'utf8');
   console.log(`Detailed results logged to ${runPath}\n(also updated ${latestPath})\n`);
 

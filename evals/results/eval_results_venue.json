@@ -1,0 +1,97 @@
+{
+  "runAtIST": "2026-10-20 11-57-08 IST",
+  "runAt": "2026-10-20T06:27:08.460Z",
+  "summary": {
+    "total": 5,
+    "passed": 5,
+    "failed": 0,
+    "passRate": 100
+  },
+  "results": [
+    {
+      "id": "venue-001",
+      "description": "Family already has a pool in their society — a physical-development finding should become a home activity naming that pool, never a 'local' lookup that could silently swap in an unrelated nearby business.",
+      "verdict": "PASS",
+      "reasoning": "Activity \"Society Pool Swimming and Stamina Fun\" correctly generated as kind \"home\" naming the family's own venue.",
+      "activities": [
+        {
+          "kind": "home",
+          "title": "Society Pool Swimming and Stamina Fun",
+          "instructions": "Visit your society's pool for active water play to develop sustained physical endurance and swimming technique. Have your child hold the pool wall to practice rhythmic flutter kicks, then practice arm scoops while you support them around their middle. Keep them moving continuously by playing games like retrieving floating toys across the shallow end, aiming for 20 to 30 minutes of energetic movement.",
+          "addressesFindingId": "f1111111-1111-1111-1111-111111111111",
+          "resourceId": null,
+          "localQuery": null
+        }
+      ],
+      "model": "gemini-3.8-flash"
+    },
+    {
+      "id": "venue-002",
+      "description": "Family already has tennis courts at their clubhouse — a coordination/physical finding should name that venue directly, not trigger a public-places lookup.",
+      "verdict": "PASS",
+      "reasoning": "Activity \"Beginner Tennis Practice at the Clubhouse Courts\" correctly generated as kind \"home\" naming the family's own venue.",
+      "activities": [
+        {
+          "kind": "home",
+          "title": "Beginner Tennis Practice at the Clubhouse Courts",
+          "instructions": "Take junior tennis racquets and low-compression tennis balls to your clubhouse courts. Begin with a simple warm-up by having your child balance a ball on the strings of their racquet while walking along the court lines. Next, stand a short distance away and gently toss the ball underhand, encouraging them to track the ball with their eyes, let it bounce once, and tap it back across to you. Keep the rallies relaxed and focus on hand-eye contact and timing.",
+          "addressesFindingId": "f2222222-2222-2222-2222-222222222222",
+          "resourceId": null,
+          "localQuery": null
+        }
+      ],
+      "model": "gemini-3.8-flash"
+    },
+    {
+      "id": "venue-003",
+      "description": "Family is already a member at a specific library — a literacy finding should use that named library as a home-style activity, not a generic local storytime lookup that would resolve to a different branch.",
+      "verdict": "PASS",
+      "reasoning": "Activity \"Sound-Hunt Storytime at Central City Library\" correctly generated as kind \"home\" naming the family's own venue.",
+      "activities": [
+        {
+          "kind": "home",
+          "title": "Sound-Hunt Storytime at Central City Library",
+          "instructions": "Visit Central City Library together and let your child pick out two or three early reader books that catch their eye. Find a comfortable spot to read aloud together. When your child comes across an unfamiliar word, encourage them to look at the first sound, gently tap out each phoneme together, and blend the sounds into the full word. Celebrate each effort to decode a word, keeping the experience relaxed and encouraging.",
+          "addressesFindingId": "f3333333-3333-3333-3333-333333333333",
+          "resourceId": null,
+          "localQuery": null
+        }
+      ],
+      "model": "gemini-3.8-flash"
+    },
+    {
+      "id": "venue-004",
+      "description": "Family already has an enrollment at a specific music school — a creative/music finding should name that school directly rather than a generic nearby-class lookup.",
+      "verdict": "PASS",
+      "reasoning": "Activity \"Steady Beat Practice with Harmony Music School\" correctly generated as kind \"home\" naming the family's own venue.",
+      "activities": [
+        {
+          "kind": "home",
+          "title": "Steady Beat Practice with Harmony Music School",
+          "instructions": "During your child's sessions at Harmony Music School, ask the instructor to emphasize steady beat exercises such as rhythm clapping, tapping along to a metronome, or playing simple percussion patterns. Between classes, reinforce the rhythms learned at Harmony Music School by marching or clapping together along to favorite songs at home.",
+          "addressesFindingId": "f4444444-4444-4444-4444-444444444444",
+          "resourceId": null,
+          "localQuery": null
+        }
+      ],
+      "model": "gemini-3.8-flash"
+    },
+    {
+      "id": "venue-005",
+      "description": "Family already has a membership at a specific arts center — a creative-arts finding should name that center directly rather than resolving to a different nearby venue.",
+      "verdict": "PASS",
+      "reasoning": "Activity \"Mini-Masterpiece at Maple Community Arts Center\" correctly generated as kind \"home\" naming the family's own venue.",
+      "activities": [
+        {
+          "kind": "home",
+          "title": "Mini-Masterpiece at Maple Community Arts Center",
+          "instructions": "Head to Maple Community Arts Center for a focused, bite-sized creative session. To support your child in seeing a piece through to the end, choose a small-scale canvas or paper (such as a postcard size) and agree on a simple, single-focus project like a clay pinch-pot animal or a quick watercolor landscape. Break the activity into two or three quick stages—shaping or sketching, adding color, and adding an artist's signature mark at the end. Keeping the session to 20–30 minutes ensures they wrap up while their enthusiasm is high, celebrating the accomplishment of a finished artwork.",
+          "addressesFindingId": "f5555555-5555-5555-5555-555555555555",
+          "resourceId": null,
+          "localQuery": null
+        }
+      ],
+      "model": "gemini-3.8-flash"
+    }
+  ]
+}

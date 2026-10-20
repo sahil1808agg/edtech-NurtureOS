@@ -20,12 +20,12 @@
     "enqueue": "node scripts/enqueue.mjs",
     "make:ops": "node scripts/make-ops-user.mjs",
     "test:integration": "vitest run --config vitest.integration.config.ts",
-    "eval:routing": "tsx evals/run_evals.ts",
-    "eval:grounding": "tsx evals/run_grounding_eval.ts",
-    "eval:venue": "tsx evals/run_local_venue_eval.ts",
-    "eval:nearby": "tsx evals/run_nearby_resources_eval.ts",
-    "eval:planning-tools": "tsx evals/run_planning_tool_eval.ts",
-    "eval:local-mix": "tsx evals/run_local_mix_eval.ts"
+    "eval:routing": "tsx evals/scripts/run_evals.ts",
+    "eval:grounding": "tsx evals/scripts/run_grounding_eval.ts",
+    "eval:venue": "tsx evals/scripts/run_local_venue_eval.ts",
+    "eval:nearby": "tsx evals/scripts/run_nearby_resources_eval.ts",
+    "eval:planning-tools": "tsx evals/scripts/run_planning_tool_eval.ts",
+    "eval:local-mix": "tsx evals/scripts/run_local_mix_eval.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",

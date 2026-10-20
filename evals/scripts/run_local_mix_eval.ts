@@ -1,21 +1,22 @@
-import '../src/test/load-env.js';
+import '../../src/test/load-env.js';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { runPlan, type PlanActivity } from '../src/server/pipeline/plan.js';
-import type { FamilyConstraints } from '../src/server/prompts/plan.js';
+import { runPlan, type PlanActivity } from '../../src/server/pipeline/plan.js';
+import type { FamilyConstraints } from '../../src/server/prompts/plan.js';
 
 /**
- * Deterministic eval for the "own venue" rule in prompts/plan.ts: when
- * constraints.otherConstraints names a venue the family already has access
- * to (their own society/club/membership), the activity that uses it must be
- * kind "home" with the venue named in the instructions — never kind "local",
- * which triggers a public-places lookup that has no way to know what "our
- * society" refers to and will silently swap in an unrelated nearby business
- * (see resolve-local-activities.ts). No judge needed — this is a structural
- * check on runPlan()'s own output, same "dumbest possible eval" approach as
- * run_evals.ts/run_grounding_eval.ts, just one layer lower (the plan
- * pipeline itself rather than the chat agent wrapping it).
+ * Deterministic eval for the opposite direction from run_local_venue_eval.ts:
+ * that one checks an owned venue never becomes kind "local"; this one checks
+ * that when hasLocation is true and there's no reason to suppress it, the
+ * plan actually CONTAINS "local" activities rather than defaulting to an
+ * all-home/resource plan. Written after tracing a reported "new plans are
+ * all-home" issue back to a stale plan generated under an old prompt
+ * version (plan:2), which predated the hasLocation-gated local-activity
+ * rule — current code (confirmed via live runPlan() calls) already mixes
+ * local/home/resource correctly, but nothing previously caught it if that
+ * regressed again. Same "dumbest possible eval" structural-check approach,
+ * no judge needed.
  */
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -31,9 +32,12 @@ interface TestCase {
   description: string;
   childAgeMonths: number;
   targetFindings: Array<{ id: string; statement: string }>;
-  otherConstraints: string;
-  /** Every one of these substrings (case-insensitive) must appear in an activity's title+instructions for it to count as "the family's own venue". */
-  venueKeywords: string[];
+  otherConstraints: string | null;
+  hasLocation: boolean;
+  minLocalCount: number;
+  maxLocalCount: number | null;
+  /** Only for the own-venue scope-test case: every one of these substrings (case-insensitive) must appear in an activity's title+instructions for it to count as "the family's own venue". */
+  venueKeywords?: string[];
 }
 
 interface EvalResult {
@@ -41,6 +45,7 @@ interface EvalResult {
   description: string;
   verdict: 'PASS' | 'FAIL';
   reasoning: string;
+  localCount: number;
   activities: PlanActivity[];
   model: string;
 }
@@ -65,7 +70,7 @@ async function evaluateCase(testCase: TestCase): Promise<EvalResult> {
     topicContext: null,
     resourceCandidates: [],
     priorFailures: [],
-    hasLocation: true,
+    hasLocation: testCase.hasLocation,
   });
 
   if (!result.ok) {
@@ -74,29 +79,42 @@ async function evaluateCase(testCase: TestCase): Promise<EvalResult> {
       description: testCase.description,
       verdict: 'FAIL',
       reasoning: `Plan generation failed: ${JSON.stringify(result.error)}`,
+      localCount: 0,
       activities: [],
       model: 'unknown',
     };
   }
 
   const activities = result.value.activities;
-  const venueActivities = activities.filter(a => matchesVenue(a, testCase.venueKeywords));
+  const localCount = activities.filter(a => a.kind === 'local').length;
 
-  let verdict: 'PASS' | 'FAIL';
+  let verdict: 'PASS' | 'FAIL' = 'PASS';
   let reasoning: string;
 
-  if (venueActivities.length === 0) {
+  if (localCount < testCase.minLocalCount) {
     verdict = 'FAIL';
-    reasoning = `No activity referenced the family's stated venue (expected all of: ${testCase.venueKeywords.join(', ')}) — the standing preference naming it was ignored.`;
-  } else {
-    const violation = venueActivities.find(a => a.kind !== 'home' || a.localQuery !== null || a.resourceId !== null);
-    if (violation) {
+    reasoning = `Expected at least ${testCase.minLocalCount} "local" activity(ies) but got ${localCount}.`;
+  } else if (testCase.maxLocalCount !== null && localCount > testCase.maxLocalCount) {
+    verdict = 'FAIL';
+    reasoning = `Expected at most ${testCase.maxLocalCount} "local" activity(ies) but got ${localCount}.`;
+  } else if (testCase.venueKeywords) {
+    const venueActivity = activities.find(a => matchesVenue(a, testCase.venueKeywords!));
+    const otherLocal = activities.find(a => a.kind === 'local' && !matchesVenue(a, testCase.venueKeywords!));
+
+    if (!venueActivity) {
       verdict = 'FAIL';
-      reasoning = `Activity "${violation.title}" references the family's own venue but was generated as kind "${violation.kind}"${violation.localQuery ? ` with localQuery "${violation.localQuery}"` : ''}${violation.resourceId ? ` with resourceId "${violation.resourceId}"` : ''} — should be kind "home" with the venue named directly, never "local"/"resource", since "local" would silently swap in an unrelated nearby place.`;
+      reasoning = `No activity referenced the family's stated venue (expected all of: ${testCase.venueKeywords.join(', ')}).`;
+    } else if (venueActivity.kind !== 'home') {
+      verdict = 'FAIL';
+      reasoning = `Activity "${venueActivity.title}" references the family's own venue but was generated as kind "${venueActivity.kind}", not "home".`;
+    } else if (!otherLocal) {
+      verdict = 'FAIL';
+      reasoning = `The owned-venue activity was correctly "home", but no OTHER domain got a "local" activity — the own-venue rule appears to have suppressed "local" plan-wide instead of just for its own domain.`;
     } else {
-      verdict = 'PASS';
-      reasoning = `Activity "${venueActivities[0].title}" correctly generated as kind "home" naming the family's own venue.`;
+      reasoning = `Venue activity "${venueActivity.title}" correctly "home"; "${otherLocal.title}" in another domain correctly "local" — own-venue rule scoped correctly.`;
     }
+  } else {
+    reasoning = `Got ${localCount} "local" activity(ies), within expected range [${testCase.minLocalCount}, ${testCase.maxLocalCount ?? '∞'}].`;
   }
 
   return {
@@ -104,6 +122,7 @@ async function evaluateCase(testCase: TestCase): Promise<EvalResult> {
     description: testCase.description,
     verdict,
     reasoning,
+    localCount,
     activities,
     model: result.meta.modelDeployment,
   };
@@ -111,11 +130,11 @@ async function evaluateCase(testCase: TestCase): Promise<EvalResult> {
 
 async function main() {
   const runAt = new Date();
-  const datasetPath = join(__dirname, 'local-venue-dataset.json');
+  const datasetPath = join(__dirname, '..', 'datasets', 'local-mix-dataset.json');
   const dataset: TestCase[] = JSON.parse(readFileSync(datasetPath, 'utf8'));
 
   console.log('\n' + '='.repeat(65));
-  console.log('   RUNNING LOCAL-VS-HOME VENUE EVAL (live LLM calls)');
+  console.log('   RUNNING LOCAL-MIX EVAL (live LLM calls)');
   console.log('='.repeat(65) + '\n');
 
   const results: EvalResult[] = [];
@@ -128,7 +147,7 @@ async function main() {
     console.log(`    Scenario: ${res.description}`);
     console.log(`    Activities:`);
     for (const a of res.activities) {
-      console.log(`      - [${a.kind}] "${a.title}"${a.localQuery ? ` (localQuery: "${a.localQuery}")` : ''}${a.resourceId ? ` (resourceId: ${a.resourceId})` : ''}`);
+      console.log(`      - [${a.kind}] "${a.title}"${a.localQuery ? ` (localQuery: "${a.localQuery}")` : ''}`);
     }
     console.log(`    Reasoning: ${res.reasoning}\n`);
   }
@@ -154,12 +173,12 @@ async function main() {
     results,
   };
 
-  const runsDir = join(__dirname, 'runs');
+  const runsDir = join(__dirname, '..', 'runs');
   mkdirSync(runsDir, { recursive: true });
-  const runPath = join(runsDir, `eval_results_venue_${formatIST(runAt)}_IST.json`);
+  const runPath = join(runsDir, `eval_results_local_mix_${formatIST(runAt)}_IST.json`);
   writeFileSync(runPath, JSON.stringify(output, null, 2), 'utf8');
 
-  const latestPath = join(__dirname, 'eval_results_venue.json');
+  const latestPath = join(__dirname, '..', 'results', 'eval_results_local_mix.json');
   writeFileSync(latestPath, JSON.stringify(output, null, 2), 'utf8');
   console.log(`Detailed results logged to ${runPath}\n(also updated ${latestPath})\n`);
 

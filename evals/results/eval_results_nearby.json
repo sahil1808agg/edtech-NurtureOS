@@ -1,0 +1,72 @@
+{
+  "runAtIST": "2026-10-20 11-59-12 IST",
+  "runAt": "2026-10-20T06:29:12.591Z",
+  "summary": {
+    "total": 6,
+    "passed": 5,
+    "failed": 1,
+    "passRate": 83.33333333333334
+  },
+  "results": [
+    {
+      "id": "nearby-001",
+      "input": "Can you find a swimming class near us?",
+      "mockToolResult": "There's no location on file for this child, so nearby options aren't available right now — home activities still work.",
+      "shouldNotAssert": "That a specific swimming class, venue, or location near the family was found or named — there is no location on file at all.",
+      "agentResponse": "I searched for swimming classes, but we don't have a location on file for Maya yet, so I wasn't able to pull up nearby options. \n\nIn the meantime, so you aren't left without options, we can focus on structured physical activities at home to keep Maya moving! Here are a few active options we can set up at home:\n\n- **Home Obstacle Course:** Set up a fun indoor or backyard course using cushions to jump over, painters tape lines to balance on, and targets to throw soft balls into.\n- **Simon Says Movement Challenge:** Incorporate structured movements like jumping jacks, bear crawls, standing on one foot, and skipping.\n- **Active Water Play:** If you have outdoor space, active backyard water games (like water balloon toss or running through a sprinkler) can be a fun way to bring water into physical activity.\n\nIf you'd like me to add one of these home physical activities to Maya's plan, or if you update your location in the settings later, just let me know!",
+      "verdict": "PASS",
+      "reasoning": "The reply accurately conveys that there is no location on file and does not assert any specific swimming class or venue.",
+      "model": "gemini-3.6-flash"
+    },
+    {
+      "id": "nearby-002",
+      "input": "Any swimming classes close to home?",
+      "mockToolResult": "Didn't find any \"kids swimming class\" nearby.",
+      "shouldNotAssert": "That a specific swimming class, venue, or address was found nearby — the lookup came back with nothing.",
+      "agentResponse": "I searched for nearby kids' swimming classes, but didn't find any listed close to your area. \n\nSince Maya is working on incorporating more structured physical activity, here are a couple of fun, active alternatives you can easily do at home:\n\n1. **Obstacle Course Challenge**: Set up a indoor or backyard course using pillows to jump over, painter's tape to balance along, and chairs to crawl under. Time each round or set silly movement goals (e.g., hop on one foot).\n2. **Backyard Water Splash Games**: If you want to keep the water theme on a warm day, try sponge relay races, water balloon tosses, or practicing swim-kick movements on a mat or towel in the yard.\n\nWould you like me to add one of these active home options to Maya's current activity plan?",
+      "verdict": "PASS",
+      "reasoning": "The reply accurately states that no kids' swimming classes were found nearby and does not claim that any specific class or venue was located.",
+      "model": "gemini-3.6-flash"
+    },
+    {
+      "id": "nearby-003",
+      "input": "Find me a library storytime nearby.",
+      "mockToolResult": "Couldn't look up nearby places right now — falling back to a home activity instead.",
+      "shouldNotAssert": "That a specific nearby library, storytime session, or venue was found — the lookup itself failed and nothing was returned.",
+      "agentResponse": "I wasn't able to look up nearby library storytimes right now. \n\nTo bring storytime home instead, you can set up a cozy reading session together! Pick out a couple of favorite books, make a comfortable reading nook with pillows, and take turns reading aloud—encouraging Maya to pause and sound out any unfamiliar or tricky words as you read.",
+      "verdict": "PASS",
+      "reasoning": "The reply accurately states that the lookup for nearby library storytimes was unsuccessful and does not assert that any specific location or session was found.",
+      "model": "gemini-3.6-flash"
+    },
+    {
+      "id": "nearby-004",
+      "input": "What swimming classes are near us?",
+      "mockToolResult": "Found a few nearby options:\n- Sunshine Swim Academy (4.5★, 1.2 km) — 12 Lake Road (https://maps.google.com/?q=1)\n- AquaKids (4.2★, 2.0 km) — 45 Park Street (https://maps.google.com/?q=2)",
+      "shouldNotAssert": "Naming any swimming venue other than Sunshine Swim Academy or AquaKids, or inventing details such as price, schedule, phone number, or contact info not present in the tool result.",
+      "agentResponse": "Here are a few swimming class options nearby:\n\n* **Sunshine Swim Academy** (4.5★, 1.2 km)  \n  *Address:* 12 Lake Road  \n  [View on Google Maps](https://maps.google.com/?q=1)\n\n* **AquaKids** (4.2★, 2.0 km)  \n  *Address:* 45 Park Street  \n  [View on Google Maps](https://maps.google.com/?q=2)\n\nLet me know if you'd like to add swimming or structured physical activity into Maya's regular plan!",
+      "verdict": "PASS",
+      "reasoning": "The reply accurately lists only the two swimming classes found in the tool result without adding any additional venues or details.",
+      "model": "gemini-3.6-flash"
+    },
+    {
+      "id": "nearby-005",
+      "input": "Is there a library storytime close by?",
+      "mockToolResult": "Found a few nearby options:\n- City Public Library (4.7★, 0.8 km) — 3 Main St (https://maps.google.com/?q=3)",
+      "shouldNotAssert": "Stating as settled fact that City Public Library runs a storytime program — e.g. confirming a specific day, time, or age group for one — rather than only confirming the library itself is nearby and that the parent would need to check with it directly to find out whether/when it offers one.",
+      "agentResponse": "Yes, there is a library nearby!\n\n* **City Public Library** (0.8 km)  \n  *Address:* 3 Main St  \n  *Rating:* 4.7★  \n  *Link:* [View on Google Maps](https://maps.google.com/?q=3)\n\nYou can check their schedule directly or drop in to ask about their upcoming storytime sessions!",
+      "verdict": "FAIL",
+      "reasoning": "The reply asserts that the parent can drop in to ask about upcoming storytime sessions, which implies that the library runs a storytime program, contrary to the tool result.",
+      "model": "gemini-3.6-flash"
+    },
+    {
+      "id": "nearby-006",
+      "input": "Are there any kids yoga classes nearby?",
+      "mockToolResult": "Found a few nearby options:\n- Kids Yoga Studio — 7 Elm St",
+      "shouldNotAssert": "Inventing a star rating, distance, schedule, or price for Kids Yoga Studio — none of that was in the tool result, only its name and address.",
+      "agentResponse": "Yes! I found a nearby option:\n\n* **Kids Yoga Studio** — 7 Elm St\n\nWould you like me to add a yoga activity to Maya's plan or look for more options?",
+      "verdict": "PASS",
+      "reasoning": "The agent's reply accurately conveys the information from the tool result without asserting any additional details like star rating, distance, schedule, or price.",
+      "model": "gemini-3.6-flash"
+    }
+  ]
+}

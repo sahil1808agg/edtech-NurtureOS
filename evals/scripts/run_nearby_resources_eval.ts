@@ -1,13 +1,13 @@
-import '../src/test/load-env.js';
+import '../../src/test/load-env.js';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildPlanningAgentSystemPrompt } from '../src/server/prompts/chat-planning-agent.js';
-import type { ChildContext } from '../src/server/prompts/chat-orchestrator.js';
-import { PLANNING_AGENT_TOOL_DEFINITIONS_FOR_MODEL } from '../src/server/chat/tools.js';
-import { callChatModel } from '../src/server/llm/chat-client.js';
-import { callOpenAICompat } from '../src/server/llm/providers/openai-compat.js';
-import type { ChatTurnMessage } from '../src/server/llm/types.js';
+import { buildPlanningAgentSystemPrompt } from '../../src/server/prompts/chat-planning-agent.js';
+import type { ChildContext } from '../../src/server/prompts/chat-orchestrator.js';
+import { PLANNING_AGENT_TOOL_DEFINITIONS_FOR_MODEL } from '../../src/server/chat/tools.js';
+import { callChatModel } from '../../src/server/llm/chat-client.js';
+import { callOpenAICompat } from '../../src/server/llm/providers/openai-compat.js';
+import type { ChatTurnMessage } from '../../src/server/llm/types.js';
 
 /**
  * Honesty eval for find_nearby_resources: where run_grounding_eval.ts checks
@@ -148,7 +148,7 @@ async function evaluateCase(testCase: TestCase): Promise<EvalResult> {
 
 async function main() {
   const runAt = new Date();
-  const datasetPath = join(__dirname, 'nearby-resources-honesty-dataset.json');
+  const datasetPath = join(__dirname, '..', 'datasets', 'nearby-resources-honesty-dataset.json');
   const dataset: TestCase[] = JSON.parse(readFileSync(datasetPath, 'utf8'));
 
   console.log('\n' + '='.repeat(65));
@@ -190,12 +190,12 @@ async function main() {
     results,
   };
 
-  const runsDir = join(__dirname, 'runs');
+  const runsDir = join(__dirname, '..', 'runs');
   mkdirSync(runsDir, { recursive: true });
   const runPath = join(runsDir, `eval_results_nearby_${formatIST(runAt)}_IST.json`);
   writeFileSync(runPath, JSON.stringify(output, null, 2), 'utf8');
 
-  const latestPath = join(__dirname, 'eval_results_nearby.json');
+  const latestPath = join(__dirname, '..', 'results', 'eval_results_nearby.json');
   writeFileSync(latestPath, JSON.stringify(output, null, 2), 'utf8');
   console.log(`Detailed results logged to ${runPath}\n(also updated ${latestPath})\n`);
 
