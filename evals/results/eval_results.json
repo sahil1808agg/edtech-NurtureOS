@@ -1,6 +1,6 @@
 {
-  "runAtIST": "2026-10-20 11-56-07 IST",
-  "runAt": "2026-10-20T06:26:07.506Z",
+  "runAtIST": "2026-10-20 15-58-42 IST",
+  "runAt": "2026-10-20T10:28:42.021Z",
   "summary": {
     "total": 12,
     "passed": 10,
@@ -57,10 +57,10 @@
       "input": "What did the latest report say his strengths were?",
       "expectedAgent": "report_analysis_agent",
       "actualAgents": [
-        "report_analysis_agent"
+        "profile_agent"
       ],
-      "verdict": "PASS",
-      "reasoning": "Correctly routed to 'report_analysis_agent'.",
+      "verdict": "FAIL",
+      "reasoning": "Expected 'report_analysis_agent', got [profile_agent].",
       "model": "gpt-4o-2024-08-06"
     },
     {
@@ -90,11 +90,10 @@
       "input": "The teacher sent a corrected report card, can you re-run the analysis on it?",
       "expectedAgent": "report_analysis_agent",
       "actualAgents": [
-        "report_analysis_agent",
-        "planning_agent"
+        "report_analysis_agent"
       ],
-      "verdict": "FAIL",
-      "reasoning": "Expected 'report_analysis_agent', got [report_analysis_agent, planning_agent].",
+      "verdict": "PASS",
+      "reasoning": "Correctly routed to 'report_analysis_agent'.",
       "model": "gpt-4o-2024-08-06"
     },
     {

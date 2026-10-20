@@ -21,7 +21,8 @@ import {
   getFamilyConstraints,
   setFamilyInterests,
   getResourceCandidates,
-  getNextCycleNo,
+  getCurrentPlan,
+  getDeclinedActivityTitles,
   createPlan,
   savePlanActivities,
   approvePlanDirectly,
@@ -110,12 +111,13 @@ export async function dispatchTool(name: string, rawArgs: unknown, ctx: ToolDisp
  * Runs the same sequence as the legacy plan-generate worker
  * (src/server/queue/jobs/plan-generate.ts), inline rather than queued — a
  * single reasoning-tier call, acceptable within a chat request (see
- * engineering doc §2/§3). Each call is a new plan cycle (cycle_no already
- * increments per call via getNextCycleNo), so there is no "supersede the
- * prior plan" step needed — old cycles simply remain as history, the same
- * way the legacy flow already works. The one real difference: this skips
- * enqueueForReview and goes straight to 'approved', per the direct-apply
- * decision (engineering doc §4/§7).
+ * engineering doc §2/§3). Each call is a new plan cycle (createPlan assigns
+ * the next cycle_no itself, retrying if a concurrent regeneration — e.g.
+ * this same tool firing twice, or racing the queued worker — won it first),
+ * so there is no "supersede the prior plan" step needed — old cycles simply
+ * remain as history, the same way the legacy flow already works. The one
+ * real difference: this skips enqueueForReview and goes straight to
+ * 'approved', per the direct-apply decision (engineering doc §4/§7).
  */
 async function regeneratePlan(ctx: ToolDispatchContext): Promise<ToolDispatchResult> {
   const targetFindings = await getTargetFindings(ctx.childId);
@@ -124,12 +126,15 @@ async function regeneratePlan(ctx: ToolDispatchContext): Promise<ToolDispatchRes
   }
 
   const child = await getChild(ctx.childId);
-  const [constraints, resourceCandidates, cycleNo] = await Promise.all([
+  const [constraints, resourceCandidates, currentPlan] = await Promise.all([
     getFamilyConstraints(ctx.familyId),
     getResourceCandidates(),
-    getNextCycleNo(ctx.childId),
+    getCurrentPlan(ctx.childId),
   ]);
   const hasLocation = (child.lat != null && child.lng != null) || !!(child.city || child.pincode);
+  const priorFailures = currentPlan
+    ? (await getDeclinedActivityTitles(currentPlan.planId)).map(a => ({ title: a.title, reason: 'the parent removed this activity' }))
+    : [];
 
   const result = await runPlan({
     childAgeMonths: ageMonthsFromDob(child.dob),
@@ -137,7 +142,7 @@ async function regeneratePlan(ctx: ToolDispatchContext): Promise<ToolDispatchRes
     constraints,
     topicContext: null,
     resourceCandidates,
-    priorFailures: [],
+    priorFailures,
     hasLocation,
   }, ctx.familyId, ctx.requestId);
 
@@ -147,10 +152,9 @@ async function regeneratePlan(ctx: ToolDispatchContext): Promise<ToolDispatchRes
 
   const activities = await resolveLocalActivities(result.value.activities, child);
 
-  const planId = await createPlan({
+  const { id: planId, cycleNo } = await createPlan({
     familyId: ctx.familyId,
     childId: ctx.childId,
-    cycleNo,
     topicContext: null,
     modelDeployment: result.meta.modelDeployment,
     promptVersion: result.meta.promptVersion,
@@ -213,7 +217,7 @@ async function setFindingExcluded(args: { findingId: string }, excluded: boolean
 }
 
 async function editPlanActivity(
-  args: { activityId: string; title?: string; instructions?: string; declined?: boolean },
+  args: { activityId: string; title?: string; instructions?: string; declined?: boolean; completed?: boolean },
   ctx: ToolDispatchContext,
 ): Promise<ToolDispatchResult> {
   const activity = await getPlanActivityForEdit(args.activityId);
@@ -221,12 +225,19 @@ async function editPlanActivity(
     return { ok: false, summary: '', error: { code: 'NOT_FOUND', message: "couldn't find that activity" } };
   }
 
-  const before = { title: activity.title, instructions: activity.instructions, declined: activity.declined };
-  await updatePlanActivity({ activityId: activity.id, title: args.title, instructions: args.instructions, declined: args.declined });
+  const before = { title: activity.title, instructions: activity.instructions, declined: activity.declined, completed: activity.completed };
+  await updatePlanActivity({
+    activityId: activity.id,
+    title: args.title,
+    instructions: args.instructions,
+    declined: args.declined,
+    completed: args.completed,
+  });
   const after = {
     title: args.title ?? activity.title,
     instructions: args.instructions ?? activity.instructions,
     declined: args.declined ?? activity.declined,
+    completed: args.completed ?? activity.completed,
   };
 
   await writeAudit(ctx, 'edit_plan_activity', 'plan', activity.id, before, after);

@@ -7,7 +7,8 @@ import {
   getFamilyConstraints,
   getTargetFindings,
   getResourceCandidates,
-  getNextCycleNo,
+  getCurrentPlan,
+  getDeclinedActivityTitles,
   createPlan,
   savePlanActivities,
   approvePlanDirectly,
@@ -34,8 +35,9 @@ export interface PlanGenerateJobData {
 
 // Triggered per child, not per report — there's no review console / publish
 // flow yet, so this reads findings from the child's most recent finding_set
-// directly rather than waiting for a "published" one. priorFailures is always
-// [] here since nothing yet records check-in outcomes back onto plan_activities.
+// directly rather than waiting for a "published" one. priorFailures comes
+// from the plan being superseded (plan_activities.declined), not from
+// check-in outcomes — nothing records those back onto plan_activities yet.
 export async function registerPlanGenerateWorker(boss: PgBoss): Promise<void> {
   await boss.work<PlanGenerateJobData>(QUEUE, { localConcurrency: 2 }, async ([job]) => {
     const { childId, topicContext = null, requestId } = job.data;
@@ -49,8 +51,11 @@ export async function registerPlanGenerateWorker(boss: PgBoss): Promise<void> {
 
     const constraints = await getFamilyConstraints(child.familyId);
     const resourceCandidates = await getResourceCandidates();
-    const cycleNo = await getNextCycleNo(childId);
     const hasLocation = (child.lat != null && child.lng != null) || !!(child.city || child.pincode);
+    const currentPlan = await getCurrentPlan(childId);
+    const priorFailures = currentPlan
+      ? (await getDeclinedActivityTitles(currentPlan.planId)).map(a => ({ title: a.title, reason: 'the parent removed this activity' }))
+      : [];
 
     const result = await runPlan({
       childAgeMonths: ageMonthsFromDob(child.dob),
@@ -58,7 +63,7 @@ export async function registerPlanGenerateWorker(boss: PgBoss): Promise<void> {
       constraints,
       topicContext,
       resourceCandidates,
-      priorFailures: [],
+      priorFailures,
       hasLocation,
     }, child.familyId, requestId);
 
@@ -71,10 +76,9 @@ export async function registerPlanGenerateWorker(boss: PgBoss): Promise<void> {
 
     const activities = await resolveLocalActivities(result.value.activities, child);
 
-    const planId = await createPlan({
+    const { id: planId } = await createPlan({
       familyId: child.familyId,
       childId,
-      cycleNo,
       topicContext,
       modelDeployment: result.meta.modelDeployment,
       promptVersion: result.meta.promptVersion,

@@ -440,6 +440,14 @@ create table plan_activities (
   addresses_finding_id uuid not null references findings(id),
   resource_id          uuid references resources(id),
   declined             boolean not null default false,
+  -- migration 0016: done / carry-to-tomorrow / remove actions on the Today card.
+  completed            boolean not null default false,
+  completed_at         timestamptz,
+  snoozed_until        date,
+  -- migration 0017: step-by-step structure instead of one instructions paragraph.
+  steps                text[] not null default '{}',
+  materials            text[] not null default '{}',
+  estimated_minutes    int,
   unique (plan_id, position),
   constraint plan_activities_position_check check (position >= 1)
 );

@@ -48,7 +48,11 @@ export async function resolveLocalActivities(
             .join(' — ');
           return `- ${place.name} — ${details}`;
         });
-        return { ...activity, instructions: `${activity.instructions}\n\nTry one of these nearby:\n${lines.join('\n')}`, localQuery: null };
+        return {
+          ...activity,
+          steps: [...activity.steps, `Try one of these nearby:\n${lines.join('\n')}`],
+          localQuery: null,
+        };
       } catch {
         return { ...activity, kind: 'home' as const, localQuery: null };
       }

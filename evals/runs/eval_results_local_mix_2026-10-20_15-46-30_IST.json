@@ -1,0 +1,241 @@
+{
+  "runAtIST": "2026-10-20 15-46-30 IST",
+  "runAt": "2026-10-20T10:16:30.995Z",
+  "summary": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0,
+    "passRate": 100
+  },
+  "results": [
+    {
+      "id": "local-mix-001",
+      "description": "Rich domain spread (literacy, math, physical, creative/music), no standing preference, location on file — should produce at least 2 'local' activities, per the prompt's own 'aim for 2-3 across domains' rule.",
+      "verdict": "PASS",
+      "reasoning": "Got 2 \"local\" activity(ies), within expected range [2, ∞].",
+      "localCount": 2,
+      "activities": [
+        {
+          "kind": "local",
+          "title": "Library Mystery Word Hunt",
+          "instructions": "Visit a library to explore new early-reader books together and practice sounding out unfamiliar words in an encouraging setting. Reading in a fresh environment builds enthusiasm and independence with print.",
+          "steps": [
+            "Select two illustrated early-reader books from the library shelves.",
+            "Take turns reading sentences aloud together in a quiet reading corner.",
+            "Pause when encountering an unfamiliar word and prompt blending each sound from left to right.",
+            "Celebrate successful decoding and talk about what the sentence means before moving on."
+          ],
+          "materials": [],
+          "estimatedMinutes": 25,
+          "addressesFindingId": "f1111111-1111-1111-1111-111111111111",
+          "resourceId": null,
+          "localQuery": "children's library storytime"
+        },
+        {
+          "kind": "home",
+          "title": "Two-Digit Strategy Showcase",
+          "instructions": "This partner math challenge invites your child to explain different mental strategies for solving two-digit problems. Comparing multiple approaches deepens numerical flexibility and mathematical reasoning.",
+          "steps": [
+            "Pose a two-digit addition or subtraction problem aloud, such as 24 plus 15.",
+            "Ask your child to solve the problem using their first preferred method, such as combining tens and ones.",
+            "Invite them to demonstrate a second way to check the answer, such as counting on on a mental number line.",
+            "Take a turn solving another problem yourself and describe your own strategy aloud."
+          ],
+          "materials": [],
+          "estimatedMinutes": 15,
+          "addressesFindingId": "f2222222-2222-2222-2222-222222222222",
+          "resourceId": null,
+          "localQuery": null
+        },
+        {
+          "kind": "local",
+          "title": "Playground Balance Challenge",
+          "instructions": "Practice dynamic balance and body control using outdoor playground balance beams and pathways. Navigating structured movement lines outdoors builds coordination and core stability.",
+          "steps": [
+            "Locate a low balance beam, wooden curb, or painted line on the playground surface.",
+            "Demonstrate walking heel-to-toe along the path with arms extended for balance.",
+            "Have your child walk across the path, pausing to hold a one-footed balance for three seconds in the middle.",
+            "Repeat the route with gentle challenges such as walking sideways or taking slow, deliberate steps."
+          ],
+          "materials": [],
+          "estimatedMinutes": 25,
+          "addressesFindingId": "f3333333-3333-3333-3333-333333333333",
+          "resourceId": null,
+          "localQuery": "public park playground"
+        },
+        {
+          "kind": "home",
+          "title": "Two-Step Art Sprint",
+          "instructions": "This structured drawing session breaks an art project into brief, focused stages to support task completion. Dividing creation into distinct intervals helps maintain momentum and pride in finished artwork.",
+          "steps": [
+            "Agree together on a fun, single subject to draw, such as an imaginary animal or vehicle.",
+            "Set a five-minute timer dedicated entirely to sketching the outline.",
+            "Take a one-minute stretch break to view the outline and plan the remaining parts.",
+            "Set a final five-minute timer to add color and details until the picture is complete."
+          ],
+          "materials": [],
+          "estimatedMinutes": 15,
+          "addressesFindingId": "f4444444-4444-4444-4444-444444444444",
+          "resourceId": null,
+          "localQuery": null
+        }
+      ],
+      "model": "gemini-3.8-flash"
+    },
+    {
+      "id": "local-mix-002",
+      "description": "A general taste ('more outdoor activities') with no specific venue named — must not be treated as an owned-venue override; should still produce at least 1 'local' activity.",
+      "verdict": "PASS",
+      "reasoning": "Got 2 \"local\" activity(ies), within expected range [1, ∞].",
+      "localCount": 2,
+      "activities": [
+        {
+          "kind": "local",
+          "title": "Park Trail Balance Adventure",
+          "instructions": "Visit a nearby park to build balance and physical coordination using natural ground paths and landscape borders.",
+          "steps": [
+            "Choose a low border, log, or paved line at the park to use as a balance pathway.",
+            "Encourage your child to walk forward along the pathway step by step with arms outstretched for stability.",
+            "Introduce fun movement prompts along the way, such as balancing on one leg like a flamingo or tiptoeing slowly."
+          ],
+          "materials": [],
+          "estimatedMinutes": 30,
+          "addressesFindingId": "f5555555-5555-5555-5555-555555555555",
+          "resourceId": null,
+          "localQuery": "public park"
+        },
+        {
+          "kind": "home",
+          "title": "Outdoor Nature Mandala",
+          "instructions": "Create a simple geometric pattern outdoors using gathered nature items to practice sticking with an art project through completion.",
+          "steps": [
+            "Head outside together and collect a small collection of natural materials such as fallen leaves, petals, and pebbles.",
+            "Place a single stone or leaf on the ground as the centerpiece of the design.",
+            "Work alongside your child to arrange the remaining items in concentric circles around the center until the pattern is finished."
+          ],
+          "materials": [],
+          "estimatedMinutes": 20,
+          "addressesFindingId": "f6666666-6666-6666-6666-666666666666",
+          "resourceId": null,
+          "localQuery": null
+        },
+        {
+          "kind": "local",
+          "title": "Library Story Decoding Quest",
+          "instructions": "Spend time at a local library browsing simple readers to build confidence sounding out unfamiliar words in an engaging setting.",
+          "steps": [
+            "Explore the early reading section together and pick out two books with short, phonics-friendly words.",
+            "Find a comfortable reading spot and take turns reading pages aloud together.",
+            "When your child meets a new word, gently prompt them to sound out each individual letter sound and blend them smoothly."
+          ],
+          "materials": [],
+          "estimatedMinutes": 30,
+          "addressesFindingId": "f7777777-7777-7777-7777-777777777777",
+          "resourceId": null,
+          "localQuery": "children's library"
+        }
+      ],
+      "model": "gemini-3.8-flash"
+    },
+    {
+      "id": "local-mix-003",
+      "description": "Owned venue named for one domain only (swimming/society pool) alongside two other domains with no stated venue — the own-venue rule should apply only to the matching activity, not suppress 'local' plan-wide.",
+      "verdict": "PASS",
+      "reasoning": "Venue activity \"Society Pool Stroke and Kick Practice\" correctly \"home\"; \"Storytime and Phonics Discovery\" in another domain correctly \"local\" — own-venue rule scoped correctly.",
+      "localCount": 2,
+      "activities": [
+        {
+          "kind": "home",
+          "title": "Society Pool Stroke and Kick Practice",
+          "instructions": "Practice swimming strokes and sustained movement in your society's pool to develop water confidence and stamina. Consistent physical practice in a familiar pool helps turn basic kicking and arm movements into continuous swimming.",
+          "steps": [
+            "Have your child hold the pool edge and practice continuous flutter kicks.",
+            "Demonstrate reaching and scooping arm motions while standing together in shallow water.",
+            "Support your child under their waist as they combine kicks and arm strokes toward the steps.",
+            "Encourage them to push off and swim a short distance independently into your waiting arms."
+          ],
+          "materials": [],
+          "estimatedMinutes": 30,
+          "addressesFindingId": "f8888888-8888-8888-8888-888888888888",
+          "resourceId": null,
+          "localQuery": null
+        },
+        {
+          "kind": "local",
+          "title": "Storytime and Phonics Discovery",
+          "instructions": "Attend a library story session to build phonetic confidence by encountering new printed words in an engaging environment. Listening to stories and exploring print alongside others reinforces early decoding skills.",
+          "steps": [
+            "Join a storytime group to hear stories read aloud and follow along with the illustrations.",
+            "Browse the early reader shelves together to pick out a book with large, clear text.",
+            "Find a comfortable seat and take turns reading sentences aloud.",
+            "Encourage your child to sound out unfamiliar short words letter by letter."
+          ],
+          "materials": [],
+          "estimatedMinutes": 25,
+          "addressesFindingId": "f9999999-9999-9999-9999-999999999999",
+          "resourceId": null,
+          "localQuery": "children's library storytime"
+        },
+        {
+          "kind": "local",
+          "title": "Complete-a-Craft Workshop",
+          "instructions": "Participate in a guided studio craft activity to foster focus and pride in completing an artistic project. A dedicated creative space provides structured steps that help maintain engagement until the project is done.",
+          "steps": [
+            "Choose a small, single-session project such as painting a ceramic figure or assembling a mask.",
+            "Help your child outline the steps needed from start to finish before beginning.",
+            "Encourage them through each phase, pausing to admire progress along the way.",
+            "Add final decorative touches together and display the finished piece proudly."
+          ],
+          "materials": [],
+          "estimatedMinutes": 25,
+          "addressesFindingId": "faaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+          "resourceId": null,
+          "localQuery": "children's craft workshop"
+        }
+      ],
+      "model": "gemini-3.8-flash"
+    },
+    {
+      "id": "local-mix-004",
+      "description": "No location on file at all — negative control: must produce exactly 0 'local' activities, so a bug that always reports PASS (e.g. an inverted condition in the eval itself) would still be caught.",
+      "verdict": "PASS",
+      "reasoning": "Got 0 \"local\" activity(ies), within expected range [0, 0].",
+      "localCount": 0,
+      "activities": [
+        {
+          "kind": "home",
+          "title": "Sound-Out Detective",
+          "instructions": "This reading exercise guides your child to break down and blend new words during shared book time. Practicing phonetic decoding together helps strengthen their confidence when tackling unfamiliar text.",
+          "steps": [
+            "Pick a familiar book from your shelf and begin reading the story aloud together.",
+            "Pause when coming across an unfamiliar word and gently slide your finger under each letter.",
+            "Prompt your child to say each letter sound aloud from left to right.",
+            "Ask your child to blend the sounds together quickly to read the full word."
+          ],
+          "materials": [],
+          "estimatedMinutes": 15,
+          "addressesFindingId": "fbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+          "resourceId": null,
+          "localQuery": null
+        },
+        {
+          "kind": "home",
+          "title": "Living Room Movement and Freeze Routine",
+          "instructions": "This structured movement routine exercises your child's posture and stability through controlled physical challenges. Practicing intentional balance sequences supports overall body control and motor coordination.",
+          "steps": [
+            "Clear an open path across the floor and demonstrate a simple sequence of heel-to-toe walking.",
+            "Call out a freeze command and model holding a one-legged balance for three seconds.",
+            "Guide your child to complete the heel-to-toe walk and pause smoothly into the one-legged balance.",
+            "Repeat the sequence three times, challenging your child to steady their arms and hold the final pose."
+          ],
+          "materials": [],
+          "estimatedMinutes": 20,
+          "addressesFindingId": "fccccccc-cccc-cccc-cccc-cccccccccccc",
+          "resourceId": null,
+          "localQuery": null
+        }
+      ],
+      "model": "gemini-3.8-flash"
+    }
+  ]
+}

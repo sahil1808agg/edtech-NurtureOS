@@ -29,7 +29,15 @@ export function buildFailureMessageForChat(status: 'held' | 'failed'): string {
 }
 
 export function buildPlanSummaryForChat(
-  activities: { title: string; instructions: string; kind: string; resourceId: string | null }[],
+  activities: {
+    title: string;
+    instructions: string;
+    steps: string[];
+    materials: string[];
+    estimatedMinutes: number;
+    kind: string;
+    resourceId: string | null;
+  }[],
   resourceTitleById: Map<string, string> = new Map(),
 ): string {
   if (activities.length === 0) return "I put together a plan, but it came out empty — let me know if you'd like me to try again.";
@@ -39,7 +47,9 @@ export function buildPlanSummaryForChat(
   const describe = (a: (typeof activities)[number]) => {
     const resourceTitle = a.resourceId ? resourceTitleById.get(a.resourceId) : null;
     const label = resourceTitle ? `${a.title} — ${resourceTitle}` : a.title;
-    return `- ${label}: ${a.instructions}`;
+    const meta = `~${a.estimatedMinutes} min; ${a.materials.length ? `materials: ${a.materials.join(', ')}` : 'no materials needed'}`;
+    const steps = a.steps.map((s, i) => `  ${i + 1}. ${s}`).join('\n');
+    return `- ${label}: ${a.instructions} (${meta})\n${steps}`;
   };
   const section = (label: string, list: typeof activities) =>
     list.length ? [`${label}:`, ...list.map(describe)] : [];

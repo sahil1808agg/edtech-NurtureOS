@@ -6,7 +6,13 @@ import type { StageResult } from './types.js';
 export interface PlanActivity {
   kind: 'home' | 'resource' | 'local';
   title: string;
+  /** One or two sentences: what this activity is and why — the step-by-step "how" lives in `steps`, not here. */
   instructions: string;
+  /** Ordered, actionable steps a parent follows in sequence. */
+  steps: string[];
+  /** What to gather before starting. Empty array, not omitted, when nothing beyond what's on hand is needed. */
+  materials: string[];
+  estimatedMinutes: number;
   addressesFindingId: string;
   resourceId: string | null;
   /** Only for kind 'local' — what to search for nearby; resolved to a real place before saving (see resolve-local-activities.ts). */
@@ -21,6 +27,9 @@ const ActivitySchema = z.object({
   kind: z.enum(['home', 'resource', 'local']),
   title: z.string(),
   instructions: z.string(),
+  steps: z.array(z.string().min(1)).min(2),
+  materials: z.array(z.string().min(1)),
+  estimatedMinutes: z.number().int().positive(),
   addressesFindingId: z.string(),
   resourceId: z.string().nullable(),
   localQuery: z.string().nullable(),

@@ -1,9 +1,11 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { routeClient, currentUser } from '../../../lib/db/server';
+import { getCurrentPlan, remainingTodayActivities } from '../../../server/db/plans';
 import { RequestPlan } from './RequestPlan';
 import { DeleteChildButton } from '../DeleteChildButton';
 import { EditLocation } from './EditLocation';
+import { TodayActivityList } from '../../../components/TodayActivityList';
 
 export const dynamic = 'force-dynamic';
 
@@ -101,6 +103,14 @@ export default async function ChildPage({ params }: { params: Promise<{ id: stri
 
   const planInFlight = (plans ?? []).some((p) => p.status === 'draft' || p.status === 'in_review');
 
+  // "Today" is every activity on the current (approved/published) plan that
+  // the parent hasn't marked done or removed, and isn't carried to a later
+  // date — recomputed fresh on every load, not stored anywhere, so there's
+  // nothing to keep in sync with the plan page.
+  const currentPlan = await getCurrentPlan(child.id);
+  const planReady = currentPlan?.status === 'approved' || currentPlan?.status === 'published';
+  const remainingActivities = planReady && currentPlan ? remainingTodayActivities(currentPlan) : [];
+
   const ageYears = Math.floor(
     (Date.now() - new Date(child.dob).getTime()) / (365.25 * 24 * 3600 * 1000),
   );
@@ -117,6 +127,13 @@ export default async function ChildPage({ params }: { params: Promise<{ id: stri
         </div>
         <DeleteChildButton childId={child.id} name={child.first_name} redirectTo="/" />
       </div>
+
+      {planReady && (
+        <section className="mt-8">
+          <h2 className="text-sm font-medium uppercase tracking-wide text-[var(--muted)]">Today</h2>
+          <TodayActivityList activities={remainingActivities} childId={child.id} />
+        </section>
+      )}
 
       <section className="mt-8">
         <div className="flex items-baseline justify-between">

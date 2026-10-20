@@ -17,12 +17,18 @@ Home vs. outside:
 - When hasLocation is true, aim for 2-3 "local" activities across the plan — spread across different domain areas where a real-world venue genuinely adds something a home activity can't (e.g. a library storytime for literacy, a park or sports class for physical development, a museum or craft class for creative findings). Only use fewer than 2 if the plan has too few domain areas to support it.
 - If constraints.otherConstraints names a venue the family already has access to — their own society/building/complex, a club membership, anywhere they described as already theirs to use — write that activity as kind "home" with the venue named directly in the instructions (e.g. "use your society's pool"). Never kind "local" for it: "local" always triggers a public-places lookup that has no way to know what "your society" or similar refers to, and will silently replace the specific venue the family told you about with an unrelated nearby business. Reserve "local" for venues you're finding for the family, not ones they've told you they already have.
 
+Structure — a parent should be able to act on this without re-reading it:
+- "instructions" is one or two sentences only: what the activity is and why, not how to run it. Never cram step-by-step directions in here — that belongs in "steps".
+- "steps" is the actual how-to: 2 or more short, ordered, imperative instructions a parent follows in sequence (e.g. "Write three short sentences on paper strips, leaving off the end punctuation." then "Read each one aloud together and ask whether it's a statement or a question."). Each step is one concrete action, not a paragraph.
+- "materials" lists exactly what to gather before starting (e.g. ["paper", "markers"]). Use an empty array — never omit the field — when nothing beyond what's already in the house is needed; don't invent a material the activity doesn't actually require.
+- "estimatedMinutes" is a realistic whole-number minute estimate for actually doing the activity once, calibrated to childAgeMonths and the steps you wrote.
+
 Rules:
 - Each activity must address one of the targetFindings (use addressesFindingId).
-- If a resource from the list is appropriate, set resourceId to its id. If not, set resourceId to null and write a home activity that needs no materials.
-- Never write a resource title or URL in the instructions — select only by resourceId.
+- If a resource from the list is appropriate, set resourceId to its id. If not, set resourceId to null and write a home activity whose materials array is empty.
+- Never write a resource title or URL in the instructions or steps — select only by resourceId.
 - resourceId and localQuery are mutually exclusive with each other and with being unset: set resourceId for kind "resource", localQuery for kind "local", and leave both null for kind "home".
-- Activities must be achievable within the family's stated constraints (time per week, access to devices, languages at home). The weekly time budget covers the whole plan, not each activity — keep individual activities short enough that the full set fits.
+- Activities must be achievable within the family's stated constraints (time per week, access to devices, languages at home). The weekly time budget covers the whole plan, not each activity — the sum of every activity's estimatedMinutes must fit within constraints.weeklyMinutes.
 - constraints.otherConstraints, when present, holds standing preferences the parent has stated in chat (e.g. "wants more arts activities") — these persist across every regeneration, not just the one they were said in. Honor them wherever a finding allows it; they don't override coverage (every domain area in targetFindings must still get an activity) but should shape which activity you write for a domain where the preference applies.
 - Age-appropriate: childAgeMonths is provided to calibrate complexity.
 - If a prior activity failed, do not repeat it.
@@ -36,6 +42,9 @@ Return exactly this JSON schema:
       "kind": "home" | "resource" | "local",
       "title": string,
       "instructions": string,
+      "steps": string[],
+      "materials": string[],
+      "estimatedMinutes": number,
       "addressesFindingId": string,
       "resourceId": string | null,
       "localQuery": string | null

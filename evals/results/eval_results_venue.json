@@ -1,6 +1,6 @@
 {
-  "runAtIST": "2026-10-20 11-57-08 IST",
-  "runAt": "2026-10-20T06:27:08.460Z",
+  "runAtIST": "2026-10-20 15-49-14 IST",
+  "runAt": "2026-10-20T10:19:14.235Z",
   "summary": {
     "total": 5,
     "passed": 5,
@@ -12,12 +12,20 @@
       "id": "venue-001",
       "description": "Family already has a pool in their society — a physical-development finding should become a home activity naming that pool, never a 'local' lookup that could silently swap in an unrelated nearby business.",
       "verdict": "PASS",
-      "reasoning": "Activity \"Society Pool Swimming and Stamina Fun\" correctly generated as kind \"home\" naming the family's own venue.",
+      "reasoning": "Activity \"Society Pool Stroke and Endurance Practice\" correctly generated as kind \"home\" naming the family's own venue.",
       "activities": [
         {
           "kind": "home",
-          "title": "Society Pool Swimming and Stamina Fun",
-          "instructions": "Visit your society's pool for active water play to develop sustained physical endurance and swimming technique. Have your child hold the pool wall to practice rhythmic flutter kicks, then practice arm scoops while you support them around their middle. Keep them moving continuously by playing games like retrieving floating toys across the shallow end, aiming for 20 to 30 minutes of energetic movement.",
+          "title": "Society Pool Stroke and Endurance Practice",
+          "instructions": "Use your society's pool to help your child build swimming stamina and practice foundational arm and leg strokes.",
+          "steps": [
+            "Have your child hold the pool wall with both hands and practice continuous flutter kicking for thirty seconds.",
+            "Guide your child to push off gently into a front glide with both arms reaching forward.",
+            "Encourage your child to kick and practice alternating arm paddle strokes across the shallow section toward you.",
+            "Repeat the short swim sequence three times with brief rests in between to build sustained movement."
+          ],
+          "materials": [],
+          "estimatedMinutes": 30,
           "addressesFindingId": "f1111111-1111-1111-1111-111111111111",
           "resourceId": null,
           "localQuery": null
@@ -29,12 +37,20 @@
       "id": "venue-002",
       "description": "Family already has tennis courts at their clubhouse — a coordination/physical finding should name that venue directly, not trigger a public-places lookup.",
       "verdict": "PASS",
-      "reasoning": "Activity \"Beginner Tennis Practice at the Clubhouse Courts\" correctly generated as kind \"home\" naming the family's own venue.",
+      "reasoning": "Activity \"Clubhouse Tennis Rally Practice\" correctly generated as kind \"home\" naming the family's own venue.",
       "activities": [
         {
           "kind": "home",
-          "title": "Beginner Tennis Practice at the Clubhouse Courts",
-          "instructions": "Take junior tennis racquets and low-compression tennis balls to your clubhouse courts. Begin with a simple warm-up by having your child balance a ball on the strings of their racquet while walking along the court lines. Next, stand a short distance away and gently toss the ball underhand, encouraging them to track the ball with their eyes, let it bounce once, and tap it back across to you. Keep the rallies relaxed and focus on hand-eye contact and timing.",
+          "title": "Clubhouse Tennis Rally Practice",
+          "instructions": "Practice beginner racquet skills and ball control at your clubhouse courts to strengthen hand-eye coordination. This playful session helps your child track moving objects and build motor confidence through cooperative play.",
+          "steps": [
+            "Head to your clubhouse courts and stand about three paces apart across the service line.",
+            "Have your child balance a tennis ball flat on their racquet strings while walking forward across the court.",
+            "Drop a ball from waist height and guide your child to tap it upward gently after one bounce.",
+            "Gently tap the ball back and forth off one bounce, counting how many consecutive hits you can complete together."
+          ],
+          "materials": [],
+          "estimatedMinutes": 30,
           "addressesFindingId": "f2222222-2222-2222-2222-222222222222",
           "resourceId": null,
           "localQuery": null
@@ -46,12 +62,20 @@
       "id": "venue-003",
       "description": "Family is already a member at a specific library — a literacy finding should use that named library as a home-style activity, not a generic local storytime lookup that would resolve to a different branch.",
       "verdict": "PASS",
-      "reasoning": "Activity \"Sound-Hunt Storytime at Central City Library\" correctly generated as kind \"home\" naming the family's own venue.",
+      "reasoning": "Activity \"Central City Library Word Detective\" correctly generated as kind \"home\" naming the family's own venue.",
       "activities": [
         {
           "kind": "home",
-          "title": "Sound-Hunt Storytime at Central City Library",
-          "instructions": "Visit Central City Library together and let your child pick out two or three early reader books that catch their eye. Find a comfortable spot to read aloud together. When your child comes across an unfamiliar word, encourage them to look at the first sound, gently tap out each phoneme together, and blend the sounds into the full word. Celebrate each effort to decode a word, keeping the experience relaxed and encouraging.",
+          "title": "Central City Library Word Detective",
+          "instructions": "Visit Central City Library to choose beginner books and practice sounding out unfamiliar words together. This strengthens phonics skills and fosters reading confidence in an engaging library setting.",
+          "steps": [
+            "Go to the children's section at Central City Library and pick out two or three beginner books together.",
+            "Settle into a quiet seating area and invite your child to read a few pages aloud to you.",
+            "Point to each letter sound from left to right whenever your child reaches an unfamiliar word.",
+            "Blend the individual sounds together aloud with your child and celebrate their successful decoding."
+          ],
+          "materials": [],
+          "estimatedMinutes": 30,
           "addressesFindingId": "f3333333-3333-3333-3333-333333333333",
           "resourceId": null,
           "localQuery": null
@@ -63,12 +87,19 @@
       "id": "venue-004",
       "description": "Family already has an enrollment at a specific music school — a creative/music finding should name that school directly rather than a generic nearby-class lookup.",
       "verdict": "PASS",
-      "reasoning": "Activity \"Steady Beat Practice with Harmony Music School\" correctly generated as kind \"home\" naming the family's own venue.",
+      "reasoning": "Activity \"Rhythm and Beat Practice at Harmony Music School\" correctly generated as kind \"home\" naming the family's own venue.",
       "activities": [
         {
           "kind": "home",
-          "title": "Steady Beat Practice with Harmony Music School",
-          "instructions": "During your child's sessions at Harmony Music School, ask the instructor to emphasize steady beat exercises such as rhythm clapping, tapping along to a metronome, or playing simple percussion patterns. Between classes, reinforce the rhythms learned at Harmony Music School by marching or clapping together along to favorite songs at home.",
+          "title": "Rhythm and Beat Practice at Harmony Music School",
+          "instructions": "Use your existing enrollment at Harmony Music School to focus specifically on steady tempo exercises. Dedicated beat practice with an instructor helps channel natural enthusiasm into precise timing skills.",
+          "steps": [
+            "Speak with your instructor at Harmony Music School before class to request a focus on keeping a steady beat.",
+            "Follow along as the instructor leads clapping, tapping, or percussion exercises to a steady count or metronome.",
+            "Ask the instructor for one simple beat pattern or rhythm game to practice together before the next session."
+          ],
+          "materials": [],
+          "estimatedMinutes": 30,
           "addressesFindingId": "f4444444-4444-4444-4444-444444444444",
           "resourceId": null,
           "localQuery": null
@@ -80,12 +111,20 @@
       "id": "venue-005",
       "description": "Family already has a membership at a specific arts center — a creative-arts finding should name that center directly rather than resolving to a different nearby venue.",
       "verdict": "PASS",
-      "reasoning": "Activity \"Mini-Masterpiece at Maple Community Arts Center\" correctly generated as kind \"home\" naming the family's own venue.",
+      "reasoning": "Activity \"Two-Stage Studio Project at Maple Community Arts Center\" correctly generated as kind \"home\" naming the family's own venue.",
       "activities": [
         {
           "kind": "home",
-          "title": "Mini-Masterpiece at Maple Community Arts Center",
-          "instructions": "Head to Maple Community Arts Center for a focused, bite-sized creative session. To support your child in seeing a piece through to the end, choose a small-scale canvas or paper (such as a postcard size) and agree on a simple, single-focus project like a clay pinch-pot animal or a quick watercolor landscape. Break the activity into two or three quick stages—shaping or sketching, adding color, and adding an artist's signature mark at the end. Keeping the session to 20–30 minutes ensures they wrap up while their enthusiasm is high, celebrating the accomplishment of a finished artwork.",
+          "title": "Two-Stage Studio Project at Maple Community Arts Center",
+          "instructions": "Visit Maple Community Arts Center to work on a two-part craft project during an open studio session. Planning a deliberate pause halfway through helps sustain creative enthusiasm and supports seeing a piece through to the finish.",
+          "steps": [
+            "Pick a small, multi-step craft together at Maple Community Arts Center, such as molding a clay shape or creating a paper collage.",
+            "Agree on a clear halfway checkpoint before starting, such as completing the base shape before adding details.",
+            "Take a brief five-minute movement break together once the checkpoint is reached to stretch and look around the studio.",
+            "Return to the workstation to finish the final details and place the completed artwork on the drying rack together."
+          ],
+          "materials": [],
+          "estimatedMinutes": 45,
           "addressesFindingId": "f5555555-5555-5555-5555-555555555555",
           "resourceId": null,
           "localQuery": null

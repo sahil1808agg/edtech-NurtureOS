@@ -157,20 +157,31 @@ export interface CurrentPlanActivity {
   id: string;
   title: string;
   instructions: string;
+  steps: string[];
+  materials: string[];
+  estimatedMinutes: number | null;
+  kind: string;
   declined: boolean;
+  completed: boolean;
+  snoozedUntil: string | null;
 }
 
 export interface CurrentPlan {
   planId: string;
   cycleNo: number;
+  status: string;
   activities: CurrentPlanActivity[];
 }
 
-/** The child's most recent non-rejected plan, for chat context (docs/specs/04-grounded-general-routing.md). */
+/**
+ * The child's most recent non-rejected plan — used for chat context
+ * (docs/specs/04-grounded-general-routing.md) and, since it already carries
+ * everything the Today card needs, by src/app/children/[id]/page.tsx too.
+ */
 export async function getCurrentPlan(childId: string): Promise<CurrentPlan | null> {
   const { data: plan } = await serviceClient()
     .from('plans')
-    .select('id, cycle_no')
+    .select('id, cycle_no, status')
     .eq('child_id', childId)
     .neq('status', 'rejected')
     .order('cycle_no', { ascending: false })
@@ -181,13 +192,44 @@ export async function getCurrentPlan(childId: string): Promise<CurrentPlan | nul
 
   const { data: activities, error } = await serviceClient()
     .from('plan_activities')
-    .select('id, title, instructions, declined')
+    .select('id, title, instructions, steps, materials, estimated_minutes, kind, declined, completed, snoozed_until')
     .eq('plan_id', plan.id)
     .order('position');
 
   if (error) throw new Error(`fetching activities for plan ${plan.id}: ${error.message}`);
 
-  return { planId: plan.id, cycleNo: plan.cycle_no, activities: activities ?? [] };
+  return {
+    planId: plan.id,
+    cycleNo: plan.cycle_no,
+    status: plan.status,
+    activities: (activities ?? []).map(a => ({
+      id: a.id,
+      title: a.title,
+      instructions: a.instructions,
+      steps: a.steps,
+      materials: a.materials,
+      estimatedMinutes: a.estimated_minutes,
+      kind: a.kind,
+      declined: a.declined,
+      completed: a.completed,
+      snoozedUntil: a.snoozed_until,
+    })),
+  };
+}
+
+/**
+ * The activities a parent could still act on today: not declined, not
+ * completed, and not carried to a later date (snoozedUntil is a plain
+ * calendar date — no timezone concept exists anywhere in this schema, so
+ * "today" is a server-date comparison). `plan` must be `ready` (checked by
+ * the caller — this doesn't gate on status, since chat's CHILD CONTEXT
+ * wants a broader "current plan" than the Today card does) for the result
+ * to mean anything. Shared by the child page and the chat page's own Today
+ * panel so both prompt the parent the same way.
+ */
+export function remainingTodayActivities(plan: CurrentPlan): CurrentPlanActivity[] {
+  const todayISODate = new Date().toISOString().slice(0, 10);
+  return plan.activities.filter(a => !a.declined && !a.completed && (!a.snoozedUntil || a.snoozedUntil <= todayISODate));
 }
 
 /**
@@ -252,35 +294,57 @@ export async function getNextCycleNo(childId: string): Promise<number> {
 export interface CreatePlanInput {
   familyId: string;
   childId: string;
-  cycleNo: number;
   topicContext: string | null;
   modelDeployment: string;
   promptVersion: string;
 }
 
-export async function createPlan(input: CreatePlanInput): Promise<string> {
-  const { data, error } = await serviceClient()
-    .from('plans')
-    .insert({
-      family_id: input.familyId,
-      child_id: input.childId,
-      cycle_no: input.cycleNo,
-      topic_context: input.topicContext,
-      model_deployment: input.modelDeployment,
-      prompt_version: input.promptVersion,
-    })
-    .select('id')
-    .single();
+const MAX_CREATE_PLAN_ATTEMPTS = 5;
 
-  if (error || !data) throw new Error(`creating plan for child ${input.childId}: ${error?.message}`);
-  return data.id;
+/**
+ * getNextCycleNo() + insert used to be two separate steps a caller did
+ * itself, which raced: two regenerations for the same child (e.g. a chat
+ * "regenerate_plan" overlapping a queued plan.generate job) could both read
+ * the same "next" cycle_no and one would fail outright on
+ * plans_child_id_cycle_no_key, discarding a fully-generated plan — observed
+ * in practice as a 502 with nothing returned to the parent. Cycle number
+ * selection now happens inside the retry loop, re-read fresh on every
+ * attempt, so a losing race just costs one extra round trip instead of
+ * failing the whole turn.
+ */
+export async function createPlan(input: CreatePlanInput): Promise<{ id: string; cycleNo: number }> {
+  for (let attempt = 1; attempt <= MAX_CREATE_PLAN_ATTEMPTS; attempt++) {
+    const cycleNo = await getNextCycleNo(input.childId);
+    const { data, error } = await serviceClient()
+      .from('plans')
+      .insert({
+        family_id: input.familyId,
+        child_id: input.childId,
+        cycle_no: cycleNo,
+        topic_context: input.topicContext,
+        model_deployment: input.modelDeployment,
+        prompt_version: input.promptVersion,
+      })
+      .select('id')
+      .single();
+
+    if (!error && data) return { id: data.id, cycleNo };
+
+    // 23505 = unique_violation (plans_child_id_cycle_no_key) — another
+    // concurrent regeneration won this cycle_no first. Retry with a fresh
+    // read rather than failing a plan the model already fully generated.
+    if (error?.code !== '23505' || attempt === MAX_CREATE_PLAN_ATTEMPTS) {
+      throw new Error(`creating plan for child ${input.childId}: ${error?.message ?? 'no row returned'}`);
+    }
+  }
+  throw new Error(`creating plan for child ${input.childId}: unreachable`);
 }
 
-// ---------- Editing a single activity (chat's edit_plan_activity tool) ----------
+// ---------- Editing a single activity (chat's edit_plan_activity tool, and
+// the Today card / plan page's own PATCH route at
+// src/app/api/plan-activities/[id]/route.ts) ----------
 //
-// No legacy equivalent exists yet — the legacy plan page only approves/rejects
-// a plan as a whole (src/app/api/review/plan/[id]/decision/route.ts). This is
-// new, not extracted. See docs/specs/03-direct-apply-tools.md.
+// See docs/specs/03-direct-apply-tools.md.
 
 export interface PlanActivityForEdit {
   id: string;
@@ -289,12 +353,13 @@ export interface PlanActivityForEdit {
   title: string;
   instructions: string;
   declined: boolean;
+  completed: boolean;
 }
 
 export async function getPlanActivityForEdit(activityId: string): Promise<PlanActivityForEdit | null> {
   const { data } = await serviceClient()
     .from('plan_activities')
-    .select('id, plan_id, title, instructions, declined, plans(family_id)')
+    .select('id, plan_id, title, instructions, declined, completed, plans(family_id)')
     .eq('id', activityId)
     .maybeSingle();
 
@@ -307,6 +372,7 @@ export async function getPlanActivityForEdit(activityId: string): Promise<PlanAc
     title: data.title,
     instructions: data.instructions,
     declined: data.declined,
+    completed: data.completed,
   };
 }
 
@@ -315,16 +381,41 @@ export interface UpdatePlanActivityInput {
   title?: string;
   instructions?: string;
   declined?: boolean;
+  completed?: boolean;
+  /** YYYY-MM-DD, or null to clear a prior snooze. Undefined leaves it untouched. */
+  snoozedUntil?: string | null;
 }
 
 export async function updatePlanActivity(input: UpdatePlanActivityInput): Promise<void> {
   const update: Record<string, unknown> = {};
   if (input.title !== undefined) update.title = input.title;
   if (input.instructions !== undefined) update.instructions = input.instructions;
+  if (input.completed !== undefined) {
+    update.completed = input.completed;
+    update.completed_at = input.completed ? new Date().toISOString() : null;
+  }
+  if (input.snoozedUntil !== undefined) update.snoozed_until = input.snoozedUntil;
   if (input.declined !== undefined) update.declined = input.declined;
 
   const { error } = await serviceClient().from('plan_activities').update(update).eq('id', input.activityId);
   if (error) throw new Error(`updating plan activity ${input.activityId}: ${error.message}`);
+}
+
+/**
+ * Feeds runPlan()'s priorFailures (prompts/plan.ts: "If a prior activity
+ * failed, do not repeat it") — titles the parent has explicitly removed from
+ * the plan being superseded, so a regeneration doesn't just hand the same
+ * activity straight back.
+ */
+export async function getDeclinedActivityTitles(planId: string): Promise<{ title: string }[]> {
+  const { data, error } = await serviceClient()
+    .from('plan_activities')
+    .select('title')
+    .eq('plan_id', planId)
+    .eq('declined', true);
+
+  if (error) throw new Error(`fetching declined activities for plan ${planId}: ${error.message}`);
+  return data ?? [];
 }
 
 /**
@@ -347,6 +438,9 @@ export async function savePlanActivities(planId: string, activities: PlanActivit
       kind: a.kind,
       title: a.title,
       instructions: a.instructions,
+      steps: a.steps,
+      materials: a.materials,
+      estimated_minutes: a.estimatedMinutes,
       addresses_finding_id: a.addressesFindingId,
       resource_id: a.resourceId,
     })),

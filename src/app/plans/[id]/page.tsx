@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { routeClient, currentUser } from '../../../lib/db/server';
 import { PlanReviewActions } from '../../review/plan/[id]/PlanReviewActions';
+import { TodayActivityActions } from '../../../components/TodayActivityActions';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,7 +56,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
 
   const { data: activitiesRaw } = await db
     .from('plan_activities')
-    .select('id, position, kind, title, instructions, addresses_finding_id, resource_id')
+    .select('id, position, kind, title, instructions, steps, materials, estimated_minutes, addresses_finding_id, resource_id, declined, completed')
     .eq('plan_id', id)
     .order('position');
 
@@ -96,18 +97,36 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
   // findings cover, so the copy has to count rather than assert.
   const activityCount = activities.length;
   const things = activityCount === 1 ? 'One thing' : `${activityCount} things`;
+  const planChildId = plan.child_id;
 
   function renderActivity(a: Activity) {
     const finding = findingById.get(a.addresses_finding_id);
     const resource = a.resource_id ? resourceById.get(a.resource_id) : null;
     return (
       <li key={a.id} className="rounded-lg border border-[var(--border)] p-5">
-        <div className="flex items-baseline gap-2">
-          <span className="text-xs text-[var(--muted)]">{a.position}</span>
-          <h2 className="text-sm font-medium">{a.title}</h2>
+        <div className="flex items-baseline justify-between gap-4">
+          <div className="flex items-baseline gap-2">
+            <span className="text-xs text-[var(--muted)]">{a.position}</span>
+            <h2 className="text-sm font-medium">{a.title}</h2>
+          </div>
+          {a.estimated_minutes != null && (
+            <span className="shrink-0 text-xs text-[var(--muted)]">~{a.estimated_minutes} min</span>
+          )}
         </div>
 
-        <p className="mt-2 whitespace-pre-line text-sm">{a.instructions}</p>
+        <p className="mt-2 text-sm">{a.instructions}</p>
+
+        <p className="mt-3 text-xs text-[var(--muted)]">
+          {a.materials.length ? `You'll need: ${a.materials.join(', ')}` : 'No materials needed'}
+        </p>
+
+        {a.steps.length > 0 && (
+          <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm">
+            {a.steps.map((s: string, i: number) => (
+              <li key={i} className="whitespace-pre-line">{s}</li>
+            ))}
+          </ol>
+        )}
 
         {resource && (
           <p className="mt-3 text-xs">
@@ -127,6 +146,14 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
               <span className="ml-1 italic">(from an earlier analysis)</span>
             )}
           </p>
+        )}
+
+        {a.completed ? (
+          <p className="mt-3 text-xs text-[var(--muted)]">✓ Done</p>
+        ) : a.declined ? (
+          <p className="mt-3 text-xs text-[var(--muted)]">Removed</p>
+        ) : (
+          <TodayActivityActions activityId={a.id} childId={planChildId} />
         )}
       </li>
     );

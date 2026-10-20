@@ -25,7 +25,15 @@ export async function loadChildContext(childId: string): Promise<ChildContext> {
 
   const currentPlanSummary = plan
     ? plan.activities
-        .map(a => `- [${a.id}] ${a.title}${a.declined ? ' (declined)' : ''}: ${a.instructions}`)
+        .map(a => {
+          const tags = `${a.declined ? ' (declined)' : ''}${a.completed ? ' (done)' : ''}`;
+          const meta = [
+            a.estimatedMinutes != null ? `~${a.estimatedMinutes} min` : null,
+            a.materials.length ? `materials: ${a.materials.join(', ')}` : 'no materials needed',
+          ].join('; ');
+          const steps = a.steps.map((s, i) => `    ${i + 1}. ${s}`).join('\n');
+          return `- [${a.id}] ${a.title}${tags}: ${a.instructions} (${meta})\n${steps}`;
+        })
         .join('\n')
     : '(no plan yet)';
 

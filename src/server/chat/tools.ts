@@ -27,8 +27,9 @@ export const EditPlanActivityArgs = z
     title: z.string().min(1).max(200).optional(),
     instructions: z.string().min(1).max(2000).optional(),
     declined: z.boolean().optional(),
+    completed: z.boolean().optional(),
   })
-  .refine(a => a.title !== undefined || a.instructions !== undefined || a.declined !== undefined, {
+  .refine(a => a.title !== undefined || a.instructions !== undefined || a.declined !== undefined || a.completed !== undefined, {
     message: 'at least one field to change',
   });
 
@@ -81,7 +82,7 @@ const TOOL_DESCRIPTIONS: Record<ToolName, string> = {
   edit_finding_statement: "Reword a finding's statement. The model's original wording is preserved.",
   exclude_finding: 'Drop a finding from the active set; it stops being used for plans.',
   restore_finding: 'Bring a previously excluded finding back into the active set.',
-  edit_plan_activity: "Change an activity's title/instructions, or mark it declined.",
+  edit_plan_activity: "Change an activity's title/instructions, or mark it declined or completed.",
   regenerate_plan: "Re-run plan generation for the child's current active findings.",
   update_family_interests:
     "Replace the family's saved standing preferences with the FULL consolidated list — not just the newest one. Merge any preference that overlaps with an existing one into a single clean entry instead of listing near-duplicates side by side, carry forward every other preference that should still hold, and drop any the parent has since contradicted. Persists across every future plan regeneration. Call separately from regenerate_plan.",
