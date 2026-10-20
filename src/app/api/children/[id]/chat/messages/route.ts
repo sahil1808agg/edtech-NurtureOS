@@ -59,10 +59,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     content,
   });
 
-  // Loaded once per turn and threaded to the orchestrator and every agent it
-  // calls, not reloaded per agent call.
-  const childContext = await loadChildContext(childId);
-  const system = buildOrchestratorSystemPrompt(childContext);
+  // Reloaded after every agent hand-off below (not just once per turn) — an
+  // agent call can mutate the plan/findings/profile (e.g. regenerate_plan),
+  // and both the orchestrator's own next call and any agent called in a
+  // later iteration need CHILD CONTEXT to reflect that, not the pre-call
+  // snapshot. Without this, the orchestrator's final reply (and a
+  // same-turn second agent call) describe the plan as it was BEFORE
+  // regenerate_plan ran, not what it actually produced — observed in
+  // practice: a regenerated plan that added local activities, described
+  // back to the parent as the old all-home plan.
+  let childContext = await loadChildContext(childId);
+  let system = buildOrchestratorSystemPrompt(childContext);
   const history: ChatTurnMessage[] = [...toChatHistory(priorMessages), { role: 'user', content }];
 
   // One id for this whole turn — the orchestrator call, every agent it hands
@@ -112,6 +119,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       for (const [i, call] of calls.entries()) {
         history.push({ role: 'tool', toolCallId: call.id, toolName: call.name, content: results[i].text });
       }
+
+      // An agent just ran and may have mutated the plan/findings/profile —
+      // refresh CHILD CONTEXT before the orchestrator composes its reply (or
+      // hands off again) so it isn't grounded in the pre-call snapshot.
+      childContext = await loadChildContext(childId);
+      system = buildOrchestratorSystemPrompt(childContext);
 
       turn = await callChatModel('chat_orchestrator', system, history, AGENT_TOOL_DEFINITIONS_FOR_MODEL, child.family_id, requestId);
     }

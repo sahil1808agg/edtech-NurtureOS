@@ -36,11 +36,10 @@ export interface AgentDispatchContext {
   /**
    * The parent's own latest message, verbatim — not the orchestrator's
    * paraphrased `question`. Passed through to every agent alongside
-   * `question` so a reply to something the agent itself just asked (e.g.
-   * confirming consent) always reaches it exactly as the parent wrote it,
+   * `question` so a reply to something the agent itself just asked (e.g. a
+   * clarifying question) always reaches it exactly as the parent wrote it,
    * even on a turn where the orchestrator's one-line summary drops the
-   * nuance. Observed happening in practice for profile_agent's add_child
-   * consent flow — this is the fix, not just a nice-to-have.
+   * nuance.
    */
   latestUserMessage: string;
   /** The chat turn's correlation id — see migration 0014 and ToolDispatchContext.requestId. */

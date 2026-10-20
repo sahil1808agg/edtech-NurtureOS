@@ -63,24 +63,6 @@ export const UpdateChildProfileArgs = z
   })
   .refine(a => Object.values(a).some(v => v !== undefined), { message: 'at least one field to change' });
 
-// Unlike update_child_profile, this targets a NEW child under ctx.familyId,
-// not ctx.childId — usable from any existing child's conversation to add a
-// sibling. `consent` is z.literal(true), not z.boolean(): passing false or
-// omitting it both fail validation (INVALID_ARGS) rather than silently
-// defaulting, the same hard gate /children/new's checkbox enforces — a
-// child with no consent is a child nothing can be done with (see
-// src/app/api/children/route.ts). The model must only ever pass `true` after
-// the parent has actually said yes in the conversation; see the HARD RULES
-// in templates/chat-profile-agent.md.
-export const AddChildArgs = z.object({
-  firstName: z.string().min(1).max(100),
-  dob: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'dob must be YYYY-MM-DD'),
-  grade: z.string().min(1).max(50),
-  board: z.enum(['IB', 'CBSE', 'CAIE', 'CISCE', 'STATE']).optional(),
-  location: z.string().min(2).max(300).optional(),
-  consent: z.literal(true),
-});
-
 export const TOOL_SCHEMAS = {
   edit_finding_statement: EditFindingStatementArgs,
   exclude_finding: ExcludeFindingArgs,
@@ -91,7 +73,6 @@ export const TOOL_SCHEMAS = {
   request_report_reanalysis: RequestReportReanalysisArgs,
   find_nearby_resources: FindNearbyResourcesArgs,
   update_child_profile: UpdateChildProfileArgs,
-  add_child: AddChildArgs,
 } as const;
 
 export type ToolName = keyof typeof TOOL_SCHEMAS;
@@ -108,9 +89,7 @@ const TOOL_DESCRIPTIONS: Record<ToolName, string> = {
   find_nearby_resources:
     "Look up real nearby places/classes/activities (e.g. swimming classes, library storytime) near the child's home, via Google Places. Falls back gracefully if there's no location on file or the lookup fails.",
   update_child_profile:
-    "Update the child's first name, date of birth, grade/class, curriculum board, and/or home location. Pass only the fields that changed. `location` is free text (e.g. an address, area, or landmark) — it's resolved to a real place server-side, not something you need to geocode yourself.",
-  add_child:
-    "Add a new child (e.g. a sibling) to the family, with consent to analyse their reports. `consent` must be `true`, and must only be set to `true` after the parent has explicitly said yes in this conversation — never infer or assume it. `location` is optional free text, resolved to a real place server-side.",
+    "Update THIS conversation's child's first name, date of birth, grade/class, curriculum board, and/or home location. Pass only the fields that changed. `location` is free text (e.g. an address, area, or landmark) — it's resolved to a real place server-side, not something you need to geocode yourself. There is no way to target any other child with this tool — it always applies to the child whose conversation this is.",
 };
 
 function toolDefinitionsFor(names: readonly ToolName[]): ToolDefinitionForModel[] {
@@ -140,7 +119,7 @@ export const PLANNING_AGENT_TOOLS: readonly ToolName[] = [
   'find_nearby_resources',
 ];
 
-export const PROFILE_AGENT_TOOLS: readonly ToolName[] = ['update_child_profile', 'add_child'];
+export const PROFILE_AGENT_TOOLS: readonly ToolName[] = ['update_child_profile'];
 
 export const REPORT_AGENT_TOOL_DEFINITIONS_FOR_MODEL: ToolDefinitionForModel[] = toolDefinitionsFor(REPORT_AGENT_TOOLS);
 export const PLANNING_AGENT_TOOL_DEFINITIONS_FOR_MODEL: ToolDefinitionForModel[] = toolDefinitionsFor(PLANNING_AGENT_TOOLS);
@@ -165,7 +144,7 @@ const AGENT_DESCRIPTIONS: Record<AgentName, string> = {
   planning_agent:
     "Hand off to the planning agent for anything about the child's home-activity plan, or for nearby activities/classes/resources.",
   profile_agent:
-    "Hand off to the profile agent to change the child's name, date of birth, grade/class, curriculum board, or home location, or to add a new child (e.g. a sibling) to the family.",
+    "Hand off to the profile agent to change this child's name, date of birth, grade/class, curriculum board, or home location, or to ask who the family's children are / another child's details. It cannot add a child or edit any child other than this conversation's.",
   generic_agent: "Hand off to the generic agent for ordinary parenting/education advice not tied to this child's specific data.",
 };
 
