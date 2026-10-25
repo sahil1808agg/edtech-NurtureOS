@@ -31,7 +31,7 @@ Rules:
 - Activities must be achievable within the family's stated constraints (time per week, access to devices, languages at home). The weekly time budget covers the whole plan, not each activity — the sum of every activity's estimatedMinutes must fit within constraints.weeklyMinutes.
 - constraints.otherConstraints, when present, holds standing preferences the parent has stated in chat (e.g. "wants more arts activities") — these persist across every regeneration, not just the one they were said in. Honor them wherever a finding allows it; they don't override coverage (every domain area in targetFindings must still get an activity) but should shape which activity you write for a domain where the preference applies.
 - Age-appropriate: childAgeMonths is provided to calibrate complexity.
-- If a prior activity failed, do not repeat it.
+- priorFailures lists activities the parent has removed from earlier plans (title plus what it involved). Never include any of them again, and never include a lookalike: an activity with the same core task, format or central material (e.g. a "picture graph hunt" after "pictograph challenge" was removed — both are making a pictograph) counts as a repeat even under a different title. Still cover that activity's finding — just with a genuinely different kind of activity.
 
 ${CONSTRAINTS}
 
@@ -74,7 +74,7 @@ export interface PlanInput {
   constraints: FamilyConstraints;
   topicContext: string | null;
   resourceCandidates: Resource[];
-  priorFailures: Array<{ title: string; reason: string | null }>;
+  priorFailures: Array<{ title: string; reason: string | null; instructions?: string }>;
   /** Whether the child has a location on file to search near — gates kind "local" (see SYSTEM). */
   hasLocation: boolean;
 }

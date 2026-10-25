@@ -5,8 +5,8 @@ import Link from 'next/link';
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
-import { supabaseBrowser } from '../../../lib/db/browser';
-import { SourceViewer } from '../../../components/SourceViewer';
+import { supabaseBrowser } from '../../../../lib/db/browser';
+import { SourceViewer } from '../../../../components/SourceViewer';
 
 // Mirrors src/server/db/messages.ts's ChatMessageRow shape (as JSON over the
 // wire) — kept as a local type rather than importing the server module,

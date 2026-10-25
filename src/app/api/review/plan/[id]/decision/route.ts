@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { routeClient, currentUser } from '../../../../../../lib/db/server';
 import { serviceClient } from '../../../../../../lib/db/clients';
+import { finalizeApprovedPlan } from '../../../../../../server/db/plans';
 
 export const runtime = 'nodejs';
 
@@ -62,6 +63,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     })
     .eq('artifact_type', 'plan')
     .eq('artifact_id', id);
+
+  if (approving) await finalizeApprovedPlan(id);
 
   return NextResponse.json({ planId: id, decision, status: approving ? 'approved' : 'rejected' });
 }

@@ -20,8 +20,9 @@ async function Nav() {
       <nav className="flex items-center gap-4 text-sm">
         {user ? (
           <>
-            <Link href="/chat" className="font-medium hover:underline">Chat</Link>
-            <Link href="/upload" className="text-[var(--muted)] hover:underline">Upload (legacy)</Link>
+            {/* Chat and upload live inside each child's tabs now (see
+                children/[id]/layout.tsx), so the top bar is just home. */}
+            <Link href="/" className="font-medium hover:underline">My children</Link>
             {user.isOps && (
               <>
                 <Link href="/review" className="text-[var(--muted)] hover:underline">Monitor</Link>

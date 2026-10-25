@@ -39,11 +39,14 @@ create table families (
 );
 
 create table profiles (
-  id          uuid primary key references auth.users(id) on delete cascade,
-  family_id   uuid not null references families(id) on delete cascade,
-  full_name   text,
-  is_ops      boolean not null default false,
-  created_at  timestamptz not null default now()
+  id             uuid primary key references auth.users(id) on delete cascade,
+  family_id      uuid not null references families(id) on delete cascade,
+  full_name      text,
+  is_ops         boolean not null default false,
+  -- migration 0018: default-on daily digest's compensating control — a
+  -- one-click unsubscribe link sets this directly, no login required.
+  email_opt_out  boolean not null default false,
+  created_at     timestamptz not null default now()
 );
 create index on profiles(family_id);
 
@@ -70,6 +73,9 @@ create table children (
   lng         double precision,
   place_id    text,
   board       text check (board is null or board in ('IB', 'CBSE', 'CAIE', 'CISCE', 'STATE')),
+  -- migration 0019: set when plan.generate gives up, cleared on the next plan.
+  plan_error    text,
+  plan_error_at timestamptz,
   created_at  timestamptz not null default now()
 );
 create index on children(family_id);
@@ -452,6 +458,35 @@ create table plan_activities (
   constraint plan_activities_position_check check (position >= 1)
 );
 
+-- migration 0020: the day-by-day schedule behind Today — one row per
+-- activity per scheduled day; Done / Not today act on a single day.
+create table plan_activity_days (
+  id          uuid primary key default gen_random_uuid(),
+  plan_id     uuid not null references plans(id) on delete cascade,
+  activity_id uuid not null references plan_activities(id) on delete cascade,
+  family_id   uuid not null references families(id) on delete cascade,
+  child_id    uuid not null references children(id) on delete cascade,
+  day         date not null,
+  status      text not null default 'todo' check (status in ('todo', 'done', 'skipped')),
+  updated_at  timestamptz not null default now(),
+  unique (activity_id, day)
+);
+create index on plan_activity_days(child_id, day);
+create index on plan_activity_days(plan_id);
+
+-- migration 0019: every activity a parent removed, per child, outliving the
+-- plan it came from — fed to every future plan as "never repeat".
+create table removed_activities (
+  id           uuid primary key default gen_random_uuid(),
+  family_id    uuid not null references families(id) on delete cascade,
+  child_id     uuid not null references children(id) on delete cascade,
+  title        text not null,
+  instructions text not null default '',
+  created_at   timestamptz not null default now(),
+  unique (child_id, title)
+);
+create index on removed_activities(child_id);
+
 create table checkins (
   id              uuid primary key default gen_random_uuid(),
   family_id       uuid not null references families(id) on delete cascade,
@@ -632,6 +667,16 @@ begin
 end $$;
 
 alter table family_constraints enable row level security;
+
+-- migration 0020: written only by the service role.
+alter table plan_activity_days enable row level security;
+create policy family_read on plan_activity_days for select
+  using (family_id = current_family_id() or is_ops());
+
+-- migration 0019: written only by the service role.
+alter table removed_activities enable row level security;
+create policy family_read on removed_activities for select
+  using (family_id = current_family_id() or is_ops());
 
 -- Child tables inherit isolation through their parent's family_id.
 alter table report_pages       enable row level security;

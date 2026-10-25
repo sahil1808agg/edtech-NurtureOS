@@ -1,4 +1,5 @@
 import { getChild, getCurrentPlan, getFamilyConstraints } from '../db/plans.js';
+import { getScheduleForDay, todayISODate } from '../db/schedule.js';
 import { getFindingsForChat, getLatestReportForChat } from '../db/findings.js';
 import type { ChildContext } from '../prompts/chat-orchestrator.js';
 
@@ -12,11 +13,12 @@ import type { ChildContext } from '../prompts/chat-orchestrator.js';
  */
 export async function loadChildContext(childId: string): Promise<ChildContext> {
   const child = await getChild(childId);
-  const [findings, plan, constraints, report] = await Promise.all([
+  const [findings, plan, constraints, report, today] = await Promise.all([
     getFindingsForChat(childId),
     getCurrentPlan(childId),
     getFamilyConstraints(child.familyId),
     getLatestReportForChat(childId),
+    getScheduleForDay(childId),
   ]);
 
   const activeFindingsSummary = findings.length
@@ -37,10 +39,27 @@ export async function loadChildContext(childId: string): Promise<ChildContext> {
         .join('\n')
     : '(no plan yet)';
 
+  // The plan is the two-week set; "today" is only what the schedule puts on
+  // today's date (db/schedule.ts). Spelled out so "what's for today?" is
+  // answered from the schedule, not from the whole plan.
+  const todayDate = todayISODate();
+  let todaySummary = '';
+  if (plan && today && today.activities.length > 0) {
+    const range = today.endsOn ? `; plan runs ${today.startsOn} to ${today.endsOn}` : '';
+    const lines = today.activities.map(a => {
+      const tag = a.dayStatus === 'done' ? ' (done today)' : a.dayStatus === 'skipped' ? ' (skipped today)' : '';
+      return `- [${a.id}] ${a.title}${tag}`;
+    });
+    todaySummary = `\n\nSCHEDULED FOR TODAY (${todayDate}${range}):\n${lines.join('\n')}`;
+  } else if (plan) {
+    const finished = today?.endsOn != null && today.endsOn < todayDate;
+    todaySummary = `\n\nSCHEDULED FOR TODAY (${todayDate}): nothing — ${finished ? 'the plan has finished' : 'a rest day'}.`;
+  }
+
   return {
     childName: child.firstName,
     activeFindingsSummary,
-    currentPlanSummary,
+    currentPlanSummary: currentPlanSummary + todaySummary,
     standingPreferences: constraints.otherConstraints ?? '(none stated yet)',
     report,
   };

@@ -39,7 +39,8 @@ export default function NewChildPage() {
       return;
     }
 
-    router.push(`/children/${body.childId}`);
+    // Next step of the journey: upload their first report.
+    router.push(`/children/${body.childId}/plan`);
     router.refresh();
   }
 

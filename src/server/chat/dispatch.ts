@@ -21,12 +21,12 @@ import {
   getFamilyConstraints,
   setFamilyInterests,
   getResourceCandidates,
-  getCurrentPlan,
-  getDeclinedActivityTitles,
+  getRemovedActivities,
   createPlan,
   savePlanActivities,
   approvePlanDirectly,
 } from '../db/plans.js';
+import { createScheduleForPlan } from '../db/schedule.js';
 import { getChildProfile, updateChildProfile as saveChildProfile } from '../db/children.js';
 import { runPlan } from '../pipeline/plan.js';
 import { resolveLocalActivities } from '../pipeline/resolve-local-activities.js';
@@ -126,15 +126,12 @@ async function regeneratePlan(ctx: ToolDispatchContext): Promise<ToolDispatchRes
   }
 
   const child = await getChild(ctx.childId);
-  const [constraints, resourceCandidates, currentPlan] = await Promise.all([
+  const [constraints, resourceCandidates] = await Promise.all([
     getFamilyConstraints(ctx.familyId),
     getResourceCandidates(),
-    getCurrentPlan(ctx.childId),
   ]);
   const hasLocation = (child.lat != null && child.lng != null) || !!(child.city || child.pincode);
-  const priorFailures = currentPlan
-    ? (await getDeclinedActivityTitles(currentPlan.planId)).map(a => ({ title: a.title, reason: 'the parent removed this activity' }))
-    : [];
+  const priorFailures = await getRemovedActivities(ctx.childId);
 
   const result = await runPlan({
     childAgeMonths: ageMonthsFromDob(child.dob),
@@ -161,6 +158,8 @@ async function regeneratePlan(ctx: ToolDispatchContext): Promise<ToolDispatchRes
   });
 
   await savePlanActivities(planId, activities);
+  // Today's list comes from this schedule; see db/schedule.ts.
+  await createScheduleForPlan(planId, ctx.requestId);
   await approvePlanDirectly(planId);
 
   const after = { planId, cycleNo, activities };

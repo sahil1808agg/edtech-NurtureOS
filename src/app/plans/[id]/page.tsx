@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { BackToChild } from '../../../components/BackToChild';
 import { routeClient, currentUser } from '../../../lib/db/server';
 import { PlanReviewActions } from '../../review/plan/[id]/PlanReviewActions';
 import { TodayActivityActions } from '../../../components/TodayActivityActions';
@@ -44,6 +45,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
   if (!ready && !canReview && !canAudit) {
     return (
       <main className="max-w-2xl">
+        {plan.family_id === user.familyId && <BackToChild childId={plan.child_id} name={name} />}
         <h1 className="text-xl font-semibold tracking-tight">{name}’s plan</h1>
         <p className="mt-3 text-sm text-[var(--muted)]">
           {plan.status === 'rejected'
@@ -153,7 +155,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
         ) : a.declined ? (
           <p className="mt-3 text-xs text-[var(--muted)]">Removed</p>
         ) : (
-          <TodayActivityActions activityId={a.id} childId={planChildId} />
+          <TodayActivityActions activityId={a.id} childId={planChildId} mode="plan" />
         )}
       </li>
     );
@@ -161,6 +163,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
 
   return (
     <main>
+      {plan.family_id === user.familyId && <BackToChild childId={plan.child_id} name={name} />}
       <h1 className="text-xl font-semibold tracking-tight">
         {name}’s plan{plan.cycle_no > 1 ? ` — cycle ${plan.cycle_no}` : ''}
       </h1>

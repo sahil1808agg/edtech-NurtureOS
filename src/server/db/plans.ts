@@ -218,21 +218,6 @@ export async function getCurrentPlan(childId: string): Promise<CurrentPlan | nul
 }
 
 /**
- * The activities a parent could still act on today: not declined, not
- * completed, and not carried to a later date (snoozedUntil is a plain
- * calendar date — no timezone concept exists anywhere in this schema, so
- * "today" is a server-date comparison). `plan` must be `ready` (checked by
- * the caller — this doesn't gate on status, since chat's CHILD CONTEXT
- * wants a broader "current plan" than the Today card does) for the result
- * to mean anything. Shared by the child page and the chat page's own Today
- * panel so both prompt the parent the same way.
- */
-export function remainingTodayActivities(plan: CurrentPlan): CurrentPlanActivity[] {
-  const todayISODate = new Date().toISOString().slice(0, 10);
-  return plan.activities.filter(a => !a.declined && !a.completed && (!a.snoozedUntil || a.snoozedUntil <= todayISODate));
-}
-
-/**
  * Starts plan.generate for a child, unless one is already draft/in_review —
  * one plan in flight per child (the singletonKey only collapses jobs still
  * queued, not a plan already produced and sitting unreviewed). Shared by
@@ -350,6 +335,7 @@ export interface PlanActivityForEdit {
   id: string;
   planId: string;
   familyId: string;
+  childId: string;
   title: string;
   instructions: string;
   declined: boolean;
@@ -359,7 +345,7 @@ export interface PlanActivityForEdit {
 export async function getPlanActivityForEdit(activityId: string): Promise<PlanActivityForEdit | null> {
   const { data } = await serviceClient()
     .from('plan_activities')
-    .select('id, plan_id, title, instructions, declined, completed, plans(family_id)')
+    .select('id, plan_id, title, instructions, declined, completed, plans(family_id, child_id)')
     .eq('id', activityId)
     .maybeSingle();
 
@@ -368,7 +354,8 @@ export async function getPlanActivityForEdit(activityId: string): Promise<PlanAc
   return {
     id: data.id,
     planId: data.plan_id,
-    familyId: (plan as { family_id: string } | null)?.family_id ?? '',
+    familyId: (plan as { family_id: string; child_id: string } | null)?.family_id ?? '',
+    childId: (plan as { family_id: string; child_id: string } | null)?.child_id ?? '',
     title: data.title,
     instructions: data.instructions,
     declined: data.declined,
@@ -399,23 +386,77 @@ export async function updatePlanActivity(input: UpdatePlanActivityInput): Promis
 
   const { error } = await serviceClient().from('plan_activities').update(update).eq('id', input.activityId);
   if (error) throw new Error(`updating plan activity ${input.activityId}: ${error.message}`);
+
+  if (input.declined !== undefined) await syncRemovedActivity(input.activityId, input.declined);
 }
 
 /**
- * Feeds runPlan()'s priorFailures (prompts/plan.ts: "If a prior activity
- * failed, do not repeat it") — titles the parent has explicitly removed from
- * the plan being superseded, so a regeneration doesn't just hand the same
- * activity straight back.
+ * Mirrors a decline into removed_activities (migration 0019), the per-child
+ * record that outlives the plan — plan_activities.declined alone is lost the
+ * moment the plan is superseded and deleted. Lives here rather than in each
+ * caller so the Today card, chat's edit_plan_activity and the email action
+ * all record removals the same way. Un-declining forgets it again.
  */
-export async function getDeclinedActivityTitles(planId: string): Promise<{ title: string }[]> {
-  const { data, error } = await serviceClient()
+async function syncRemovedActivity(activityId: string, declined: boolean): Promise<void> {
+  const admin = serviceClient();
+  const { data: activity, error: readError } = await admin
     .from('plan_activities')
-    .select('title')
-    .eq('plan_id', planId)
-    .eq('declined', true);
+    .select('title, instructions, plans(family_id, child_id)')
+    .eq('id', activityId)
+    .maybeSingle();
+  if (readError) throw new Error(`reading plan activity ${activityId}: ${readError.message}`);
+  const plan = activity?.plans as { family_id: string; child_id: string } | null | undefined;
+  if (!activity || !plan) return;
 
-  if (error) throw new Error(`fetching declined activities for plan ${planId}: ${error.message}`);
-  return data ?? [];
+  const { error } = declined
+    ? await admin.from('removed_activities').upsert(
+        { family_id: plan.family_id, child_id: plan.child_id, title: activity.title, instructions: activity.instructions },
+        { onConflict: 'child_id,title', ignoreDuplicates: true },
+      )
+    : await admin.from('removed_activities').delete().eq('child_id', plan.child_id).eq('title', activity.title);
+  if (error) throw new Error(`recording removal of activity ${activityId}: ${error.message}`);
+}
+
+/**
+ * Feeds runPlan()'s priorFailures — every activity the parent has ever
+ * removed for this child, across all past plans, so a regeneration never
+ * hands one back (or a lookalike of it; see prompts/plan.ts).
+ */
+export async function getRemovedActivities(childId: string): Promise<Array<{ title: string; reason: string; instructions: string }>> {
+  const { data, error } = await serviceClient()
+    .from('removed_activities')
+    .select('title, instructions')
+    .eq('child_id', childId)
+    .order('created_at');
+
+  if (error) throw new Error(`fetching removed activities for child ${childId}: ${error.message}`);
+  return (data ?? []).map(a => ({ title: a.title, instructions: a.instructions, reason: 'the parent removed this activity' }));
+}
+
+/** Whether any non-rejected plan for the child was created at or after `since`. */
+export async function hasPlanCreatedSince(childId: string, since: Date): Promise<boolean> {
+  const { data, error } = await serviceClient()
+    .from('plans')
+    .select('id')
+    .eq('child_id', childId)
+    .neq('status', 'rejected')
+    .gte('created_at', since.toISOString())
+    .limit(1);
+  if (error) throw new Error(`checking for recent plans for child ${childId}: ${error.message}`);
+  return (data ?? []).length > 0;
+}
+
+/**
+ * Set when plan.generate gives up on a child, so the child page and chat can
+ * say so instead of promising a plan that isn't coming. Cleared by
+ * finalizeApprovedPlan() once any new plan lands.
+ */
+export async function setPlanError(childId: string, message: string): Promise<void> {
+  const { error } = await serviceClient()
+    .from('children')
+    .update({ plan_error: message, plan_error_at: new Date().toISOString() })
+    .eq('id', childId);
+  if (error) throw new Error(`recording plan error for child ${childId}: ${error.message}`);
 }
 
 /**
@@ -428,6 +469,58 @@ export async function getDeclinedActivityTitles(planId: string): Promise<{ title
 export async function approvePlanDirectly(planId: string): Promise<void> {
   const { error } = await serviceClient().from('plans').update({ status: 'approved' }).eq('id', planId);
   if (error) throw new Error(`approving plan ${planId}: ${error.message}`);
+  await finalizeApprovedPlan(planId);
+}
+
+/**
+ * Everything that follows a plan becoming the child's plan: any earlier
+ * plan.generate failure is no longer news (children.plan_error cleared), and
+ * a child has one plan — once a new one is approved, every earlier cycle is
+ * deleted (activities and check-ins cascade; review_queue has no FK, so its
+ * rows go explicitly). Runs only after approval so a failed regeneration
+ * never leaves the child with no plan at all.
+ *
+ * Only strictly lower cycle numbers are removed, and never a draft/in_review
+ * plan — if two regenerations overlap and the older one is approved last,
+ * it must not delete the newer one. Worst case that leaves one extra row,
+ * which the next approval clears.
+ */
+export async function finalizeApprovedPlan(planId: string): Promise<void> {
+  const admin = serviceClient();
+  const { data: plan, error: readError } = await admin
+    .from('plans')
+    .select('child_id, cycle_no')
+    .eq('id', planId)
+    .maybeSingle();
+  if (readError) throw new Error(`reading plan ${planId}: ${readError.message}`);
+  if (!plan) return;
+
+  const { error: clearError } = await admin
+    .from('children')
+    .update({ plan_error: null, plan_error_at: null })
+    .eq('id', plan.child_id);
+  if (clearError) throw new Error(`clearing plan error for child ${plan.child_id}: ${clearError.message}`);
+
+  const { data: superseded, error: listError } = await admin
+    .from('plans')
+    .select('id')
+    .eq('child_id', plan.child_id)
+    .lt('cycle_no', plan.cycle_no)
+    .not('status', 'in', '(draft,in_review)');
+  if (listError) throw new Error(`listing plans superseded by ${planId}: ${listError.message}`);
+
+  const ids = (superseded ?? []).map(p => p.id);
+  if (ids.length === 0) return;
+
+  const { error: queueError } = await admin
+    .from('review_queue')
+    .delete()
+    .eq('artifact_type', 'plan')
+    .in('artifact_id', ids);
+  if (queueError) throw new Error(`deleting review rows for superseded plans: ${queueError.message}`);
+
+  const { error: deleteError } = await admin.from('plans').delete().in('id', ids);
+  if (deleteError) throw new Error(`deleting plans superseded by ${planId}: ${deleteError.message}`);
 }
 
 export async function savePlanActivities(planId: string, activities: PlanActivity[]): Promise<void> {

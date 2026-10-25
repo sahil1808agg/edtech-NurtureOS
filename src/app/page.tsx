@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { routeClient, currentUser } from '../lib/db/server';
 import { serviceClient } from '../lib/db/clients';
 import { DeleteChildButton } from './children/DeleteChildButton';
@@ -58,6 +59,10 @@ export default async function Home() {
     db.from('plans').select('id, child_id, cycle_no, status').eq('family_id', user.familyId),
   ]);
 
+  // One child: their workspace is home — there's nothing to choose between.
+  // Ops accounts keep this page for the review summary below.
+  if ((children ?? []).length === 1 && !user.isOps) redirect(`/children/${children![0].id}`);
+
   const reportsByChild = new Map<string, NonNullable<typeof reports>>();
   for (const r of reports ?? []) {
     const list = reportsByChild.get(r.child_id) ?? [];
@@ -65,10 +70,14 @@ export default async function Home() {
     reportsByChild.set(r.child_id, list);
   }
 
-  const planCountByChild = new Map<string, number>();
-  for (const p of plans ?? []) {
-    planCountByChild.set(p.child_id, (planCountByChild.get(p.child_id) ?? 0) + 1);
-  }
+  // Each child has one plan from the parent's point of view — older cycles
+  // aren't something to count.
+  const childrenWithPlan = new Set(
+    (plans ?? []).filter((p) => p.status !== 'rejected').map((p) => p.child_id),
+  );
+  const childrenWithReadyPlan = new Set(
+    (plans ?? []).filter((p) => p.status === 'approved' || p.status === 'published').map((p) => p.child_id),
+  );
 
   let pendingReviews = 0;
   if (user.isOps) {
@@ -110,7 +119,11 @@ export default async function Home() {
           <ul className="mt-6 space-y-3">
             {(children ?? []).map((c) => {
               const childReports = reportsByChild.get(c.id) ?? [];
-              const planCount = planCountByChild.get(c.id) ?? 0;
+              const planLabel = childrenWithReadyPlan.has(c.id)
+                ? 'plan ready'
+                : childrenWithPlan.has(c.id)
+                  ? 'plan in progress'
+                  : 'no plan yet';
               const latest = childReports[0];
               return (
                 <li key={c.id} className="rounded-lg border border-[var(--border)] p-4">
@@ -120,7 +133,7 @@ export default async function Home() {
                     </Link>
                     <span className="shrink-0 text-xs text-[var(--muted)]">
                       {childReports.length} report{childReports.length === 1 ? '' : 's'} ·{' '}
-                      {planCount} plan{planCount === 1 ? '' : 's'}
+                      {planLabel}
                     </span>
                   </div>
                   <p className="mt-1 text-xs text-[var(--muted)]">
@@ -137,13 +150,7 @@ export default async function Home() {
             })}
           </ul>
 
-          <div className="mt-6 flex items-center gap-4">
-            <Link
-              href="/upload"
-              className="rounded bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white"
-            >
-              Upload a report
-            </Link>
+          <div className="mt-6">
             <Link href="/children/new" className="text-sm underline">Add another child</Link>
           </div>
         </>

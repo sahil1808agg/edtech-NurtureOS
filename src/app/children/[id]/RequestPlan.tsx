@@ -41,7 +41,7 @@ export function RequestPlan({
   if (queued) {
     return (
       <div className="mt-3 rounded-lg border border-[var(--border)] p-4">
-        <p className="text-sm">Building your plan. It will appear here once a person has checked it.</p>
+        <p className="text-sm">Building your plan — this can take a few minutes. Refresh this page to see it.</p>
       </div>
     );
   }
@@ -49,12 +49,10 @@ export function RequestPlan({
   return (
     <div className="mt-3 rounded-lg border border-[var(--border)] p-4">
       <p className="text-sm">
-        {hasExistingPlan ? 'Build a new plan from your feedback?' : 'Ready for a plan?'}
+        {hasExistingPlan ? 'Want a fresh plan?' : 'Ready for a plan?'}
       </p>
       <p className="mt-1 text-xs text-[var(--muted)]">
-        {hasExistingPlan
-          ? 'Your first plan was made when the findings were published, before you had marked any of them. '
-          : ''}
+        {hasExistingPlan ? 'This replaces your current plan, and activities you removed won’t come back. ' : ''}
         We will build activities covering every area the {usableFindings} finding
         {usableFindings === 1 ? '' : 's'} you have not ruled out point to.
         {rejectedFindings > 0 && (

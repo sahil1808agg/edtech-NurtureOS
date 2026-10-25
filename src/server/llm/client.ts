@@ -17,6 +17,7 @@ const STAGE_TIER: Record<PromptKey, ModelTier> = {
   analyse: 'reasoning',
   corroborate: 'small',
   plan: 'reasoning',
+  schedule: 'reasoning',
   checkin: 'small',
   // None of the four chat stages ever call dispatch() below — they go through
   // chat-client.ts's callChatModel(), which has its own per-stage resolution

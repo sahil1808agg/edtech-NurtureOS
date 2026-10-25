@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { BackToChild } from '../../../components/BackToChild';
 import { routeClient, currentUser } from '../../../lib/db/server';
 import { HONESTY_PATH } from '../../../server/gates/sufficiency';
 import { SourceViewer } from '../../../components/SourceViewer';
@@ -51,6 +52,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
   if (report.status === 'failed') {
     return (
       <main>
+        {report.family_id === user.familyId && <BackToChild childId={report.child_id} name={name} />}
         <h1 className="text-xl font-semibold tracking-tight">We could not read this report</h1>
         <p className="mt-3 text-sm text-[var(--muted)]">
           Something went wrong processing the file, so we have not produced anything. We would
@@ -66,6 +68,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
   if (report.status === 'held') {
     return (
       <main>
+        {report.family_id === user.familyId && <BackToChild childId={report.child_id} name={name} />}
         <h1 className="text-xl font-semibold tracking-tight">Nothing we would stand behind</h1>
         <p className="mt-3 text-sm">{HONESTY_PATH.statement}</p>
         <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-[var(--muted)]">
@@ -100,6 +103,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
   if (!findingSet || !visible) {
     return (
       <main>
+        {report.family_id === user.familyId && <BackToChild childId={report.child_id} name={name} />}
         <h1 className="text-xl font-semibold tracking-tight">{name}’s report</h1>
         <p className="mt-3 text-sm text-[var(--muted)]">
           {STAGE_MESSAGE[report.status] ?? 'Working on it.'}
@@ -114,6 +118,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
   if (findingSet.honesty_path) {
     return (
       <main>
+        {report.family_id === user.familyId && <BackToChild childId={report.child_id} name={name} />}
         <h1 className="text-xl font-semibold tracking-tight">{name}’s report</h1>
         <p className="mt-3 text-sm">{HONESTY_PATH.statement}</p>
         <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-[var(--muted)]">
@@ -176,6 +181,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
 
   return (
     <main>
+      {report.family_id === user.familyId && <BackToChild childId={report.child_id} name={name} />}
       <h1 className="text-xl font-semibold tracking-tight">
         {name}’s report{report.term_label ? ` — ${report.term_label}` : ''}
       </h1>

@@ -1,232 +1,123 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { routeClient, currentUser } from '../../../lib/db/server';
-import { getCurrentPlan, remainingTodayActivities } from '../../../server/db/plans';
-import { RequestPlan } from './RequestPlan';
-import { DeleteChildButton } from '../DeleteChildButton';
-import { EditLocation } from './EditLocation';
+import { getScheduleForDay, todayISODate } from '../../../server/db/schedule';
 import { TodayActivityList } from '../../../components/TodayActivityList';
+import { JourneySteps, type JourneyStep } from '../../../components/JourneySteps';
+import { AutoRefresh } from '../../../components/AutoRefresh';
+import { loadChildJourney, REPORT_STAGE } from './journey';
 
 export const dynamic = 'force-dynamic';
 
-const REPORT_STAGE: Record<string, string> = {
-  uploaded: 'Reading the report',
-  extracted: 'Matching skills',
-  normalised: 'Looking for patterns',
-  analysed: 'Checking against the teacher’s comments',
-  in_review: 'Waiting for a person to review',
-  published: 'Ready',
-  held: 'Not enough to go on',
-  failed: 'Could not be read',
-};
-
-export default async function ChildPage({ params }: { params: Promise<{ id: string }> }) {
+/**
+ * Today tab — the end of the parent journey and where they work from each
+ * day. Until there is a plan to work from it shows the journey itself
+ * (child added → upload report → plan → Today) with the next step to take.
+ * The child header and tabs come from ./layout.tsx.
+ */
+export default async function TodayPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   const db = await routeClient();
   const user = await currentUser(db);
   if (!user) redirect('/signin');
 
-  const { data: child } = await db
-    .from('children')
-    .select('id, first_name, dob, grade, address')
-    .eq('id', id)
-    .eq('family_id', user.familyId)
-    .maybeSingle();
+  const journey = await loadChildJourney(db, id, user.familyId);
+  const planTab = `/children/${id}/plan`;
 
-  if (!child) return <main className="max-w-3xl"><p className="text-sm">Child not found.</p></main>;
+  if (!journey.planReady) {
+    const latest = journey.reports[0];
+    const uploaded = journey.reports.length > 0;
 
-  const [{ data: reports }, { data: plans }] = await Promise.all([
-    db
-      .from('reports')
-      .select('id, status, term_label, academic_year, created_at')
-      .eq('child_id', id)
-      .eq('family_id', user.familyId)
-      .order('created_at', { ascending: false }),
-    db
-      .from('plans')
-      .select('id, cycle_no, status, created_at')
-      .eq('child_id', id)
-      .eq('family_id', user.familyId)
-      .order('cycle_no', { ascending: false }),
-  ]);
+    let planDetail = '';
+    if (journey.planError) planDetail = journey.planError;
+    else if (journey.planExpected) planDetail = 'Your report is ready. We’re building the plan now — this can take a few minutes.';
+    else if (latest) planDetail = `${REPORT_STAGE[latest.status] ?? 'Working on it'}. Your plan is built as soon as the report is ready.`;
 
-  // Findings live under a report, so they are listed by the report that
-  // produced them rather than as a separate pile.
-  const publishedReportIds = (reports ?? []).filter((r) => r.status === 'published').map((r) => r.id);
-  const { data: sets } = publishedReportIds.length
-    ? await db
-        .from('finding_sets')
-        .select('id, report_id, honesty_path, created_at')
-        .in('report_id', publishedReportIds)
-        .eq('status', 'published')
-        .order('created_at', { ascending: false })
-    : { data: [] };
+    const steps: JourneyStep[] = [
+      { label: 'Add your child', state: 'done' },
+      {
+        label: 'Upload a school report',
+        state: uploaded ? 'done' : 'current',
+        detail: 'A PDF or photo of their latest report. We turn it into a few findings you can check.',
+        action: { href: planTab, label: 'Upload a report' },
+      },
+      {
+        label: 'Get a plan',
+        state: uploaded ? 'current' : 'todo',
+        detail: planDetail,
+        // Nothing to click while the pipeline is still working — the page
+        // refreshes itself (AutoRefresh below) as it moves along.
+        action: journey.reportInProgress || journey.planExpected
+          ? undefined
+          : { href: planTab, label: 'Open report & plan' },
+      },
+      { label: 'Try a few activities each day', state: 'todo' },
+    ];
 
-  const setByReport = new Map((sets ?? []).map((s) => [s.report_id, s]));
-  const setIds = (sets ?? []).map((s) => s.id);
-  const { data: findings } = setIds.length
-    ? await db
-        .from('findings')
-        .select('id, kind, statement, finding_set_id')
-        .in('finding_set_id', setIds)
-        .eq('excluded', false)
-    : { data: [] };
-
-  const findingsBySet = new Map<string, typeof findings>();
-  for (const f of findings ?? []) {
-    const list = findingsBySet.get(f.finding_set_id) ?? [];
-    list.push(f);
-    findingsBySet.set(f.finding_set_id, list as never);
+    return (
+      <main className="max-w-2xl">
+        <AutoRefresh active={journey.reportInProgress || journey.planExpected} />
+        <h2 className="text-sm font-medium uppercase tracking-wide text-[var(--muted)]">Getting started</h2>
+        <div className="mt-4">
+          <JourneySteps steps={steps} />
+        </div>
+      </main>
+    );
   }
 
-  // The plan is built from the most recent published set only (see
-  // getTargetFindings), so the counts offered to the parent must describe that
-  // set — not every finding this child has ever had — or the button would
-  // promise activities from findings it will never look at.
-  const latestSetId = (sets ?? [])[0]?.id ?? null;
-  const allFindingIds = (findings ?? [])
-    .filter((f) => f.finding_set_id === latestSetId)
-    .map((f) => f.id);
-
-  const { data: responses } = allFindingIds.length
-    ? await db
-        .from('parent_finding_responses')
-        .select('finding_id, response')
-        .in('finding_id', allFindingIds)
-    : { data: [] };
-
-  const rejectedCount = (responses ?? []).filter((r) => r.response === 'doesnt_match').length;
-  const reviewedCount = (responses ?? []).length;
-  const usableCount = allFindingIds.length - rejectedCount;
-  const unreviewedCount = allFindingIds.length - reviewedCount;
-
-  const planInFlight = (plans ?? []).some((p) => p.status === 'draft' || p.status === 'in_review');
-
-  // "Today" is every activity on the current (approved/published) plan that
-  // the parent hasn't marked done or removed, and isn't carried to a later
-  // date — recomputed fresh on every load, not stored anywhere, so there's
-  // nothing to keep in sync with the plan page.
-  const currentPlan = await getCurrentPlan(child.id);
-  const planReady = currentPlan?.status === 'approved' || currentPlan?.status === 'published';
-  const remainingActivities = planReady && currentPlan ? remainingTodayActivities(currentPlan) : [];
-
-  const ageYears = Math.floor(
-    (Date.now() - new Date(child.dob).getTime()) / (365.25 * 24 * 3600 * 1000),
-  );
+  // Today is what the plan's schedule puts on today's date (db/schedule.ts) —
+  // not the whole plan, which lives on the Report & plan tab. Skipped items
+  // drop off; done ones stay, ticked.
+  const schedule = await getScheduleForDay(id);
+  const todays = (schedule?.activities ?? []).filter((a) => a.dayStatus !== 'skipped');
+  const doneCount = todays.filter((a) => a.dayStatus === 'done').length;
+  const finished = schedule?.endsOn != null && schedule.endsOn < todayISODate();
+  const unscheduled = schedule != null && schedule.endsOn == null;
+  const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
 
   return (
-    <main className="max-w-3xl">
-      <Link href="/" className="text-xs underline text-[var(--muted)]">← All children</Link>
-
-      <div className="mt-3 flex items-baseline justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{child.first_name}</h1>
-          <p className="mt-1 text-sm text-[var(--muted)]">{child.grade} · {ageYears} years old</p>
-          <EditLocation childId={child.id} address={child.address} />
-        </div>
-        <DeleteChildButton childId={child.id} name={child.first_name} redirectTo="/" />
+    <main className="max-w-2xl">
+      <div className="flex items-baseline justify-between gap-4">
+        <h2 className="text-sm font-medium uppercase tracking-wide text-[var(--muted)]">Today · {today}</h2>
+        <Link href={planTab} className="shrink-0 text-xs underline">See the full plan</Link>
       </div>
 
-      {planReady && (
-        <section className="mt-8">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-[var(--muted)]">Today</h2>
-          <TodayActivityList activities={remainingActivities} childId={child.id} />
-        </section>
+      {journey.planError && (
+        <p className="mt-3 rounded-lg border border-[var(--border)] p-3 text-sm" role="status">
+          {journey.planError}
+        </p>
       )}
 
-      <section className="mt-8">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-sm font-medium uppercase tracking-wide text-[var(--muted)]">Reports</h2>
-          <Link href="/upload" className="text-xs underline">Upload a report</Link>
+      {finished ? (
+        <div className="mt-3 rounded-lg border border-[var(--border)] p-4">
+          <p className="text-sm font-medium">This plan has finished.</p>
+          <p className="mt-1 text-sm text-[var(--muted)]">Ready for the next two weeks? Build a new plan from the latest report.</p>
+          <Link href={planTab} className="mt-3 inline-block rounded bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white">
+            Get a new plan
+          </Link>
         </div>
-
-        {(reports ?? []).length === 0 ? (
-          <p className="mt-3 text-sm text-[var(--muted)]">No reports yet.</p>
-        ) : (
-          <ul className="mt-3 space-y-3">
-            {(reports ?? []).map((r) => {
-              const set = setByReport.get(r.id);
-              const list = set ? findingsBySet.get(set.id) ?? [] : [];
-              return (
-                <li key={r.id} className="rounded-lg border border-[var(--border)] p-4">
-                  <div className="flex items-baseline justify-between gap-4">
-                    <Link href={`/reports/${r.id}`} className="text-sm font-medium underline">
-                      {r.term_label ?? 'Report'}
-                      {r.academic_year ? ` (${r.academic_year})` : ''}
-                    </Link>
-                    <span className="shrink-0 text-xs text-[var(--muted)]">
-                      {REPORT_STAGE[r.status] ?? r.status}
-                    </span>
-                  </div>
-
-                  {set?.honesty_path && (
-                    <p className="mt-2 text-xs text-[var(--muted)]">
-                      Not enough in this report to draw a conclusion.
-                    </p>
-                  )}
-
-                  {list.length > 0 && (
-                    <ul className="mt-3 space-y-1.5 border-t border-[var(--border)] pt-3">
-                      {list.map((f) => (
-                        <li key={f.id} className="text-xs">
-                          <span className="mr-2 text-[var(--muted)]">
-                            {f.kind === 'strength' ? 'Strength' : 'Developing'}
-                          </span>
-                          <Link href={`/findings/${f.id}`} className="underline decoration-dotted">
-                            {f.statement}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
-
-      <section className="mt-10">
-        <h2 className="text-sm font-medium uppercase tracking-wide text-[var(--muted)]">Plans</h2>
-
-        {allFindingIds.length > 0 && !planInFlight && (
-          <RequestPlan
-            childId={child.id}
-            usableFindings={usableCount}
-            rejectedFindings={rejectedCount}
-            unreviewedFindings={unreviewedCount}
-            hasExistingPlan={(plans ?? []).length > 0}
-          />
-        )}
-
-        {(plans ?? []).length === 0 ? (
-          allFindingIds.length === 0 ? (
-            <p className="mt-3 text-sm text-[var(--muted)]">
-              Once a report’s findings are published, you can read them and then ask for a plan.
+      ) : unscheduled ? (
+        <p className="mt-3 text-sm text-[var(--muted)]">Today’s list isn’t ready yet — your plan doesn’t have a day-by-day schedule.</p>
+      ) : (
+        <>
+          {todays.length > 0 && (
+            <p className="mt-1 text-xs text-[var(--muted)]">
+              {doneCount === todays.length ? 'All done for today — nice work.' : `${doneCount} of ${todays.length} done`}
             </p>
-          ) : null
-        ) : (
-          <ul className="mt-3 space-y-3">
-            {(plans ?? []).map((p) => (
-              <li key={p.id} className="rounded-lg border border-[var(--border)] p-4">
-                <div className="flex items-baseline justify-between gap-4">
-                  <Link href={`/plans/${p.id}`} className="text-sm font-medium underline">
-                    Cycle {p.cycle_no}
-                  </Link>
-                  <span className="shrink-0 text-xs text-[var(--muted)]">
-                    {p.status === 'approved' || p.status === 'published'
-                      ? 'Ready'
-                      : p.status === 'draft'
-                        ? 'Waiting for review'
-                        : p.status}
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+          )}
+          <TodayActivityList
+            activities={todays}
+            childId={id}
+            emptyMessage="Nothing scheduled for today — a rest day."
+          />
+        </>
+      )}
+
+      <p className="mt-6 text-xs text-[var(--muted)]">
+        Want something different? <Link href={`/children/${id}/chat`} className="underline">Ask in chat</Link>
+        {' '}— e.g. “make today’s activities shorter”.
+      </p>
     </main>
   );
 }
