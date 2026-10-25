@@ -23,11 +23,11 @@ async function Nav() {
             {/* Chat and upload live inside each child's tabs now (see
                 children/[id]/layout.tsx), so the top bar is just home. */}
             <Link href="/" className="font-medium hover:underline">My children</Link>
+            {/* No "Monitor" link: /review is the old approval queue, and
+                plans and findings no longer wait in it. The page is still
+                reachable by URL if review ever comes back. */}
             {user.isOps && (
-              <>
-                <Link href="/review" className="text-[var(--muted)] hover:underline">Monitor</Link>
-                <Link href="/observability" className="text-[var(--muted)] hover:underline">Observability</Link>
-              </>
+              <Link href="/observability" className="text-[var(--muted)] hover:underline">Observability</Link>
             )}
             <form action="/api/auth/signout" method="post">
               <button type="submit" className="text-[var(--muted)] hover:underline">Sign out</button>

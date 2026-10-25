@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { routeClient, currentUser } from '../lib/db/server';
-import { serviceClient } from '../lib/db/clients';
 import { DeleteChildButton } from './children/DeleteChildButton';
 
 export const dynamic = 'force-dynamic';
@@ -60,8 +59,7 @@ export default async function Home() {
   ]);
 
   // One child: their workspace is home — there's nothing to choose between.
-  // Ops accounts keep this page for the review summary below.
-  if ((children ?? []).length === 1 && !user.isOps) redirect(`/children/${children![0].id}`);
+  if ((children ?? []).length === 1) redirect(`/children/${children![0].id}`);
 
   const reportsByChild = new Map<string, NonNullable<typeof reports>>();
   for (const r of reports ?? []) {
@@ -79,27 +77,9 @@ export default async function Home() {
     (plans ?? []).filter((p) => p.status === 'approved' || p.status === 'published').map((p) => p.child_id),
   );
 
-  let pendingReviews = 0;
-  if (user.isOps) {
-    const { count } = await serviceClient()
-      .from('review_queue')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'in_review');
-    pendingReviews = count ?? 0;
-  }
-
   return (
     <main className="max-w-3xl">
       <h1 className="text-2xl font-semibold tracking-tight">Your children</h1>
-
-      {user.isOps && (
-        <div className="mt-4 rounded-lg border border-[var(--border)] p-4">
-          <p className="text-sm">
-            <strong>{pendingReviews}</strong> item{pendingReviews === 1 ? '' : 's'} waiting for
-            review. <Link href="/review" className="underline">Open the review console</Link>
-          </p>
-        </div>
-      )}
 
       {(children ?? []).length === 0 ? (
         <div className="mt-6">
