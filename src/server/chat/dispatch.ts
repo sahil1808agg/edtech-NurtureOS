@@ -16,23 +16,13 @@ import {
   getPlanActivityForEdit,
   updatePlanActivity,
   getChild,
-  ageMonthsFromDob,
   getTargetFindings,
-  getFamilyConstraints,
   setFamilyInterests,
-  getResourceCandidates,
-  getRemovedActivities,
-  createPlan,
-  savePlanActivities,
-  approvePlanDirectly,
 } from '../db/plans.js';
-import { createScheduleForPlan } from '../db/schedule.js';
 import { getChildProfile, updateChildProfile as saveChildProfile } from '../db/children.js';
-import { runPlan } from '../pipeline/plan.js';
-import { resolveLocalActivities } from '../pipeline/resolve-local-activities.js';
 import { enqueue } from '../queue/enqueue.js';
 import { searchNearbyPlaces, geocodeAddress } from '../places/google-places.js';
-import { buildPlanSummaryForChat } from './summarize.js';
+import type { PlanGenerateJobData, PlanGenerateAudit } from '../queue/jobs/plan-generate.js';
 
 /**
  * Executes one tool call an agent made, auditing it, and never trusting the
@@ -52,7 +42,7 @@ export interface ToolDispatchContext {
   actorProfileId: string;
   /** Which agent made this call — prefixes the audit_log action, e.g. "report_agent.edit_finding_statement". */
   agentName: 'report_agent' | 'planning_agent' | 'profile_agent';
-  /** The chat turn's correlation id — carried onto any model call a tool makes (e.g. regenerate_plan's runPlan) so it groups with the turn that triggered it. See migration 0014. */
+  /** The chat turn's correlation id — carried onto any model call a tool makes (e.g. the plan.generate job regenerate_plan queues) so it groups with the turn that triggered it. See migration 0014. */
   requestId?: string;
 }
 
@@ -108,16 +98,15 @@ export async function dispatchTool(name: string, rawArgs: unknown, ctx: ToolDisp
 }
 
 /**
- * Runs the same sequence as the legacy plan-generate worker
- * (src/server/queue/jobs/plan-generate.ts), inline rather than queued — a
- * single reasoning-tier call, acceptable within a chat request (see
- * engineering doc §2/§3). Each call is a new plan cycle (createPlan assigns
- * the next cycle_no itself, retrying if a concurrent regeneration — e.g.
- * this same tool firing twice, or racing the queued worker — won it first),
- * so there is no "supersede the prior plan" step needed — old cycles simply
- * remain as history, the same way the legacy flow already works. The one
- * real difference: this skips enqueueForReview and goes straight to
- * 'approved', per the direct-apply decision (engineering doc §4/§7).
+ * Queues the plan rather than building it inline. The plan call plus the
+ * schedule call run minutes end to end (plan alone observed at 128–227s),
+ * and inline they held the whole chat turn — input locked, nothing shown —
+ * until both finished. The plan.generate worker runs the same sequence
+ * (generate → schedule → approve directly, no review gate) and posts the
+ * plan summary into this conversation when done, or a failure message; the
+ * chat's realtime subscription shows either without a refresh. The audit row
+ * is written by the worker once the plan exists, so it still carries the
+ * planId — `audit` below is what it needs to attribute it to this turn.
  */
 async function regeneratePlan(ctx: ToolDispatchContext): Promise<ToolDispatchResult> {
   const targetFindings = await getTargetFindings(ctx.childId);
@@ -125,47 +114,38 @@ async function regeneratePlan(ctx: ToolDispatchContext): Promise<ToolDispatchRes
     return { ok: false, summary: '', error: { code: 'NOTHING_TO_PLAN', message: "there's nothing to plan from yet — no published findings" } };
   }
 
-  const child = await getChild(ctx.childId);
-  const [constraints, resourceCandidates] = await Promise.all([
-    getFamilyConstraints(ctx.familyId),
-    getResourceCandidates(),
-  ]);
-  const hasLocation = (child.lat != null && child.lng != null) || !!(child.city || child.pincode);
-  const priorFailures = await getRemovedActivities(ctx.childId);
+  const audit: PlanGenerateAudit = {
+    actorProfileId: ctx.actorProfileId,
+    action: `${ctx.agentName}.regenerate_plan`,
+    conversationId: ctx.conversationId,
+    messageId: ctx.messageId,
+  };
 
-  const result = await runPlan({
-    childAgeMonths: ageMonthsFromDob(child.dob),
-    targetFindings,
-    constraints,
-    topicContext: null,
-    resourceCandidates,
-    priorFailures,
-    hasLocation,
-  }, ctx.familyId, ctx.requestId);
+  // Same singleton key as requestPlanRegeneration(), so a chat request and a
+  // button/email request for the same child collapse into one job.
+  const jobId = await enqueue(
+    'plan.generate',
+    { childId: ctx.childId, requestId: ctx.requestId, audit } satisfies PlanGenerateJobData,
+    { singletonKey: `plan:${ctx.childId}` },
+  );
 
-  if (!result.ok) {
-    return { ok: false, summary: '', error: { code: 'PLAN_GENERATION_FAILED', message: JSON.stringify(result.error) } };
+  if (!jobId) {
+    return {
+      ok: true,
+      summary: 'A new plan is already being built for this child. It will be posted in this chat when ready — do not describe any activities now.',
+    };
   }
 
-  const activities = await resolveLocalActivities(result.value.activities, child);
+  // A fresh attempt is under way, so the last failure is no longer the news;
+  // the job sets it again if this attempt fails too.
+  await serviceClient().from('children').update({ plan_error: null, plan_error_at: null }).eq('id', ctx.childId);
 
-  const { id: planId, cycleNo } = await createPlan({
-    familyId: ctx.familyId,
-    childId: ctx.childId,
-    topicContext: null,
-    modelDeployment: result.meta.modelDeployment,
-    promptVersion: result.meta.promptVersion,
-  });
-
-  await savePlanActivities(planId, activities);
-  // Today's list comes from this schedule; see db/schedule.ts.
-  await createScheduleForPlan(planId, ctx.requestId);
-  await approvePlanDirectly(planId);
-
-  const after = { planId, cycleNo, activities };
-  await writeAudit(ctx, 'regenerate_plan', 'plan', planId, null, after);
-
-  return { ok: true, summary: buildPlanSummaryForChat(activities, new Map(resourceCandidates.map(r => [r.id, r.title]))), after };
+  return {
+    ok: true,
+    summary:
+      'Started building a new two-week plan in the background. It usually takes a minute or two, and the plan will be posted in this chat automatically when ready. The plan does not exist yet — do not describe or list any activities; just tell the parent it is on its way.',
+    after: { jobId },
+  };
 }
 
 /**

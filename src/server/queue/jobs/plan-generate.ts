@@ -18,6 +18,7 @@ import { getConversationByChild } from '../../db/conversations.js';
 import { createScheduleForPlan } from '../../db/schedule.js';
 import { appendMessage } from '../../db/messages.js';
 import { buildPlanSummaryForChat } from '../../chat/summarize.js';
+import { serviceClient } from '../../../lib/db/clients.js';
 
 export const QUEUE = 'plan.generate';
 
@@ -37,10 +38,23 @@ export async function createPlanGenerateQueue(boss: PgBoss): Promise<void> {
   await boss.updateQueue(QUEUE, QUEUE_OPTIONS);
 }
 
+/**
+ * Set only when chat's regenerate_plan queued this job — who asked and from
+ * which chat message, so the audit row it used to write inline is still
+ * written, now with the planId this job creates.
+ */
+export interface PlanGenerateAudit {
+  actorProfileId: string;
+  action: string;
+  conversationId: string;
+  messageId: string;
+}
+
 export interface PlanGenerateJobData {
   childId: string;
   topicContext?: string | null;
   requestId?: string;
+  audit?: PlanGenerateAudit;
 }
 
 // Triggered per child, not per report — there's no review console / publish
@@ -98,7 +112,7 @@ async function reportPlanFailure(childId: string, requestedAt: Date): Promise<vo
 }
 
 async function generatePlan(data: PlanGenerateJobData): Promise<void> {
-  const { childId, topicContext = null, requestId } = data;
+  const { childId, topicContext = null, requestId, audit } = data;
 
   const child = await getChild(childId);
   const targetFindings = await getTargetFindings(childId);
@@ -131,7 +145,7 @@ async function generatePlan(data: PlanGenerateJobData): Promise<void> {
 
   const activities = await resolveLocalActivities(result.value.activities, child);
 
-  const { id: planId } = await createPlan({
+  const { id: planId, cycleNo } = await createPlan({
     familyId: child.familyId,
     childId,
     topicContext,
@@ -148,10 +162,21 @@ async function generatePlan(data: PlanGenerateJobData): Promise<void> {
   // (dispatch.ts) already does for the direct-apply path.
   await approvePlanDirectly(planId);
 
-  // This job is only ever queued from the legacy RequestPlan.tsx flow —
-  // chat's regenerate_plan tool runs inline, not through this queue (see
-  // src/server/chat/dispatch.ts). Posts only if the child has ever opened
-  // chat; does nothing otherwise. See docs/specs/05-pipeline-live-updates.md.
+  if (audit) {
+    await serviceClient().from('audit_log').insert({
+      actor: audit.actorProfileId,
+      action: audit.action,
+      entity: 'plan',
+      entity_id: planId,
+      payload: { before: null, after: { planId, cycleNo, activities }, conversationId: audit.conversationId, messageId: audit.messageId },
+    });
+  }
+
+  // Queued by RequestPlan.tsx, the email action route, and chat's
+  // regenerate_plan tool (src/server/chat/dispatch.ts) — for the last, this
+  // message is the plan the parent asked for in chat. Posts only if the
+  // child has ever opened chat; does nothing otherwise. See
+  // docs/specs/05-pipeline-live-updates.md.
   const conversation = await getConversationByChild(childId);
   if (conversation) {
     await appendMessage({

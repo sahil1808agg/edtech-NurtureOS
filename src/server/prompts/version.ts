@@ -12,9 +12,9 @@ export const PROMPT_VERSIONS = {
   checkin:     process.env.PROMPT_VERSION_CHECKIN     ?? '2',
   // chatroute/chat are retired — replaced by the orchestrator + 3 agents
   // below. See docs/specs/08-orchestrator-chat.md.
-  chat_orchestrator:   process.env.PROMPT_VERSION_CHAT_ORCHESTRATOR   ?? '6',
+  chat_orchestrator:   process.env.PROMPT_VERSION_CHAT_ORCHESTRATOR   ?? '7',
   chat_report_agent:   process.env.PROMPT_VERSION_CHAT_REPORT_AGENT   ?? '1',
-  chat_planning_agent: process.env.PROMPT_VERSION_CHAT_PLANNING_AGENT ?? '7',
+  chat_planning_agent: process.env.PROMPT_VERSION_CHAT_PLANNING_AGENT ?? '8',
   chat_profile_agent:  process.env.PROMPT_VERSION_CHAT_PROFILE_AGENT  ?? '5',
   chat_generic_agent:  process.env.PROMPT_VERSION_CHAT_GENERIC_AGENT  ?? '1',
 } as const;

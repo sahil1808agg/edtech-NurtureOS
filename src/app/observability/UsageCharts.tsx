@@ -5,6 +5,7 @@ import {
   ResponsiveContainer, BarChart, Bar, LineChart, Line,
   CartesianGrid, XAxis, YAxis, Tooltip, Legend,
 } from 'recharts';
+import { formatBucket } from './format';
 import type { TimeseriesBucket } from './ObservabilityDashboard';
 
 // Validated default categorical palette (dataviz skill, references/palette.md):
@@ -31,11 +32,6 @@ function usePrefersDark(): boolean {
     return () => mql.removeEventListener('change', listener);
   }, []);
   return dark;
-}
-
-function formatBucket(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric' });
 }
 
 export function UsageCharts({ timeseries }: { timeseries: TimeseriesBucket[] }) {

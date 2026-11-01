@@ -3,6 +3,8 @@
 import { useCallback, useState } from 'react';
 import { UsageCharts } from './UsageCharts';
 import { CallDetailModal } from './CallDetailModal';
+import { formatNumber, formatDateTime } from './format';
+import { TileDrilldown, type Drilldowns, type TileKey } from './TileDrilldown';
 
 // Mirrors src/server/observability/summarize.ts and src/server/db/llm-request-log.ts
 // shapes (as JSON over the wire) — kept as local types rather than importing the
@@ -14,6 +16,7 @@ interface SummaryTotals {
   inputTokens: number;
   outputTokens: number;
   costUsd: number;
+  unpricedRequests: number;
   p50LatencyMs: number;
   p95LatencyMs: number;
 }
@@ -21,6 +24,7 @@ interface StageBreakdown {
   stage: string;
   requests: number;
   costUsd: number;
+  unpricedRequests: number;
   avgLatencyMs: number;
   errorRate: number;
 }
@@ -37,6 +41,7 @@ interface ObservabilitySummary {
   totals: SummaryTotals;
   byStage: StageBreakdown[];
   timeseries: TimeseriesBucket[];
+  drilldowns: Drilldowns;
 }
 interface LlmRequestLogEntry {
   id: number;
@@ -72,7 +77,7 @@ interface Filters {
 // imported so the filter list doesn't depend on what happens to be in the
 // current window (a stage with zero calls should still be selectable).
 const STAGES = [
-  'extract', 'normalise', 'analyse', 'corroborate', 'plan', 'checkin',
+  'extract', 'normalise', 'analyse', 'corroborate', 'plan', 'schedule', 'checkin',
   'chat_orchestrator', 'chat_report_agent', 'chat_planning_agent', 'chat_profile_agent', 'chat_generic_agent',
 ] as const;
 
@@ -111,6 +116,8 @@ export function ObservabilityDashboard({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedCallId, setSelectedCallId] = useState<number | null>(null);
+  const [openTile, setOpenTile] = useState<TileKey | null>(null);
+  const toggleTile = (tile: TileKey) => setOpenTile((current) => (current === tile ? null : tile));
 
   const refresh = useCallback(async (next: Filters) => {
     setLoading(true);
@@ -204,16 +211,35 @@ export function ObservabilityDashboard({
       {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <StatTile label="Requests" value={summary.totals.requests.toLocaleString()} />
-        <StatTile label="Error rate" value={`${(summary.totals.errorRate * 100).toFixed(1)}%`} />
-        <StatTile label="Cost" value={`$${summary.totals.costUsd.toFixed(2)}`} />
-        <StatTile label="p50 latency" value={`${summary.totals.p50LatencyMs.toLocaleString()} ms`} />
-        <StatTile label="p95 latency" value={`${summary.totals.p95LatencyMs.toLocaleString()} ms`} />
+        <StatTile label="Requests" value={formatNumber(summary.totals.requests)} active={openTile === 'requests'} onClick={() => toggleTile('requests')} />
+        <StatTile label="Error rate" value={`${(summary.totals.errorRate * 100).toFixed(1)}%`} active={openTile === 'errors'} onClick={() => toggleTile('errors')} />
+        <StatTile
+          label="Cost"
+          value={`$${summary.totals.costUsd.toFixed(2)}`}
+          note={summary.totals.unpricedRequests > 0 ? `+ ${summary.totals.unpricedRequests} unpriced call${summary.totals.unpricedRequests === 1 ? '' : 's'}` : undefined}
+          active={openTile === 'cost'}
+          onClick={() => toggleTile('cost')}
+        />
+        <StatTile label="p50 latency" value={`${formatNumber(summary.totals.p50LatencyMs)} ms`} active={openTile === 'p50'} onClick={() => toggleTile('p50')} />
+        <StatTile label="p95 latency" value={`${formatNumber(summary.totals.p95LatencyMs)} ms`} active={openTile === 'p95'} onClick={() => toggleTile('p95')} />
         <StatTile
           label="Tokens (in/out)"
-          value={`${summary.totals.inputTokens.toLocaleString()} / ${summary.totals.outputTokens.toLocaleString()}`}
+          value={`${formatNumber(summary.totals.inputTokens)} / ${formatNumber(summary.totals.outputTokens)}`}
+          active={openTile === 'tokens'}
+          onClick={() => toggleTile('tokens')}
         />
       </div>
+      <p className="mt-2 text-[11px] text-[var(--muted)]">Click a number to see the calls behind it.</p>
+
+      {openTile && (
+        <TileDrilldown
+          tile={openTile}
+          drilldowns={summary.drilldowns}
+          ctx={{ p50: summary.totals.p50LatencyMs, p95: summary.totals.p95LatencyMs, unpriced: summary.totals.unpricedRequests }}
+          onSelectCall={setSelectedCallId}
+          onClose={() => setOpenTile(null)}
+        />
+      )}
 
       <UsageCharts timeseries={summary.timeseries} />
 
@@ -233,9 +259,13 @@ export function ObservabilityDashboard({
             {summary.byStage.map(row => (
               <tr key={row.stage} className="border-t border-[var(--border)]">
                 <td className="py-2 pr-4 font-medium">{row.stage}</td>
-                <td className="py-2 pr-4">{row.requests.toLocaleString()}</td>
-                <td className="py-2 pr-4">${row.costUsd.toFixed(4)}</td>
-                <td className="py-2 pr-4">{row.avgLatencyMs.toLocaleString()} ms</td>
+                <td className="py-2 pr-4">{formatNumber(row.requests)}</td>
+                <td className="py-2 pr-4">
+                  {row.unpricedRequests === row.requests && row.costUsd === 0
+                    ? <span className="text-[var(--muted)]" title="This model has no rate in src/server/llm/pricing.ts">— unpriced</span>
+                    : <>${row.costUsd.toFixed(4)}{row.unpricedRequests > 0 && <span className="text-[var(--muted)]"> + {row.unpricedRequests} unpriced</span>}</>}
+                </td>
+                <td className="py-2 pr-4">{formatNumber(row.avgLatencyMs)} ms</td>
                 <td className="py-2 pr-4">{(row.errorRate * 100).toFixed(1)}%</td>
               </tr>
             ))}
@@ -277,12 +307,31 @@ export function ObservabilityDashboard({
   );
 }
 
-function StatTile({ label, value }: { label: string; value: string }) {
+function StatTile({
+  label,
+  value,
+  note,
+  active,
+  onClick,
+}: {
+  label: string;
+  value: string;
+  note?: string;
+  active: boolean;
+  onClick: () => void;
+}) {
   return (
-    <div className="rounded-lg border border-[var(--border)] p-3">
+    <button
+      type="button"
+      onClick={onClick}
+      aria-expanded={active}
+      aria-controls="tile-drilldown"
+      className={`rounded-lg border p-3 text-left transition-colors hover:border-[var(--accent)] ${active ? 'border-[var(--accent)] bg-[var(--accent)]/5' : 'border-[var(--border)]'}`}
+    >
       <p className="text-[11px] uppercase tracking-wide text-[var(--muted)]">{label}</p>
       <p className="mt-1 text-lg font-semibold" style={{ fontVariantNumeric: 'tabular-nums' }}>{value}</p>
-    </div>
+      {note && <p className="mt-0.5 text-[11px] text-[var(--muted)]">{note}</p>}
+    </button>
   );
 }
 
@@ -294,6 +343,8 @@ interface Workflow {
   startMs: number;
   spanMs: number;
   totalCostUsd: number;
+  /** Any successful call in the workflow whose model has no rate in pricing.ts. */
+  hasUnpriced: boolean;
   hasError: boolean;
 }
 
@@ -322,6 +373,7 @@ function groupIntoWorkflows(calls: LlmRequestLogEntry[]): Workflow[] {
       startMs,
       spanMs: Math.max(endMs - startMs, 1),
       totalCostUsd: ordered.reduce((sum, c) => sum + (c.costUsd ?? 0), 0),
+      hasUnpriced: ordered.some((c) => c.status !== 'error' && c.costUsd == null),
       hasError: ordered.some(c => c.status === 'error'),
     };
   });
@@ -333,7 +385,7 @@ function groupIntoWorkflows(calls: LlmRequestLogEntry[]): Workflow[] {
 
 function WorkflowRow({ workflow, onSelectCall }: { workflow: Workflow; onSelectCall: (id: number) => void }) {
   const [open, setOpen] = useState(false);
-  const { calls, hasError, totalCostUsd, spanMs } = workflow;
+  const { calls, hasError, totalCostUsd, hasUnpriced, spanMs } = workflow;
   const first = calls[0];
   const isSingle = calls.length === 1;
   const stageLabel = [...new Set(calls.map(c => c.stage))].join(' → ');
@@ -354,9 +406,11 @@ function WorkflowRow({ workflow, onSelectCall }: { workflow: Workflow; onSelectC
           )}
         </div>
         <div className="flex shrink-0 items-center gap-4 text-xs text-[var(--muted)]">
-          <span>{new Date(first.createdAt).toLocaleString()}</span>
-          <span style={{ fontVariantNumeric: 'tabular-nums' }}>${totalCostUsd.toFixed(5)}</span>
-          <span style={{ fontVariantNumeric: 'tabular-nums' }}>{spanMs.toLocaleString()} ms</span>
+          <span>{formatDateTime(first.createdAt)}</span>
+          <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+            {hasUnpriced && totalCostUsd === 0 ? '— unpriced' : `$${totalCostUsd.toFixed(5)}${hasUnpriced ? ' + unpriced' : ''}`}
+          </span>
+          <span style={{ fontVariantNumeric: 'tabular-nums' }}>{formatNumber(spanMs)} ms</span>
         </div>
       </div>
 
@@ -380,7 +434,7 @@ function WorkflowRow({ workflow, onSelectCall }: { workflow: Workflow; onSelectC
                   />
                 </div>
                 <span className="w-16 shrink-0 text-right text-[11px] text-[var(--muted)]" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                  {c.latencyMs.toLocaleString()}ms
+                  {formatNumber(c.latencyMs)}ms
                 </span>
                 <span className="w-16 shrink-0 text-right text-[11px] text-[var(--muted)]" style={{ fontVariantNumeric: 'tabular-nums' }}>
                   {c.costUsd === null ? '—' : `$${c.costUsd.toFixed(5)}`}
