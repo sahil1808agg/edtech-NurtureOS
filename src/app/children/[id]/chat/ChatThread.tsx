@@ -5,6 +5,7 @@ import Link from 'next/link';
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { supabaseBrowser } from '../../../../lib/db/browser';
 import { SourceViewer } from '../../../../components/SourceViewer';
 
@@ -131,6 +132,22 @@ const EMPTY_TITLES: Map<string, string> = new Map();
 // app's own palette rather than a generic "prose" stylesheet, since no
 // typography plugin is installed. Parent-typed text is never run through
 // this (see the plain-text branch in the message list below).
+// A bare URL (autolinked by remark-gfm) shows as its own text — for the
+// long Google Maps links nearby places carry, that's a wall of query string,
+// so label those by what they open instead.
+function linkLabel(children: React.ReactNode, href: string | undefined): React.ReactNode {
+  if (!href || children !== href) return children;
+  try {
+    const url = new URL(href);
+    if (/(^|\.)google\.[a-z.]+$/.test(url.hostname) && (url.hostname.startsWith('maps.') || url.pathname.startsWith('/maps'))) {
+      return 'Open in Google Maps';
+    }
+    return url.hostname.replace(/^www\./, '');
+  } catch {
+    return children;
+  }
+}
+
 const markdownComponents: Components = {
   p: ({ children }) => <p className="mb-2 leading-relaxed last:mb-0">{children}</p>,
   ul: ({ children }) => <ul className="mb-2 list-disc space-y-1 pl-5 last:mb-0">{children}</ul>,
@@ -143,7 +160,7 @@ const markdownComponents: Components = {
   em: ({ children }) => <em className="italic">{children}</em>,
   a: ({ children, href }) => (
     <a href={href} target="_blank" rel="noopener noreferrer" className="underline text-[var(--accent)] hover:opacity-80">
-      {children}
+      {linkLabel(children, href)}
     </a>
   ),
   code: ({ children }) => (
@@ -353,7 +370,7 @@ function MessageTime({ createdAt, align }: { createdAt: string; align: 'left' | 
 function MessageBubble({ message, onViewEvidence }: { message: ChatMessage; onViewEvidence: (report: EvidenceReport) => void }) {
   const isUser = message.role === 'user';
   return (
-    <div className={isUser ? 'ml-auto flex max-w-2xl flex-col items-end' : 'max-w-2xl'}>
+    <div className={isUser ? 'ml-auto flex min-w-0 max-w-2xl flex-col items-end' : 'min-w-0 max-w-2xl'}>
       <MessageBody message={message} onViewEvidence={onViewEvidence} />
       {message.status !== 'pending' && <MessageTime createdAt={message.createdAt} align={isUser ? 'right' : 'left'} />}
     </div>
@@ -367,7 +384,7 @@ function MessageBody({ message, onViewEvidence }: { message: ChatMessage; onView
 
   if (message.role === 'user') {
     return (
-      <div className="ml-auto max-w-2xl rounded-2xl bg-[var(--accent)] px-4 py-2.5 text-sm text-white whitespace-pre-wrap">
+      <div className="ml-auto max-w-full rounded-2xl bg-[var(--accent)] px-4 py-2.5 text-sm text-white whitespace-pre-wrap [overflow-wrap:anywhere]">
         {message.content}
       </div>
     );
@@ -381,7 +398,7 @@ function MessageBody({ message, onViewEvidence }: { message: ChatMessage; onView
       className={
         isPending
           ? 'max-w-2xl rounded-2xl border border-dashed border-[var(--border)] px-4 py-2.5 text-sm text-[var(--muted)]'
-          : 'max-w-2xl rounded-2xl border border-[var(--border)] px-4 py-2.5 text-sm'
+          : 'min-w-0 max-w-2xl rounded-2xl border border-[var(--border)] px-4 py-2.5 text-sm [overflow-wrap:anywhere]'
       }
     >
       {isPending ? (
@@ -391,7 +408,7 @@ function MessageBody({ message, onViewEvidence }: { message: ChatMessage; onView
         </span>
       ) : (
         <>
-          <ReactMarkdown components={markdownComponents}>{message.content}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>{message.content}</ReactMarkdown>
           {evidence && <EvidenceSection evidence={evidence} content={message.content} onViewEvidence={onViewEvidence} />}
         </>
       )}

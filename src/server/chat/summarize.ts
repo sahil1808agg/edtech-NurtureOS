@@ -48,7 +48,10 @@ export function buildPlanSummaryForChat(
     const resourceTitle = a.resourceId ? resourceTitleById.get(a.resourceId) : null;
     const label = resourceTitle ? `${a.title} — ${resourceTitle}` : a.title;
     const meta = `~${a.estimatedMinutes} min; ${a.materials.length ? `materials: ${a.materials.join(', ')}` : 'no materials needed'}`;
-    const steps = a.steps.map((s, i) => `  ${i + 1}. ${s}`).join('\n');
+    // A step can span lines (resolve-local-activities.ts adds a "Try one of
+    // these nearby:" step with one place per line) — indent those under the
+    // step's number, or markdown lifts them out into top-level bullets.
+    const steps = a.steps.map((s, i) => `  ${i + 1}. ${s.replace(/\n/g, '\n     ')}`).join('\n');
     return `- ${label}: ${a.instructions} (${meta})\n${steps}`;
   };
   const section = (label: string, list: typeof activities) =>
