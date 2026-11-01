@@ -15,10 +15,12 @@ import {
   hasPlanCreatedSince,
 } from '../../db/plans.js';
 import { getConversationByChild } from '../../db/conversations.js';
-import { createScheduleForPlan } from '../../db/schedule.js';
+import { todayISODate } from '../../db/schedule.js';
 import { appendMessage } from '../../db/messages.js';
 import { buildPlanSummaryForChat } from '../../chat/summarize.js';
 import { serviceClient } from '../../../lib/db/clients.js';
+import { getBoss } from '../boss.js';
+import { QUEUE as PLAN_SCHEDULE_QUEUE, type PlanScheduleJobData } from './plan-schedule.js';
 
 export const QUEUE = 'plan.generate';
 
@@ -154,13 +156,16 @@ async function generatePlan(data: PlanGenerateJobData): Promise<void> {
   });
 
   await savePlanActivities(planId, activities);
-  // Today's list comes from this schedule; written before approval so the
-  // plan never appears without one.
-  await createScheduleForPlan(planId, requestId);
 
   // No review gate: approves immediately, same as chat's regenerate_plan
   // (dispatch.ts) already does for the direct-apply path.
   await approvePlanDirectly(planId);
+
+  // Today's day-by-day list is a second model call, so it runs as its own
+  // job (plan-schedule.ts) instead of holding up the plan and its chat
+  // summary. Until it lands, Today shows the plan as not yet scheduled.
+  const scheduleJob: PlanScheduleJobData = { planId, startDate: todayISODate(), requestId };
+  await (await getBoss()).send(PLAN_SCHEDULE_QUEUE, scheduleJob);
 
   if (audit) {
     await serviceClient().from('audit_log').insert({

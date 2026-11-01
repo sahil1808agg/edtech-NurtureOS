@@ -4,6 +4,7 @@ import { createReportExtractQueue, registerReportExtractWorker } from './jobs/re
 import { createReportNormaliseQueue, registerReportNormaliseWorker } from './jobs/report-normalise.js';
 import { createReportAnalyseQueue, registerReportAnalyseWorker } from './jobs/report-analyse.js';
 import { createPlanGenerateQueue, registerPlanGenerateWorker } from './jobs/plan-generate.js';
+import { createPlanScheduleQueue, registerPlanScheduleWorker } from './jobs/plan-schedule.js';
 import { createCheckinProcessQueue, registerCheckinProcessWorker } from './jobs/checkin-process.js';
 import { createDailyDigestQueue, registerDailyDigestWorker, QUEUE as DAILY_DIGEST_QUEUE } from './jobs/daily-digest.js';
 
@@ -22,6 +23,9 @@ async function main() {
   await createPlanGenerateQueue(boss);
   await registerPlanGenerateWorker(boss);
 
+  await createPlanScheduleQueue(boss);
+  await registerPlanScheduleWorker(boss);
+
   await createCheckinProcessQueue(boss);
   await registerCheckinProcessWorker(boss);
 
@@ -33,7 +37,7 @@ async function main() {
   // process, keeps a single owner for all cron-shaped work.
   await boss.schedule(DAILY_DIGEST_QUEUE, '0 8 * * *', {}, { tz: 'Asia/Kolkata' });
 
-  console.log('Worker running. Registered queues: report.extract, report.normalise, report.analyse, plan.generate, checkin.process, plan.daily-digest');
+  console.log('Worker running. Registered queues: report.extract, report.normalise, report.analyse, plan.generate, plan.schedule, checkin.process, plan.daily-digest');
 }
 
 main().catch((err) => {

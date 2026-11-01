@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server';
 import { routeClient, currentUser } from '../../../../../lib/db/server';
 import { getOrCreateConversation } from '../../../../../server/db/conversations';
-import { listMessages } from '../../../../../server/db/messages';
+import { listMessages, MESSAGE_PAGE_SIZE } from '../../../../../server/db/messages';
 
 export const runtime = 'nodejs';
 
-/** The chat thread for one child — creates the conversation on first call. See docs/specs/01-chat-thread.md. */
+/**
+ * The chat thread for one child — creates the conversation on first call.
+ * See docs/specs/01-chat-thread.md. `?before=<createdAt>` returns the page of
+ * messages older than that one (ChatThread's "Load earlier messages").
+ */
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id: childId } = await params;
 
@@ -23,8 +27,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   if (!child) return NextResponse.json({ error: 'Child not found' }, { status: 404 });
 
-  const conversation = await getOrCreateConversation(childId, child.family_id);
-  const messages = await listMessages(conversation.id, {});
+  const beforeParam = new URL(request.url).searchParams.get('before');
+  if (beforeParam && Number.isNaN(Date.parse(beforeParam))) {
+    return NextResponse.json({ error: 'before must be a timestamp' }, { status: 400 });
+  }
 
-  return NextResponse.json({ conversation, messages });
+  const conversation = await getOrCreateConversation(childId, child.family_id);
+  const messages = await listMessages(conversation.id, { before: beforeParam ?? undefined });
+
+  // A full page means there may be more before it; a short one means this is the start.
+  return NextResponse.json({ conversation, messages, hasEarlier: messages.length === MESSAGE_PAGE_SIZE });
 }

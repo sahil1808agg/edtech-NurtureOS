@@ -304,7 +304,63 @@ function EvidenceSection({
   );
 }
 
+const timeFormat = new Intl.DateTimeFormat('en-IN', { hour: 'numeric', minute: '2-digit' });
+const dateFormat = new Intl.DateTimeFormat('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
+const dateWithYearFormat = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+const fullFormat = new Intl.DateTimeFormat('en-IN', { dateStyle: 'full', timeStyle: 'medium' });
+
+function isSameDay(a: Date, b: Date): boolean {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+/** "Today, 3:42 pm" · "Yesterday, 9:05 am" · "Sun, 26 Oct, 3:42 pm" · "26 Oct 2025, 3:42 pm" */
+function formatMessageTime(iso: string): string {
+  const sent = new Date(iso);
+  const now = new Date();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+
+  const day = isSameDay(sent, now)
+    ? 'Today'
+    : isSameDay(sent, yesterday)
+      ? 'Yesterday'
+      : sent.getFullYear() === now.getFullYear()
+        ? dateFormat.format(sent)
+        : dateWithYearFormat.format(sent);
+  return `${day}, ${timeFormat.format(sent)}`;
+}
+
+// Rendered only after mount: the server formats in its own timezone, which
+// would show the wrong time (and a hydration mismatch) for the parent.
+function MessageTime({ createdAt, align }: { createdAt: string; align: 'left' | 'right' }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted || Number.isNaN(Date.parse(createdAt))) return <div className="mt-1 h-4" />;
+
+  return (
+    <time
+      dateTime={createdAt}
+      title={fullFormat.format(new Date(createdAt))}
+      className={`mt-1 block h-4 text-[11px] text-[var(--muted)] ${align === 'right' ? 'text-right' : ''}`}
+    >
+      {formatMessageTime(createdAt)}
+    </time>
+  );
+}
+
+// Each bubble with its sent/received time underneath. Skipped while a reply
+// is still pending — its row's time is when work started, not when it arrived.
 function MessageBubble({ message, onViewEvidence }: { message: ChatMessage; onViewEvidence: (report: EvidenceReport) => void }) {
+  const isUser = message.role === 'user';
+  return (
+    <div className={isUser ? 'ml-auto flex max-w-2xl flex-col items-end' : 'max-w-2xl'}>
+      <MessageBody message={message} onViewEvidence={onViewEvidence} />
+      {message.status !== 'pending' && <MessageTime createdAt={message.createdAt} align={isUser ? 'right' : 'left'} />}
+    </div>
+  );
+}
+
+function MessageBody({ message, onViewEvidence }: { message: ChatMessage; onViewEvidence: (report: EvidenceReport) => void }) {
   if (message.attachmentReportId && message.role === 'user') {
     return <AttachmentChip reportId={message.attachmentReportId} fileName={message.content} />;
   }
@@ -347,12 +403,17 @@ export function ChatThread({
   childId,
   conversationId,
   initialMessages,
+  initialHasEarlier,
 }: {
   childId: string;
   conversationId: string;
   initialMessages: ChatMessage[];
+  /** The page holds only the latest messages — true when older ones may exist to load. */
+  initialHasEarlier: boolean;
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [hasEarlier, setHasEarlier] = useState(initialHasEarlier);
+  const [loadingEarlier, setLoadingEarlier] = useState(false);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -407,9 +468,38 @@ export function ChatThread({
     };
   }, [conversationId]);
 
+  // Keyed on the last message, not the count, so loading earlier messages
+  // (which prepends) doesn't yank the parent back down to the bottom.
+  const lastMessageId = messages[messages.length - 1]?.id;
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages.length]);
+  }, [lastMessageId]);
+
+  async function loadEarlier() {
+    const oldest = messages.find((m) => !m.id.startsWith('temp-'));
+    if (!oldest || loadingEarlier) return;
+
+    setLoadingEarlier(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/children/${childId}/chat?before=${encodeURIComponent(oldest.createdAt)}`);
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(body.error ?? `Could not load earlier messages (${res.status})`);
+        return;
+      }
+      const earlier: ChatMessage[] = body.messages ?? [];
+      setMessages((prev) => {
+        const seen = new Set(prev.map((m) => m.id));
+        return [...earlier.filter((m) => !seen.has(m.id)), ...prev];
+      });
+      setHasEarlier(Boolean(body.hasEarlier));
+    } catch {
+      setError('Could not reach the server.');
+    } finally {
+      setLoadingEarlier(false);
+    }
+  }
 
   async function sendMessage() {
     const content = draft.trim();
@@ -510,6 +600,18 @@ export function ChatThread({
     <div className={evidenceReport ? 'mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start' : 'mt-6'}>
       <div>
         {error && <p className="mb-3 text-sm text-red-600" role="alert">{error}</p>}
+
+        {hasEarlier && (
+          <div className="mb-4 flex justify-center">
+            <button
+              onClick={loadEarlier}
+              disabled={loadingEarlier}
+              className="rounded border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--muted)] hover:border-[var(--accent)] disabled:opacity-50"
+            >
+              {loadingEarlier ? 'Loading…' : 'Load earlier messages'}
+            </button>
+          </div>
+        )}
 
         <div className="space-y-3">
           {messages.map((m) => (

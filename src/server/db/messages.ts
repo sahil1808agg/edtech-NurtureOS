@@ -93,6 +93,15 @@ export async function appendMessage(input: AppendMessageInput): Promise<ChatMess
   return fromRow(data);
 }
 
+/** Default page size for listMessages — the thread asks for more (before=) in steps of this. */
+export const MESSAGE_PAGE_SIZE = 50;
+
+/**
+ * The latest `limit` messages (before `before`, if given), oldest first.
+ * Fetched newest-first and reversed: ordering ascending with a limit
+ * returned the conversation's *first* 50, so past 50 messages the thread
+ * and the chat model's history both lost everything recent.
+ */
 export async function listMessages(
   conversationId: string,
   opts: { before?: string; limit?: number } = {},
@@ -101,14 +110,14 @@ export async function listMessages(
     .from('messages')
     .select(COLUMNS)
     .eq('conversation_id', conversationId)
-    .order('created_at', { ascending: true })
-    .limit(opts.limit ?? 50);
+    .order('created_at', { ascending: false })
+    .limit(opts.limit ?? MESSAGE_PAGE_SIZE);
 
   if (opts.before) query = query.lt('created_at', opts.before);
 
   const { data, error } = await query;
   if (error) throw new Error(`listing messages for conversation ${conversationId}: ${error.message}`);
-  return (data ?? []).map(fromRow);
+  return (data ?? []).map(fromRow).reverse();
 }
 
 export async function updateMessage(

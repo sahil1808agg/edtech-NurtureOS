@@ -98,7 +98,11 @@ export default async function TodayPage({ params }: { params: Promise<{ id: stri
           </Link>
         </div>
       ) : unscheduled ? (
-        <p className="mt-3 text-sm text-[var(--muted)]">Today’s list isn’t ready yet — your plan doesn’t have a day-by-day schedule.</p>
+        <>
+          {/* The schedule is built in the background after the plan is approved (plan.schedule job). */}
+          <AutoRefresh active />
+          <p className="mt-3 text-sm text-[var(--muted)]">Putting together today’s list…</p>
+        </>
       ) : (
         <>
           {todays.length > 0 && (

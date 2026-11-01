@@ -23,9 +23,10 @@ function addDays(isoDate: string, n: number): string {
  * Writes the day-by-day schedule for a plan whose activities are already
  * saved: asks the schedule model (with its fallback — see
  * pipeline/plan-schedule.ts) which activities go on which day, starting
- * `startDate`, and stores one row per activity per day. Called right after
- * savePlanActivities() by both plan-generation paths, before the plan is
- * approved, so a plan never becomes visible without a Today list.
+ * `startDate`, and stores one row per activity per day. Run by the
+ * plan.schedule job (queue/jobs/plan-schedule.ts) after plan.generate has
+ * approved the plan, so the plan can be on screen briefly before its
+ * schedule exists — Today shows it as not yet scheduled until then.
  */
 export async function createScheduleForPlan(planId: string, requestId?: string, startDate = todayISODate()): Promise<'model' | 'fallback'> {
   const admin = serviceClient();

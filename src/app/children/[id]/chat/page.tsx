@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { routeClient, currentUser } from '../../../../lib/db/server';
 import { getOrCreateConversation } from '../../../../server/db/conversations';
-import { listMessages } from '../../../../server/db/messages';
+import { listMessages, MESSAGE_PAGE_SIZE } from '../../../../server/db/messages';
 import { ChatThread } from './ChatThread';
 
 export const dynamic = 'force-dynamic';
@@ -33,7 +33,12 @@ export default async function ChildChatPage({ params }: { params: Promise<{ id: 
 
   return (
     <main>
-      <ChatThread childId={child.id} conversationId={conversation.id} initialMessages={messages} />
+      <ChatThread
+        childId={child.id}
+        conversationId={conversation.id}
+        initialMessages={messages}
+        initialHasEarlier={messages.length === MESSAGE_PAGE_SIZE}
+      />
     </main>
   );
 }
