@@ -55,19 +55,23 @@ export async function getFamilyConstraints(familyId: string): Promise<FamilyCons
 
   const interests: string[] = Array.isArray(data?.interests) ? data.interests : [];
   const materials: string[] = Array.isArray(data?.materials) ? data.materials : [];
-  const otherConstraints = [
-    interests.length ? `The family has said they want: ${interests.join(', ')}.` : null,
-    materials.length ? `Materials on hand: ${materials.join(', ')}.` : null,
-  ]
-    .filter(Boolean)
-    .join(' ') || null;
 
   return {
     weeklyMinutes: data?.weekly_minutes ?? 60,
     hasDevice: true,
     languages: ['English'],
-    otherConstraints,
+    otherConstraints: buildOtherConstraints(interests, materials),
   };
+}
+
+/** Pure half of getFamilyConstraints(), exported so the plan-quality eval phrases parent requests exactly as production does. */
+export function buildOtherConstraints(interests: string[], materials: string[]): string | null {
+  return [
+    interests.length ? `The family has said they want: ${interests.join(', ')}.` : null,
+    materials.length ? `Materials on hand: ${materials.join(', ')}.` : null,
+  ]
+    .filter(Boolean)
+    .join(' ') || null;
 }
 
 /**

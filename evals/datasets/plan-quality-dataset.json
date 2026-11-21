@@ -1,0 +1,432 @@
+[
+  {
+    "id": "plan-quality-001",
+    "description": "Balanced 6-year-old with strengths and growth areas in literacy, numeracy and physical. Parent asked for swimming.",
+    "childAgeMonths": 74,
+    "weeklyMinutes": 120,
+    "hasDevice": true,
+    "languages": [
+      "English"
+    ],
+    "hasLocation": true,
+    "findings": [
+      {
+        "id": "a1000000-0000-4000-8000-000000000001",
+        "kind": "strength",
+        "statement": "Reads simple picture books aloud with expression and good fluency"
+      },
+      {
+        "id": "a1000000-0000-4000-8000-000000000002",
+        "kind": "growth",
+        "statement": "Is still learning to write complete sentences with capital letters and full stops"
+      },
+      {
+        "id": "a1000000-0000-4000-8000-000000000003",
+        "kind": "growth",
+        "statement": "Developing confidence with subtraction within 20, often counting on fingers"
+      },
+      {
+        "id": "a1000000-0000-4000-8000-000000000004",
+        "kind": "strength",
+        "statement": "Shows strong ball skills and coordination in PE games"
+      }
+    ],
+    "parentRequests": [
+      "swimming"
+    ],
+    "expected": {
+      "strengthCovered": true,
+      "growthCovered": true,
+      "include": [
+        {
+          "item": "swimming",
+          "keywords": [
+            "swim",
+            "pool"
+          ]
+        }
+      ],
+      "exclude": []
+    }
+  },
+  {
+    "id": "plan-quality-002",
+    "description": "Child who loves drawing and struggles with retelling stories. Parent said no painting, which tempts a planner leaning on the art strength.",
+    "childAgeMonths": 66,
+    "weeklyMinutes": 90,
+    "hasDevice": true,
+    "languages": [
+      "English"
+    ],
+    "hasLocation": false,
+    "findings": [
+      {
+        "id": "a2000000-0000-4000-8000-000000000001",
+        "kind": "strength",
+        "statement": "Produces detailed, imaginative drawings and is highly engaged during art"
+      },
+      {
+        "id": "a2000000-0000-4000-8000-000000000002",
+        "kind": "growth",
+        "statement": "Finds it hard to retell a story in the correct order of events"
+      },
+      {
+        "id": "a2000000-0000-4000-8000-000000000003",
+        "kind": "growth",
+        "statement": "Is learning to take turns and wait patiently during group activities"
+      }
+    ],
+    "parentRequests": [
+      "no painting, it gets too messy at home"
+    ],
+    "expected": {
+      "strengthCovered": true,
+      "growthCovered": true,
+      "include": [],
+      "exclude": [
+        {
+          "item": "painting",
+          "keywords": [
+            "paint"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "plan-quality-003",
+    "description": "Mostly non-academic findings including a music strength, but the parent asked for no music or singing. The plan must still cover a strength without using music.",
+    "childAgeMonths": 60,
+    "weeklyMinutes": 90,
+    "hasDevice": true,
+    "languages": [
+      "English"
+    ],
+    "hasLocation": true,
+    "findings": [
+      {
+        "id": "a3000000-0000-4000-8000-000000000001",
+        "kind": "growth",
+        "statement": "Becomes upset quickly when a game does not go their way and needs adult help to calm down"
+      },
+      {
+        "id": "a3000000-0000-4000-8000-000000000002",
+        "kind": "strength",
+        "statement": "Is kind and welcoming to new classmates and often includes others in play"
+      },
+      {
+        "id": "a3000000-0000-4000-8000-000000000003",
+        "kind": "strength",
+        "statement": "Keeps a steady beat and enjoys singing songs from memory"
+      },
+      {
+        "id": "a3000000-0000-4000-8000-000000000004",
+        "kind": "growth",
+        "statement": "Is developing balance and control when hopping and skipping"
+      }
+    ],
+    "parentRequests": [
+      "no music or singing activities, the baby naps in the afternoon"
+    ],
+    "expected": {
+      "strengthCovered": true,
+      "growthCovered": true,
+      "include": [],
+      "exclude": [
+        {
+          "item": "music or singing",
+          "keywords": [
+            "music",
+            "singing",
+            "sings",
+            "song",
+            "drum",
+            "instrument"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "plan-quality-004",
+    "description": "Tight constraints: 45 minutes a week, no device, Hindi at home. Parent asked for cooking together.",
+    "childAgeMonths": 84,
+    "weeklyMinutes": 45,
+    "hasDevice": false,
+    "languages": [
+      "Hindi",
+      "English"
+    ],
+    "hasLocation": false,
+    "findings": [
+      {
+        "id": "a4000000-0000-4000-8000-000000000001",
+        "kind": "growth",
+        "statement": "Is building fluency with times tables for 2, 5 and 10"
+      },
+      {
+        "id": "a4000000-0000-4000-8000-000000000002",
+        "kind": "strength",
+        "statement": "Speaks confidently in Hindi and uses a wide vocabulary in class discussions"
+      },
+      {
+        "id": "a4000000-0000-4000-8000-000000000003",
+        "kind": "growth",
+        "statement": "Is working on reading longer words by breaking them into syllables"
+      }
+    ],
+    "parentRequests": [
+      "cooking together in the kitchen"
+    ],
+    "expected": {
+      "strengthCovered": true,
+      "growthCovered": true,
+      "include": [
+        {
+          "item": "cooking",
+          "keywords": [
+            "cook",
+            "recipe",
+            "kitchen",
+            "bake",
+            "baking"
+          ]
+        }
+      ],
+      "exclude": []
+    }
+  },
+  {
+    "id": "plan-quality-005",
+    "description": "Several numeracy findings plus a science strength. Parent asked for chess and no worksheets.",
+    "childAgeMonths": 96,
+    "weeklyMinutes": 120,
+    "hasDevice": true,
+    "languages": [
+      "English"
+    ],
+    "hasLocation": true,
+    "findings": [
+      {
+        "id": "a5000000-0000-4000-8000-000000000001",
+        "kind": "growth",
+        "statement": "Is still learning to tell time to the nearest five minutes on an analogue clock"
+      },
+      {
+        "id": "a5000000-0000-4000-8000-000000000002",
+        "kind": "growth",
+        "statement": "Finds word problems with two steps confusing and often uses the wrong operation"
+      },
+      {
+        "id": "a5000000-0000-4000-8000-000000000003",
+        "kind": "strength",
+        "statement": "Recalls addition and subtraction facts within 20 quickly and accurately"
+      },
+      {
+        "id": "a5000000-0000-4000-8000-000000000004",
+        "kind": "strength",
+        "statement": "Asks thoughtful questions and makes careful observations during science experiments"
+      }
+    ],
+    "parentRequests": [
+      "chess",
+      "no worksheets"
+    ],
+    "expected": {
+      "strengthCovered": true,
+      "growthCovered": true,
+      "include": [
+        {
+          "item": "chess",
+          "keywords": [
+            "chess"
+          ]
+        }
+      ],
+      "exclude": [
+        {
+          "item": "worksheets",
+          "keywords": [
+            "worksheet"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "plan-quality-006",
+    "description": "Strength-heavy 9-year-old with a device available. Parent asked for nature walks and no TV or YouTube.",
+    "childAgeMonths": 110,
+    "weeklyMinutes": 150,
+    "hasDevice": true,
+    "languages": [
+      "English"
+    ],
+    "hasLocation": true,
+    "findings": [
+      {
+        "id": "a6000000-0000-4000-8000-000000000001",
+        "kind": "strength",
+        "statement": "Reads chapter books independently well above grade level and summarises plots clearly"
+      },
+      {
+        "id": "a6000000-0000-4000-8000-000000000002",
+        "kind": "strength",
+        "statement": "Solves multi-digit multiplication accurately and explains their method"
+      },
+      {
+        "id": "a6000000-0000-4000-8000-000000000003",
+        "kind": "strength",
+        "statement": "Builds elaborate models and structures from recycled materials"
+      },
+      {
+        "id": "a6000000-0000-4000-8000-000000000004",
+        "kind": "growth",
+        "statement": "Gets frustrated and gives up quickly when a task is not perfect the first time"
+      }
+    ],
+    "parentRequests": [
+      "nature walks outdoors",
+      "no TV or YouTube videos"
+    ],
+    "expected": {
+      "strengthCovered": true,
+      "growthCovered": true,
+      "include": [
+        {
+          "item": "nature walks",
+          "keywords": [
+            "nature",
+            "walk",
+            "hike",
+            "trail"
+          ]
+        }
+      ],
+      "exclude": [
+        {
+          "item": "TV or YouTube videos",
+          "keywords": [
+            "tv",
+            "television",
+            "youtube",
+            "video"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "plan-quality-007",
+    "description": "Sight words and data-handling growth areas, a running-games strength. Parent asked for football and no flashcards, the obvious sight-word activity.",
+    "childAgeMonths": 78,
+    "weeklyMinutes": 90,
+    "hasDevice": true,
+    "languages": [
+      "English"
+    ],
+    "hasLocation": false,
+    "findings": [
+      {
+        "id": "a7000000-0000-4000-8000-000000000001",
+        "kind": "growth",
+        "statement": "Is learning to collect and represent simple data in a chart"
+      },
+      {
+        "id": "a7000000-0000-4000-8000-000000000002",
+        "kind": "growth",
+        "statement": "Is building recognition of common sight words"
+      },
+      {
+        "id": "a7000000-0000-4000-8000-000000000003",
+        "kind": "strength",
+        "statement": "Loves running games and has lots of energy outdoors"
+      }
+    ],
+    "parentRequests": [
+      "football",
+      "no flashcards"
+    ],
+    "expected": {
+      "strengthCovered": true,
+      "growthCovered": true,
+      "include": [
+        {
+          "item": "football",
+          "keywords": [
+            "football",
+            "soccer"
+          ]
+        }
+      ],
+      "exclude": [
+        {
+          "item": "flashcards",
+          "keywords": [
+            "flashcard",
+            "flash card"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "plan-quality-008",
+    "description": "Young child (4 years), no device. Parent asked for more arts and crafts and no glitter.",
+    "childAgeMonths": 50,
+    "weeklyMinutes": 60,
+    "hasDevice": false,
+    "languages": [
+      "English"
+    ],
+    "hasLocation": true,
+    "findings": [
+      {
+        "id": "a8000000-0000-4000-8000-000000000001",
+        "kind": "growth",
+        "statement": "Is developing a steady pencil grip and control when tracing lines"
+      },
+      {
+        "id": "a8000000-0000-4000-8000-000000000002",
+        "kind": "strength",
+        "statement": "Has a rich spoken vocabulary and tells long imaginative stories"
+      },
+      {
+        "id": "a8000000-0000-4000-8000-000000000003",
+        "kind": "growth",
+        "statement": "Is learning to count objects reliably up to 10 with one-to-one correspondence"
+      }
+    ],
+    "parentRequests": [
+      "more arts and craft activities",
+      "no glitter"
+    ],
+    "expected": {
+      "strengthCovered": true,
+      "growthCovered": true,
+      "include": [
+        {
+          "item": "arts and crafts",
+          "keywords": [
+            "craft",
+            "draw",
+            "paint",
+            "colour",
+            "color",
+            "collage",
+            "glue",
+            "sticker"
+          ]
+        }
+      ],
+      "exclude": [
+        {
+          "item": "glitter",
+          "keywords": [
+            "glitter"
+          ]
+        }
+      ]
+    }
+  }
+]
