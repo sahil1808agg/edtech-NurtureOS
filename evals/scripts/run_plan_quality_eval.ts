@@ -26,9 +26,11 @@ import { callOpenAICompat } from '../../src/server/llm/providers/openai-compat.j
  *     include — some activity involves it
  *     exclude — no activity involves it
  *   Decided by the item's keywords (matched at the start of a word in an
- *   activity's title, instructions, steps, materials or localQuery). Only
- *   when no keyword matches does a yes/no judge get asked whether any
- *   activity involves it anyway, to catch synonyms the keywords missed.
+ *   activity's title, instructions, steps, materials or localQuery) where
+ *   they're conclusive: an include that matches passes, an exclude that
+ *   doesn't passes. Otherwise a yes/no judge is asked whether any activity
+ *   really involves it — catching an include under a synonym, and an
+ *   exclude keyword that only appears as "without X" / "X-free".
  *
  *   npm run eval:plan-quality        options: --case=<id>  --limit=<n>  --concurrency=<n> (default 3)
  */
@@ -167,7 +169,7 @@ async function judgeInvolvement(
 ): Promise<Array<{ involved: boolean; activityIndexes: number[]; reasoning: string }>> {
   const system = [
     "You check whether a child's activity plan involves particular things a parent mentioned.",
-    'For each item, answer one yes/no question: does ANY activity actually involve it — as the activity itself, a step, or a material? Only what the activity text says counts; a shared theme or a passing mention that it is NOT used does not.',
+    'For each item, answer one yes/no question: does ANY activity actually involve it — as the activity itself, a step, or a material? Only what the activity text says counts; a shared theme does not, and neither does text saying it is NOT used (e.g. "without worksheets", "glitter-free", "avoids singing").',
     'Respond with strict JSON only: {"items": [{"index": number, "involved": boolean, "activityIndexes": number[], "reasoning": "<one sentence>"}]}',
   ].join('\n');
   const user = JSON.stringify({
@@ -188,17 +190,22 @@ async function checkRequests(testCase: TestCase, activities: PlanActivity[]): Pr
     ...testCase.expected.include.map(e => ({ ...e, type: 'include' as const })),
     ...testCase.expected.exclude.map(e => ({ ...e, type: 'exclude' as const })),
   ];
-  const results: Array<RequestResult | null> = requests.map(req => {
-    const { indexes, matched } = keywordHits(req, activities);
-    if (!indexes.length) return null;
-    return {
-      type: req.type,
-      item: req.item,
-      activityIndexes: indexes,
-      decidedBy: 'keyword',
-      reasoning: `Matched ${matched.map(k => `"${k}"`).join(', ')} in ${indexes.map(i => `"${activities[i].title}"`).join(', ')}.`,
-      pass: req.type === 'include',
-    };
+  const hits = requests.map(req => keywordHits(req, activities));
+  const matchedText = (i: number) =>
+    `Matched ${hits[i].matched.map(k => `"${k}"`).join(', ')} in ${hits[i].indexes.map(j => `"${activities[j].title}"`).join(', ')}`;
+
+  // Keywords settle an include that matched and an exclude that didn't. The
+  // other two go to the judge: an include may be there under a synonym, and
+  // an exclude keyword is often the plan saying it's avoided ("glitter-free").
+  const results: Array<RequestResult | null> = requests.map((req, i) => {
+    const matched = hits[i].indexes.length > 0;
+    if (req.type === 'include' && matched) {
+      return { type: req.type, item: req.item, activityIndexes: hits[i].indexes, decidedBy: 'keyword', reasoning: `${matchedText(i)}.`, pass: true };
+    }
+    if (req.type === 'exclude' && !matched) {
+      return { type: req.type, item: req.item, activityIndexes: [], decidedBy: 'keyword', reasoning: 'No keyword matched any activity.', pass: true };
+    }
+    return null;
   });
 
   const unresolved = requests.filter((_, i) => results[i] === null);
@@ -213,7 +220,7 @@ async function checkRequests(testCase: TestCase, activities: PlanActivity[]): Pr
         item: req.item,
         activityIndexes: a.activityIndexes,
         decidedBy: 'judge',
-        reasoning: `No keyword matched; judge: ${a.reasoning}`,
+        reasoning: `${req.type === 'include' ? 'No keyword matched' : matchedText(i)}; judge: ${a.reasoning}`,
         pass: req.type === 'include' ? a.involved : !a.involved,
       };
     });
